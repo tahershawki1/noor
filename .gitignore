@@ -24,3 +24,7 @@ android/capacitor-cordova-android-plugins/build/
 .idea/
 .DS_Store
 Thumbs.db
+
+# بيانات الباك اند المحلية
+server/data/
+server/.env

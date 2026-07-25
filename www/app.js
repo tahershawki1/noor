@@ -32,6 +32,7 @@ const SECTION_TITLES = {
   adhan: "الأذان",
   bookmarks: "المحفوظات",
   adiyah: "الأدعية",
+  memory: "الذاكرة",
 };
 let currentTab = "home";
 
@@ -55,6 +56,7 @@ function navigateTo(tab) {
 
   if (tab === "bookmarks") renderBookmarks();
   if (tab === "adiyah") renderAdiyah();
+  if (tab === "memory") window.renderMemorySection?.();
 
   document.querySelectorAll(".nav-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);
@@ -152,6 +154,9 @@ $("surahSearch").addEventListener("input", (e) => {
 async function openSurah(number, ayahToHighlight = null) {
   currentSurah = number;
   pendingAyahScroll = ayahToHighlight;
+  // نتذكّر آخر موضع قراءة في الذاكرة
+  const surahName = surahs.find((s) => s.number === number)?.name || `سورة ${number}`;
+  localStorage.setItem("lastRead", JSON.stringify({ surah: number, name: surahName, ayah: ayahToHighlight, at: new Date().toISOString() }));
   $("surahListView").classList.add("hidden");
   $("surahReadView").classList.remove("hidden");
   $("ayahContainer").innerHTML = '<div class="loading">جارِ تحميل السورة...</div>';

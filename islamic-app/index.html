@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>نور — تطبيق إسلامي</title>
+  <!-- نسخة الواجهة المنشورة — تُملأ آلياً عند النشر وتُستخدم لاكتشاف التحديثات -->
+  <meta name="noor-version" content="" />
+  <meta name="noor-release" content="1.1.0" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Lateef:wght@400;700&family=Reem+Kufi:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -137,6 +140,10 @@
             <span class="qt-icon tone-blue"><svg class="ic"><use href="#i-adhan"></use></svg></span>
             <span class="qt-name">الأذان</span>
           </button>
+          <button class="quick-tile" onclick="navigateTo('memory')">
+            <span class="qt-icon tone-emerald"><svg class="ic"><use href="#i-book-text"></use></svg></span>
+            <span class="qt-name">الذاكرة</span>
+          </button>
         </div>
       </section>
 
@@ -215,6 +222,74 @@
       <section id="adiyah" class="tab-panel">
         <p class="page-note">أدعية مأثورة عن النبي ﷺ</p>
         <div id="adiyahList" class="adiyah-list"></div>
+      </section>
+
+      <!-- ======== قسم الذاكرة ======== -->
+      <section id="memory" class="tab-panel">
+        <p class="page-note">كل ما تُدخله في التطبيق يُحفظ هنا — الإعدادات والمحفوظات والعدّادات وعمليات البحث</p>
+
+        <div class="mem-stats" id="memStats"></div>
+
+        <!-- التحديثات -->
+        <div class="mem-card">
+          <div class="mem-card-head">
+            <h3><svg class="ic"><use href="#i-refresh"></use></svg> تحديثات التطبيق</h3>
+            <button id="memCheckUpdate" class="chip-btn">بحث عن تحديث</button>
+          </div>
+          <div class="mem-kv" id="memUpdateInfo"></div>
+          <label class="mem-switch">
+            <input type="checkbox" id="memAutoReload" data-mem-ignore />
+            <span>تحديث تلقائي فور نشر إصدار جديد (بدون سؤال)</span>
+          </label>
+        </div>
+
+        <!-- الاتصال بالباك اند -->
+        <div class="mem-card">
+          <div class="mem-card-head">
+            <h3><svg class="ic"><use href="#i-open"></use></svg> المزامنة مع الخادم</h3>
+            <span class="mem-badge" id="memSyncBadge">غير مفعّلة</span>
+          </div>
+          <div class="field">
+            <label class="field-label" for="memApiUrl">عنوان الخادم (الباك اند)</label>
+            <input type="url" id="memApiUrl" class="search-input" dir="ltr"
+                   placeholder="https://noor-api.example.com" data-mem-ignore />
+          </div>
+          <div class="field">
+            <label class="field-label" for="memApiToken">توكن الوصول (اختياري)</label>
+            <input type="password" id="memApiToken" class="search-input" dir="ltr"
+                   placeholder="اتركه فارغاً إن لم يكن مطلوباً" data-mem-ignore />
+          </div>
+          <label class="mem-switch">
+            <input type="checkbox" id="memSyncToggle" data-mem-ignore />
+            <span>تفعيل المزامنة التلقائية</span>
+          </label>
+          <div class="mem-actions">
+            <button id="memSyncNow" class="btn btn-soft btn-sm">رفع الآن</button>
+            <button id="memPull" class="btn btn-soft btn-sm">سحب من الخادم</button>
+            <button id="memRestore" class="btn btn-soft btn-sm">استعادة الإعدادات</button>
+          </div>
+          <p class="mem-hint" id="memSyncHint">معرّف الجهاز: <code id="memDeviceId" dir="ltr"></code></p>
+        </div>
+
+        <!-- سجل المدخلات -->
+        <div class="mem-card">
+          <div class="mem-card-head">
+            <h3><svg class="ic"><use href="#i-book-text"></use></svg> سجل المدخلات</h3>
+            <span class="mem-badge" id="memCount">0</span>
+          </div>
+          <div class="search-field">
+            <svg class="ic search-ic"><use href="#i-search"></use></svg>
+            <input type="search" id="memSearch" class="search-input" placeholder="ابحث في الذاكرة" data-mem-ignore />
+          </div>
+          <div class="mem-filters" id="memFilters"></div>
+          <div id="memList" class="mem-list"></div>
+          <div class="mem-actions">
+            <button id="memExport" class="btn btn-soft btn-sm">تصدير ملف</button>
+            <button id="memImport" class="btn btn-soft btn-sm">استيراد ملف</button>
+            <button id="memClear" class="btn btn-soft btn-sm danger">مسح السجل</button>
+            <input type="file" id="memImportFile" accept="application/json" class="hidden" data-mem-ignore />
+          </div>
+        </div>
       </section>
 
       <!-- ======== قسم الأذان ======== -->
@@ -453,6 +528,14 @@
           <span class="preview-label">معاينة</span>
           <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
         </div>
+
+        <div class="field">
+          <label class="field-label">الذاكرة والتحديثات</label>
+          <button id="openMemoryBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-book-text"></use></svg> سجل المدخلات والمزامنة والتحديثات
+          </button>
+          <p class="field-hint">النسخة الحالية: <span id="settingsVersion" dir="ltr">—</span></p>
+        </div>
       </div>
     </div>
   </div>
@@ -594,7 +677,11 @@
 
 </div>
 
+<!-- الذاكرة تُحمَّل أولاً لتلتقط كل عمليات الحفظ التي يقوم بها التطبيق -->
+<script src="memory.js"></script>
 <script src="adhkar-data.js"></script>
 <script src="app.js"></script>
+<script src="updates.js"></script>
+<script src="memory-ui.js"></script>
 </body>
 </html>

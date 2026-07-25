@@ -1,10 +1,16 @@
 {
   "name": "eslamic-app",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.1.0",
+  "description": "نور — تطبيق إسلامي (ويب + أندرويد) مع باك اند للذاكرة والتحديثات",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "npx --yes http-server islamic-app -p 8090 -c-1",
+    "sync:www": "node scripts/sync-www.mjs",
+    "build:version": "node scripts/build-version.mjs islamic-app",
+    "server:install": "npm --prefix server install",
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "test": "npm --prefix server test"
   },
   "keywords": [],
   "author": "",

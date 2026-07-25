@@ -23,7 +23,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
       - uses: actions/configure-pages@v5
+
+      # يكتب version.json ويختم index.html برقم النسخة، ويضيف ?v=<sha>
+      # لملفات CSS/JS حتى يلتقط المتصفح التحديث فور نشره بدل خدمة نسخة مخزّنة.
+      - name: ختم نسخة الإصدار
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: node scripts/build-version.mjs islamic-app
 
       # يُنشر محتوى islamic-app (المصدر الوحيد لواجهة التطبيق)
       - uses: actions/upload-pages-artifact@v3
