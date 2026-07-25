@@ -1,5 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    ============================================================================
+    نور — Grand Permissions Shell (غلاف الصلاحيات الموحّد)
+    ============================================================================
+    كل الصلاحيات التي قد يحتاجها كود الويب مستقبلاً معلَنة هنا مسبقاً، لذلك
+    يكفي بناء الـ APK مرة واحدة فقط. أي ميزة جديدة تُفعَّل من JavaScript
+    (كاميرا، ميكروفون، موقع، إشعارات، بلوتوث، بصمة، زر عائم...) ستجد صلاحيتها
+    جاهزة في الـ Manifest ولن تحتاج إعادة بناء التطبيق.
+
+    ملاحظة مهمة: إعلان الصلاحية هنا لا يعني منحها. صلاحيات Android الخطرة
+    (dangerous permissions) تُطلب من المستخدم وقت التشغيل:
+      • الكاميرا/الميكروفون: يطلبها WebView تلقائياً عند أول getUserMedia()
+        عبر BridgeWebChromeClient.onPermissionRequest في Capacitor.
+      • الموقع: يطلبه WebView عند أول navigator.geolocation.
+      • SYSTEM_ALERT_WINDOW: صلاحية خاصة تُمنح من شاشة الإعدادات
+        (انظر FloatingWidgetPlugin.requestPermission).
+    ============================================================================
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ==================== 1) الشبكة والإنترنت ==================== -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- ==================== 2) الكاميرا والصوت (WebRTC / الوسائط الحية) ==================== -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
+    <!-- ==================== 3) التخزين والمعرض ==================== -->
+    <!-- Android 13 (API 33) فأحدث: صلاحيات الوسائط المُجزّأة -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <!-- Android 12L (API 32) فأقدم -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <!-- Android 9 (API 28) فأقدم -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
+    <!-- ==================== 4) الموقع الجغرافي ==================== -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- ==================== 5) الإشعارات والاهتزاز ==================== -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ==================== 6) الميزات الإضافية والبصمة ==================== -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!-- ==================== 7) العرض فوق التطبيقات الأخرى (الزر العائم) ==================== -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- مطلوبة منذ Android 14 (API 34) لأن targetSdk = 36 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+
+    <!-- ============ ميزات اختيارية: حتى لا يُمنع التثبيت على الأجهزة الناقصة ============ -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.location" android:required="false" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth" android:required="false" />
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
 
     <application
         android:allowBackup="true"
@@ -7,6 +79,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <activity
@@ -24,6 +98,23 @@
 
         </activity>
 
+        <!--
+            خدمة الزر العائم (System Overlay).
+            تعمل كـ Foreground Service حتى يبقى الزر ظاهراً بعد خروج المستخدم
+            من التطبيق. النوع specialUse لأن الاستخدام "طبقة عرض دائمة" ولا
+            ينطبق عليه أي نوع قياسي آخر في Android 14+.
+        -->
+        <service
+            android:name=".floating.FloatingWidgetService"
+            android:enabled="true"
+            android:exported="false"
+            android:stopWithTask="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="persistent_floating_overlay_widget_controlled_by_web_app" />
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -35,9 +126,21 @@
         </provider>
     </application>
 
-    <!-- Permissions -->
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!--
+        استعلامات الحزم (Android 11+) — تسمح بفتح الروابط/الملفات من الويب
+        عبر Intents دون أن يحجبها فلتر رؤية الحزم (package visibility).
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.GET_CONTENT" />
+            <data android:mimeType="*/*" />
+        </intent>
+    </queries>
 </manifest>

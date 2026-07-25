@@ -23,8 +23,12 @@ islamic-app/          ← مصدر تطبيق الويب (هو المنشور ع
   styles.css            التصميم (ثيم داكن أخضر/ذهبي)
   app.js                منطق التطبيق كاملاً
   adhkar-data.js        بيانات الأذكار
+  live-updates.js       التحديثات المباشرة (Capgo) — بلا إعادة بناء APK
+  floating-widget.js    الـ SDK الخاص بالزر العائم فوق التطبيقات
 www/                  ← نسخة من islamic-app يستخدمها Capacitor لبناء الأندرويد
-android/              ← مشروع أندرويد (Capacitor)
+android/              ← مشروع أندرويد (Capacitor) + البلاجن الأصلي للزر العائم
+scripts/sync-web.js   ← ينسخ islamic-app/ → www/
+docs/native-shell.md  ← دليل الغلاف الأصلي: الصلاحيات، التحديث المباشر، الزر العائم
 capacitor.config.json ← إعدادات Capacitor (appId: com.noor.islamicapp)
 .github/workflows/    ← نشر تلقائي على GitHub Pages عند كل push
 ```
@@ -41,13 +45,32 @@ cd islamic-app && python -m http.server 8090
 
 ## بناء تطبيق الأندرويد
 
-`www/` هي نسخة من محتوى `islamic-app/` (بدون الصوتيات). بعد أي تعديل على `islamic-app/`، انسخ الملفات الأربعة إلى `www/` ثم:
+الـ APK يُبنى **مرة واحدة فقط**. كل الصلاحيات معلنة مسبقاً في الـ Manifest، وكود
+الويب يُحدَّث لاسلكياً بعد ذلك عبر Capgo:
 
 ```bash
 npm install
-npx cap sync android
-cd android && ./gradlew assembleDebug
+npm run build:debug      # = sync:web + cap sync + gradlew assembleDebug
 ```
+
+### تحديث المستخدمين بعد ذلك (بلا APK جديد)
+
+```bash
+npm version patch        # 1.0.0 → 1.0.1
+npm run bundle:upload    # يضغط www في Zip ويرفعه لقناة production
+```
+
+التفاصيل الكاملة — الصلاحيات، التحديث المباشر، الزر العائم وواجهته البرمجية —
+في **[docs/native-shell.md](docs/native-shell.md)**.
+
+### الغلاف الأصلي باختصار
+
+| الميزة | الحالة |
+|---|---|
+| كل الصلاحيات (كاميرا، ميكروفون، تخزين، موقع، إشعارات، بصمة، بلوتوث، Overlay) | معلنة مسبقاً — تُفعَّل من الويب بلا APK جديد |
+| تحديثات الويب المباشرة | `@capgo/capacitor-updater` — يفحص عند كل فتح ويطبّق في الخلفية |
+| الزر العائم فوق التطبيقات | بلاجن أصلي مخصص، شكله وسلوكه بالكامل من الجافاسكريبت |
+| الكاميرا/الميكروفون (WebRTC) | `getUserMedia()` يعمل مباشرة — Capacitor يترجم طلب الإذن تلقائياً |
 
 ## مصادر البيانات
 
