@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# ملفات صوت القرآن (222MB) — التطبيق يشغّلها من everyayah.com مباشرة
+islamic-app/audio/
+www/audio/
+
+# APK المفكوك (مرجع محلي فقط)
+base/
+base.apk
+
+# Android build output
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/capacitor-cordova-android-plugins/build/
+*.keystore
+*.jks
+
+# أدوات المحرر
+.claude/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

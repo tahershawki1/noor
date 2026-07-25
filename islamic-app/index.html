@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0A0F0D" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>نور — تطبيق إسلامي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Lateef:wght@400;700&family=Reem+Kufi:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ============ مكتبة الأيقونات (SVG sprite) ============ -->
+<svg class="svg-sprite" aria-hidden="true" focusable="false">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 9.5 9-6.5 9 6.5V20a1.5 1.5 0 0 1-1.5 1.5h-4V14h-7v7.5h-4A1.5 1.5 0 0 1 3 20z"/></symbol>
+  <symbol id="i-quran" viewBox="0 0 24 24"><path d="M12 7.2v13.3"/><path d="M3.2 18.2a.9.9 0 0 1-.9-.9V4.6a.9.9 0 0 1 .9-.9h5.1A3.7 3.7 0 0 1 12 7.2a3.7 3.7 0 0 1 3.7-3.5h5.1a.9.9 0 0 1 .9.9v12.7a.9.9 0 0 1-.9.9h-5.6a2.8 2.8 0 0 0-3.2 2.8 2.8 2.8 0 0 0-3.2-2.8z"/></symbol>
+  <symbol id="i-beads" viewBox="0 0 24 24"><path d="m12 2.8 2 4.6 4.9.6-3.6 3.3 1 4.8-4.3-2.4-4.3 2.4 1-4.8L5.1 8l4.9-.6z"/><path d="m18.4 15.6.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/></symbol>
+  <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="m19 21-7-4.2L5 21V5.6A2.6 2.6 0 0 1 7.6 3h8.8A2.6 2.6 0 0 1 19 5.6z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6.8V12l3.4 2.2"/></symbol>
+  <symbol id="i-dua" viewBox="0 0 24 24"><path d="M12 21.3V9.4"/><path d="m12 9.4 2.9-3.9a1.6 1.6 0 0 1 2.7 1.7L15.3 12v3.6a5 5 0 0 1-3.3 4.7"/><path d="M12 9.4 9.1 5.5a1.6 1.6 0 0 0-2.7 1.7L8.7 12v3.6a5 5 0 0 0 3.3 4.7"/></symbol>
+  <symbol id="i-adhan" viewBox="0 0 24 24"><path d="M11 5.2 6.4 9H2.8v6h3.6L11 18.8z"/><path d="M15.4 8.9a4.4 4.4 0 0 1 0 6.2"/><path d="M18.6 5.4a8.8 8.8 0 0 1 0 13.2"/></symbol>
+  <symbol id="i-mosque" viewBox="0 0 24 24"><path d="M12 2.6c1.9 2 2.9 3.4 2.9 4.7A2.9 2.9 0 0 1 12 10a2.9 2.9 0 0 1-2.9-2.7c0-1.3 1-2.7 2.9-4.7Z"/><path d="M4.4 21.4v-6.8a7.6 7.6 0 0 1 15.2 0v6.8"/><path d="M9.4 21.4v-3.6a2.6 2.6 0 0 1 5.2 0v3.6"/><path d="M2 21.4h20"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M4.8 12h14.4"/><path d="m12.6 5.4 6.6 6.6-6.6 6.6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2M12 19.4v2M2.6 12h2M19.4 12h2M5.4 5.4l1.4 1.4M17.2 17.2l1.4 1.4M18.6 5.4l-1.4 1.4M6.8 17.2l-1.4 1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 13.2A8.6 8.6 0 1 1 11 3a6.9 6.9 0 0 0 10 10.2Z"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M21 7.5h-8M6.5 7.5h-3.5M21 16.5h-3.5M11 16.5H3"/><circle cx="10" cy="7.5" r="2.4"/><circle cx="14.5" cy="16.5" r="2.4"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20.4 20.4-3.9-3.9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6M5.2 12h13.6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.4 6.4 11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.6 12a8.6 8.6 0 1 1-2.7-6.3"/><path d="M20.6 3.4v5.2h-5.2"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
+  <symbol id="i-chevron-start" viewBox="0 0 24 24"><path d="m14.5 6.5-5.5 5.5 5.5 5.5"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10.2" r="2.6"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7.5 4.8v14.4L19.5 12z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8.4 4.8h2.8v14.4H8.4zM12.8 4.8h2.8v14.4h-2.8z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 6.6h15M9.4 6.6V4.8a1.2 1.2 0 0 1 1.2-1.2h2.8a1.2 1.2 0 0 1 1.2 1.2v1.8"/><path d="M6.6 6.6 7.5 19a1.4 1.4 0 0 0 1.4 1.3h6.2a1.4 1.4 0 0 0 1.4-1.3l.9-12.4"/></symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="M14.5 3.6h5.9v5.9"/><path d="m20.4 3.6-8.3 8.3"/><path d="M18 14.2v4.7a1.9 1.9 0 0 1-1.9 1.9H5.1a1.9 1.9 0 0 1-1.9-1.9V7.9A1.9 1.9 0 0 1 5.1 6h4.7"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7.5 20V4.6M4 8.1l3.5-3.5L11 8.1"/><path d="M16.5 4v15.4M13 15.9l3.5 3.5 3.5-3.5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.8 4.6 4.6L19 6.6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6.2 8.8a5.8 5.8 0 0 1 11.6 0c0 6.8 2.9 8.7 2.9 8.7H3.3s2.9-1.9 2.9-8.7"/><path d="M10.1 21a2 2 0 0 0 3.8 0"/></symbol>
+  <symbol id="i-book-text" viewBox="0 0 24 24"><path d="M4.5 4.6A1.9 1.9 0 0 1 6.4 2.7h13V21H6.4a1.9 1.9 0 0 1 0-3.8h13"/><path d="M9.2 7.6h6.4M9.2 11.4h4.4"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.4 2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6L3.3 9.8l6-.9z"/></symbol>
+  <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5.2 6.4 9H2.8v6h3.6L11 18.8z"/><path d="M15.4 8.9a4.4 4.4 0 0 1 0 6.2"/></symbol>
+  <symbol id="i-text-size" viewBox="0 0 24 24"><path d="M3.5 19 8.4 6.2 13.3 19M5.4 14.8h6"/><path d="M14.5 19l3.4-8.8L21.3 19M15.8 16.1h4.2"/></symbol>
+</svg>
+
+<!-- ============ هيكل التطبيق ============ -->
+<div class="app-shell" id="appShell">
+
+  <!-- ======== شريط التطبيق العلوي ======== -->
+  <header class="app-bar" id="appBar">
+    <button class="ab-icon ab-back hidden" id="backBtn" aria-label="رجوع">
+      <svg class="ic"><use href="#i-back"></use></svg>
+    </button>
+
+    <div class="ab-brand" id="abBrand">
+      <span class="ab-logo"><svg class="ic"><use href="#i-moon"></use></svg></span>
+      <div class="ab-brand-txt">
+        <h1>نور</h1>
+        <span class="ab-sub" id="hijriDate"></span>
+      </div>
+    </div>
+
+    <div class="ab-title hidden" id="abTitle">
+      <span class="ab-title-main" id="headerSurahName"></span>
+      <span class="ab-title-sub" id="headerJuzHizb"></span>
+    </div>
+
+    <div class="ab-actions">
+      <button class="ab-icon" id="themeToggle" aria-label="تبديل الوضع">
+        <svg class="ic"><use href="#i-sun"></use></svg>
+      </button>
+      <button class="ab-icon" id="settingsBtn" aria-label="الإعدادات">
+        <svg class="ic"><use href="#i-settings"></use></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ======== جسم التطبيق ======== -->
+  <div class="shell-body" id="shellBody">
+    <main id="mainContent">
+
+      <!-- ======== الصفحة الرئيسية ======== -->
+      <section id="home" class="tab-panel active">
+
+        <div class="hero-card">
+          <div class="hero-glow"></div>
+
+          <div class="hero-empty" id="homePlaceholder">
+            <span class="hero-empty-icon"><svg class="ic"><use href="#i-mosque"></use></svg></span>
+            <p>فعّل مواقيت الصلاة لعرض الصلاة القادمة</p>
+            <button class="btn btn-light btn-sm" onclick="navigateTo('prayer')">
+              <svg class="ic"><use href="#i-pin"></use></svg> تفعيل المواقيت
+            </button>
+          </div>
+
+          <div class="hero-main hidden" id="homeNextSection">
+            <span class="hero-label">الصلاة القادمة</span>
+            <div class="hero-prayer" id="homeNextPrayerName">—</div>
+            <div class="hero-countdown" id="homeCountdown">--:--:--</div>
+          </div>
+
+          <div class="prayer-strip" id="homePrayerTimesRow"></div>
+        </div>
+
+        <div class="sec-head">
+          <h2>الأقسام</h2>
+        </div>
+
+        <div class="quick-grid">
+          <button class="quick-tile" onclick="navigateTo('quran')">
+            <span class="qt-icon tone-emerald"><svg class="ic"><use href="#i-quran"></use></svg></span>
+            <span class="qt-name">القرآن الكريم</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('adhkar')">
+            <span class="qt-icon tone-violet"><svg class="ic"><use href="#i-beads"></use></svg></span>
+            <span class="qt-name">الأذكار</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('bookmarks')">
+            <span class="qt-icon tone-amber"><svg class="ic"><use href="#i-bookmark"></use></svg></span>
+            <span class="qt-name">المحفوظات</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('prayer')">
+            <span class="qt-icon tone-teal"><svg class="ic"><use href="#i-clock"></use></svg></span>
+            <span class="qt-name">مواقيت الصلاة</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('adiyah')">
+            <span class="qt-icon tone-rose"><svg class="ic"><use href="#i-dua"></use></svg></span>
+            <span class="qt-name">الأدعية</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('adhan')">
+            <span class="qt-icon tone-blue"><svg class="ic"><use href="#i-adhan"></use></svg></span>
+            <span class="qt-name">الأذان</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ======== قسم القرآن الكريم ======== -->
+      <section id="quran" class="tab-panel">
+        <div id="surahListView">
+          <div class="search-field">
+            <svg class="ic search-ic"><use href="#i-search"></use></svg>
+            <input type="search" id="surahSearch" class="search-input" placeholder="ابحث عن سورة أو رقمها" />
+          </div>
+          <div id="surahList" class="surah-list">
+            <div class="loading">جارِ تحميل قائمة السور...</div>
+          </div>
+        </div>
+
+        <div id="surahReadView" class="hidden">
+          <div id="ayahContainer" class="ayah-container"></div>
+        </div>
+      </section>
+
+      <audio id="ayahAudioPlayer" preload="none"></audio>
+      <audio id="adhanAudioPlayer" preload="none"></audio>
+
+      <!-- ======== قسم الأذكار ======== -->
+      <section id="adhkar" class="tab-panel">
+        <div id="adhkarCatView">
+          <div class="sec-head">
+            <h2>حصّن نفسك بذكر الله</h2>
+            <button id="addAdhkarBtn" class="chip-btn">
+              <svg class="ic"><use href="#i-plus"></use></svg> إضافة
+            </button>
+          </div>
+
+          <div id="adhkarCategories" class="category-grid"></div>
+
+          <div class="tasbeeh-card">
+            <div class="tasbeeh-head">
+              <span class="tasbeeh-title">سبحة إلكترونية</span>
+              <button id="tasbeehReset" class="chip-btn ghost">تصفير</button>
+            </div>
+            <div class="tasbeeh-count" id="tasbeehCount">0</div>
+            <button id="tasbeehBtn" class="tasbeeh-btn">سبحان الله</button>
+            <select id="tasbeehPhrase" class="select-input tasbeeh-select">
+              <option>سبحان الله</option>
+              <option>الحمد لله</option>
+              <option>الله أكبر</option>
+              <option>لا إله إلا الله</option>
+              <option>أستغفر الله</option>
+              <option>لا حول ولا قوة إلا بالله</option>
+              <option>اللهم صل على محمد</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="adhkarListView" class="hidden">
+          <div class="sub-head">
+            <button id="backToCategories" class="chip-btn ghost">
+              <svg class="ic"><use href="#i-back"></use></svg> الأقسام
+            </button>
+            <h2 id="adhkarCatTitle"></h2>
+            <button id="reorderAdhkarBtn" class="chip-btn ghost">
+              <svg class="ic"><use href="#i-sort"></use></svg> ترتيب
+            </button>
+          </div>
+          <div id="adhkarItems"></div>
+        </div>
+      </section>
+
+      <!-- ======== قسم المحفوظات ======== -->
+      <section id="bookmarks" class="tab-panel">
+        <p class="page-note">الآيات التي حفظتها للرجوع إليها</p>
+        <div id="bookmarksList"></div>
+      </section>
+
+      <!-- ======== قسم الأدعية ======== -->
+      <section id="adiyah" class="tab-panel">
+        <p class="page-note">أدعية مأثورة عن النبي ﷺ</p>
+        <div id="adiyahList" class="adiyah-list"></div>
+      </section>
+
+      <!-- ======== قسم الأذان ======== -->
+      <section id="adhan" class="tab-panel">
+        <div class="sec-head">
+          <h2>استمع للأذان وأدعية ما بعده</h2>
+          <button id="adhanSettingsBtn" class="chip-btn ghost">
+            <svg class="ic"><use href="#i-settings"></use></svg> إعدادات
+          </button>
+        </div>
+
+        <div class="hero-card compact" id="adhanNextCard">
+          <div class="hero-glow"></div>
+          <div class="hero-main">
+            <span class="hero-label">الصلاة القادمة</span>
+            <div class="hero-prayer" id="adhanNextName">—</div>
+            <div class="hero-sub" id="adhanNextTime"></div>
+            <div class="hero-countdown" id="adhanCountdown">--:--:--</div>
+            <p class="hero-note hidden" id="adhanNoData">اذهب إلى قسم المواقيت لتفعيل مواقيت الصلاة أولاً</p>
+          </div>
+        </div>
+
+        <!-- مشغّل الأذان -->
+        <div class="card player-card">
+          <div class="field">
+            <label class="field-label">المؤذن</label>
+            <select id="adhanReciterSelect" class="select-input">
+              <option value="alafasy">مشاري بن راشد العفاسي</option>
+              <option value="makkah">أذان الحرم المكي</option>
+              <option value="madinah">أذان المسجد النبوي</option>
+              <option value="egypt">أذان مصري كلاسيكي</option>
+            </select>
+          </div>
+
+          <div class="note-badge hidden" id="adhanFajrBadge">
+            أذان الفجر — يتضمن: الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ
+          </div>
+
+          <div class="play-area">
+            <button class="play-btn" id="adhanPlayBtn" aria-label="تشغيل الأذان">
+              <span id="adhanPlayIcon"><svg class="ic"><use href="#i-play"></use></svg></span>
+            </button>
+            <div class="play-label" id="adhanPlayLabel">تشغيل الأذان</div>
+          </div>
+
+          <div class="progress-wrap hidden" id="adhanProgressWrap">
+            <div class="progress-bar" id="adhanProgressBar">
+              <div class="progress-fill" id="adhanProgressFill"></div>
+            </div>
+            <div class="progress-times">
+              <span id="adhanCurrentTime">0:00</span>
+              <span id="adhanDuration">0:00</span>
+            </div>
+          </div>
+
+          <div class="volume-row">
+            <svg class="ic vol-ic"><use href="#i-volume"></use></svg>
+            <input type="range" id="adhanVolume" class="range-input" min="0" max="1" step="0.05" value="1">
+            <svg class="ic vol-ic"><use href="#i-adhan"></use></svg>
+          </div>
+        </div>
+
+        <!-- نص الأذان -->
+        <div class="card collapse-card">
+          <button class="collapse-btn" id="adhanTextToggle">
+            <span class="collapse-title"><svg class="ic"><use href="#i-book-text"></use></svg> نص الأذان</span>
+            <svg class="ic collapse-arrow" id="adhanTextArrow"><use href="#i-chevron"></use></svg>
+          </button>
+          <div class="collapse-body" id="adhanTextBody">
+            <div id="adhanTextContent" class="adhan-text-list"></div>
+            <div class="fajr-note" id="adhanFajrNote" style="display:none">
+              <span class="fajr-tag">يُضاف في أذان الفجر</span>
+              <div class="adhan-text-phrase">الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ</div>
+              <div class="adhan-text-phrase">الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- دعاء بعد الأذان -->
+        <div class="card collapse-card">
+          <button class="collapse-btn" id="adhanDuaToggle">
+            <span class="collapse-title"><svg class="ic"><use href="#i-dua"></use></svg> ما يُقال بعد الأذان</span>
+            <svg class="ic collapse-arrow" id="adhanDuaArrow"><use href="#i-chevron"></use></svg>
+          </button>
+          <div class="collapse-body" id="adhanDuaBody">
+            <div class="quote-item">
+              <div class="quote-title">الصلاة على النبي ﷺ بعد الأذان</div>
+              <div class="quote-text">اللَّهُمَّ صَلِّ عَلَى مُحَمَّدٍ وَعَلَى آلِ مُحَمَّدٍ، كَمَا صَلَّيْتَ عَلَى إِبْرَاهِيمَ وَعَلَى آلِ إِبْرَاهِيمَ، إِنَّكَ حَمِيدٌ مَجِيدٌ</div>
+              <div class="quote-source">رواه مسلم</div>
+            </div>
+            <div class="quote-item">
+              <div class="quote-title">دعاء بعد الأذان</div>
+              <div class="quote-text">اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّدًا الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَامًا مَحْمُودًا الَّذِي وَعَدْتَهُ، إِنَّكَ لَا تُخْلِفُ الْمِيعَادَ</div>
+              <div class="quote-source">رواه البخاري</div>
+            </div>
+            <div class="quote-item">
+              <div class="quote-title">عند سماع الشهادتين من المؤذن</div>
+              <div class="quote-text">رَضِيتُ بِاللهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ صَلَّى اللهُ عَلَيْهِ وَسَلَّمَ نَبِيًّا</div>
+              <div class="quote-source">رواه مسلم</div>
+            </div>
+            <div class="quote-item">
+              <div class="quote-title">إجابة النداء — يُردّد مع المؤذن</div>
+              <div class="quote-text">مثل ما يقول المؤذن، إلا عند حيَّ على الصلاة وحيَّ على الفلاح، يقول:
+                <span class="quote-highlight">لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللهِ</span>
+              </div>
+              <div class="quote-source">متفق عليه</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- فضل الأذان -->
+        <div class="card collapse-card">
+          <button class="collapse-btn" id="adhanFadlToggle">
+            <span class="collapse-title"><svg class="ic"><use href="#i-star"></use></svg> فضل الأذان</span>
+            <svg class="ic collapse-arrow" id="adhanFadlArrow"><use href="#i-chevron"></use></svg>
+          </button>
+          <div class="collapse-body" id="adhanFadlBody">
+            <div class="quote-item">
+              <div class="quote-text">«الْمُؤَذِّنُونَ أَطْوَلُ النَّاسِ أَعْنَاقًا يَوْمَ الْقِيَامَةِ»</div>
+              <div class="quote-source">رواه مسلم</div>
+            </div>
+            <div class="quote-item">
+              <div class="quote-text">«مَنْ أَذَّنَ اثْنَتَيْ عَشْرَةَ سَنَةً وَجَبَتْ لَهُ الْجَنَّةُ»</div>
+              <div class="quote-source">رواه ابن ماجه</div>
+            </div>
+            <div class="quote-item">
+              <div class="quote-text">«إِذَا سَمِعْتُمُ الْمُؤَذِّنَ فَقُولُوا مِثْلَ مَا يَقُولُ، ثُمَّ صَلُّوا عَلَيَّ»</div>
+              <div class="quote-source">رواه مسلم</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== قسم مواقيت الصلاة ======== -->
+      <section id="prayer" class="tab-panel">
+        <div class="sec-head">
+          <div class="loc-info">
+            <p class="page-note" id="prayerLocation">حدد موقعك لعرض المواقيت</p>
+            <p class="page-note tiny hidden" id="lastUpdated"></p>
+          </div>
+          <div class="head-actions">
+            <button id="refreshPrayer" class="ab-icon sm" aria-label="تحديث">
+              <svg class="ic"><use href="#i-refresh"></use></svg>
+            </button>
+            <button id="prayerSettingsBtn" class="ab-icon sm" aria-label="إعدادات المواقيت">
+              <svg class="ic"><use href="#i-settings"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="nextPrayerCard" class="hero-card compact hidden">
+          <div class="hero-glow"></div>
+          <div class="hero-main">
+            <span class="hero-label">الصلاة القادمة</span>
+            <div class="hero-prayer" id="nextPrayerName"></div>
+            <div class="hero-countdown" id="countdown"></div>
+          </div>
+          <div class="hero-progress">
+            <div class="hero-progress-fill" id="prayerProgressFill"></div>
+          </div>
+        </div>
+
+        <div id="prayerTimesList" class="prayer-list"></div>
+
+        <div class="card loc-card">
+          <button id="useGeo" class="btn btn-primary btn-block">
+            <svg class="ic"><use href="#i-pin"></use></svg> استخدام موقعي الحالي
+          </button>
+          <div class="or-divider"><span>أو حدد المدينة يدوياً</span></div>
+          <div class="city-form">
+            <input type="text" id="cityInput" class="search-input" placeholder="المدينة (مثال: Cairo)" />
+            <input type="text" id="countryInput" class="search-input" placeholder="الدولة (مثال: Egypt)" />
+            <button id="cityGo" class="btn btn-soft btn-block">عرض المواقيت</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ======== شريط التنقل السفلي ======== -->
+  <nav class="tab-bar" id="tabBar">
+    <button class="nav-btn active" data-tab="home">
+      <span class="nav-ic"><svg class="ic"><use href="#i-home"></use></svg></span>
+      <span class="nav-label">الرئيسية</span>
+    </button>
+    <button class="nav-btn" data-tab="quran">
+      <span class="nav-ic"><svg class="ic"><use href="#i-quran"></use></svg></span>
+      <span class="nav-label">القرآن</span>
+    </button>
+    <button class="nav-btn" data-tab="adhkar">
+      <span class="nav-ic"><svg class="ic"><use href="#i-beads"></use></svg></span>
+      <span class="nav-label">الأذكار</span>
+    </button>
+    <button class="nav-btn" data-tab="prayer">
+      <span class="nav-ic"><svg class="ic"><use href="#i-clock"></use></svg></span>
+      <span class="nav-label">المواقيت</span>
+    </button>
+    <button class="nav-btn" data-tab="adhan">
+      <span class="nav-ic"><svg class="ic"><use href="#i-adhan"></use></svg></span>
+      <span class="nav-label">الأذان</span>
+    </button>
+  </nav>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- ======== الأوراق السفلية (Bottom Sheets) ======== -->
+  <div id="settingsOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>الإعدادات</h3>
+        <button id="closeSettings" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label" for="fontSelect">نوع خط المصحف</label>
+          <select id="fontSelect" class="select-input">
+            <option value="amiri-quran">أميري قرآن</option>
+            <option value="amiri">أميري</option>
+            <option value="scheherazade">شهرزاد</option>
+            <option value="noto-naskh">نوتو نسخ</option>
+            <option value="lateef">لطيف</option>
+            <option value="reem-kufi">ريم كوفي</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">حجم الخط</label>
+          <div class="stepper">
+            <button id="fontSmaller" class="step-btn" aria-label="تصغير">أ−</button>
+            <span id="fontSizeLabel" class="step-value">100%</span>
+            <button id="fontBigger" class="step-btn" aria-label="تكبير">أ+</button>
+          </div>
+        </div>
+        <div class="preview-box">
+          <span class="preview-label">معاينة</span>
+          <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="prayerSettingsOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>إعدادات المواقيت</h3>
+        <button id="closePrayerSettings" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label" for="calcMethodSelect">طريقة الحساب</label>
+          <select id="calcMethodSelect" class="select-input">
+            <option value="5">الهيئة المصرية العامة للمساحة</option>
+            <option value="4">أم القرى — مكة المكرمة</option>
+            <option value="3">رابطة العالم الإسلامي</option>
+            <option value="2">الجمعية الإسلامية لأمريكا الشمالية (ISNA)</option>
+            <option value="1">جامعة العلوم الإسلامية — كراتشي</option>
+            <option value="8">مجلس الإفتاء الأوروبي</option>
+            <option value="10">دبي</option>
+            <option value="15">تركيا (ديانت)</option>
+            <option value="7">طهران</option>
+            <option value="0">جعفري — الشيعة الإثنا عشرية</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="madhabSelect">مذهب حساب صلاة العصر</label>
+          <select id="madhabSelect" class="select-input">
+            <option value="0">قياسي (شافعي، مالكي، حنبلي)</option>
+            <option value="1">حنفي</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">تصحيح الأوقات (بالدقائق)</label>
+          <div id="prayerTuneList" class="tune-list"></div>
+          <p class="field-hint">لضبط الأوقات لتطابق مسجد حيّك، أضف أو أنقص دقائق لكل صلاة</p>
+        </div>
+        <button id="resetTuneBtn" class="btn btn-soft btn-block">إعادة تعيين التصحيح</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="addAdhkarOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>إضافة ذكر جديد</h3>
+        <button id="closeAddAdhkar" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label" for="newAdhkarCategory">القسم</label>
+          <select id="newAdhkarCategory" class="select-input"></select>
+        </div>
+        <div class="field">
+          <label class="field-label" for="newAdhkarText">نص الذكر</label>
+          <textarea id="newAdhkarText" class="search-input" rows="4"></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label" for="newAdhkarRepeat">عدد التكرار</label>
+          <input type="number" id="newAdhkarRepeat" class="search-input" min="1" value="1" />
+        </div>
+        <div class="field">
+          <label class="field-label" for="newAdhkarBenefit">الفائدة (اختياري)</label>
+          <input type="text" id="newAdhkarBenefit" class="search-input" placeholder="مثال: من قالها كذا حصل على كذا" />
+        </div>
+        <button id="saveNewAdhkarBtn" class="btn btn-primary btn-block">حفظ الذكر</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="adhanSettingsOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>إعدادات الأذان</h3>
+        <button id="closeAdhanSettings" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label class="field-label">تشغيل الأذان تلقائياً عند دخول الوقت</label>
+          <p class="field-hint top">يتطلب أن يكون التطبيق مفتوحاً</p>
+          <div id="adhanPrayerToggles" class="toggle-list"></div>
+        </div>
+        <div class="field">
+          <label class="field-label" for="adhanPreAlertSelect">تنبيه قبل الأذان</label>
+          <select id="adhanPreAlertSelect" class="select-input">
+            <option value="0">بدون تنبيه مسبق</option>
+            <option value="5">قبل 5 دقائق</option>
+            <option value="10">قبل 10 دقائق</option>
+            <option value="15">قبل 15 دقيقة</option>
+            <option value="30">قبل 30 دقيقة</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field-label">إشعارات النظام</label>
+          <button id="requestNotifBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-bell"></use></svg> طلب إذن الإشعارات
+          </button>
+          <p class="field-hint" id="notifStatusText"></p>
+        </div>
+        <div class="field">
+          <label class="field-label">مستوى صوت الأذان</label>
+          <div class="volume-row">
+            <svg class="ic vol-ic"><use href="#i-volume"></use></svg>
+            <input type="range" id="adhanVolumeSettings" class="range-input" min="0" max="1" step="0.05" value="1">
+            <svg class="ic vol-ic"><use href="#i-adhan"></use></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ayahDialogOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3 id="ayahDialogTitle">الآية</h3>
+        <button id="closeAyahDialog" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <div class="action-stack">
+          <button id="ayahListenBtn" class="btn btn-primary btn-block">
+            <svg class="ic"><use href="#i-volume"></use></svg> استماع إلى الآية
+          </button>
+          <button id="ayahTafsirBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-book-text"></use></svg> تفسير الآية
+          </button>
+          <button id="ayahFavoriteBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-bookmark"></use></svg> إضافة إلى المحفوظات
+          </button>
+        </div>
+        <div id="ayahTafsirBox" class="tafsir-box hidden"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="adhkar-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
