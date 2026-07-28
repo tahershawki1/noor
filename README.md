@@ -46,7 +46,13 @@ cd islamic-app && python -m http.server 8090
 ## بناء تطبيق الأندرويد
 
 الـ APK يُبنى **مرة واحدة فقط**. كل الصلاحيات معلنة مسبقاً في الـ Manifest، وكود
-الويب يُحدَّث لاسلكياً بعد ذلك عبر Capgo:
+الويب يُحدَّث لاسلكياً بعد ذلك عبر Capgo.
+
+**الأسهل — GitHub Actions يبنيه نيابةً عنك** (بلا Android Studio ولا SDK):
+تبويب **Actions** → *بناء تطبيق الأندرويد (APK)* → **Run workflow**، ثم نزّل
+الملف من قسم **Artifacts**.
+
+**أو محلياً** (يتطلب Android SDK):
 
 ```bash
 npm install

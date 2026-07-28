@@ -1,5 +1,13 @@
 apply plugin: 'com.android.application'
 
+// مفتاح التوقيع يأتي من متغيّرات البيئة، فلا يُخزَّن أي سر داخل الريبو.
+// على GitHub Actions تأتي من الأسرار، ومحلياً تضبطها في الطرفية قبل البناء:
+//   export NOOR_KEYSTORE_PATH=~/noor.keystore
+//   export NOOR_KEYSTORE_PASSWORD=... NOOR_KEY_ALIAS=... NOOR_KEY_PASSWORD=...
+// وبدونها يعمل البناء طبيعياً وتُنتج نسخة release غير موقّعة.
+def noorKeystorePath = System.getenv("NOOR_KEYSTORE_PATH")
+def hasSigningKey = noorKeystorePath != null && !noorKeystorePath.isEmpty() && file(noorKeystorePath).exists()
+
 android {
     namespace = "com.noor.islamicapp"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,10 +24,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasSigningKey) {
+            release {
+                storeFile file(noorKeystorePath)
+                storePassword System.getenv("NOOR_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("NOOR_KEY_ALIAS")
+                keyPassword System.getenv("NOOR_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasSigningKey) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

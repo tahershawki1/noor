@@ -292,15 +292,64 @@ FloatingWidget.defaults             // الإعدادات الافتراضية
 
 ## البناء
 
-الـ APK يُبنى **مرة واحدة فقط**:
+### الطريقة الأسهل: GitHub Actions يبني الـ APK نيابةً عنك
+
+الـ workflow في `.github/workflows/build-apk.yml` يجهّز Java 21 و Node و Android SDK
+ويبني الـ APK على خوادم GitHub — لا تحتاج Android Studio ولا SDK على جهازك.
+
+**البناء اليدوي:** تبويب **Actions** → *بناء تطبيق الأندرويد (APK)* → **Run workflow**
+→ اختر `debug` أو `release`. بعد انتهاء التشغيل ستجد الملف في قسم **Artifacts**
+باسم `noor-<version>-<type>.apk`.
+
+**يعمل تلقائياً أيضاً** عند أي دفعة إلى `main` تمسّ `android/` أو `islamic-app/`
+أو `www/` أو `capacitor.config.json`، وعند نشر Release (فيُرفَق الـ APK بالإصدار).
+
+#### نسخة debug أم release؟
+
+`debug` تعمل فوراً بلا أي إعداد، وتُثبَّت على الهاتف عادياً — وهي كافية تماماً
+للتوزيع الشخصي. أما `release` فتحتاج مفتاح توقيع؛ وبدونه يتراجع الـ workflow
+تلقائياً إلى `debug` بدل أن ينتج ملفاً غير قابل للتثبيت.
+
+#### تفعيل نسخة release الموقّعة
+
+أنشئ مفتاحاً مرة واحدة:
+
+```bash
+keytool -genkey -v -keystore noor.keystore -alias noor \
+        -keyalg RSA -keysize 2048 -validity 10000
+base64 -w 0 noor.keystore > noor.keystore.b64     # على macOS: base64 -i noor.keystore
+```
+
+ثم أضف في **Settings → Secrets and variables → Actions**:
+
+| السر | القيمة |
+|---|---|
+| `ANDROID_KEYSTORE_BASE64` | محتوى `noor.keystore.b64` |
+| `ANDROID_KEYSTORE_PASSWORD` | كلمة مرور المخزن |
+| `ANDROID_KEY_ALIAS` | `noor` |
+| `ANDROID_KEY_PASSWORD` | كلمة مرور المفتاح |
+
+⚠️ احتفظ بنسخة من `noor.keystore` في مكان آمن. لو ضاع لن تستطيع نشر تحديث
+يستبدل التطبيق المثبّت على الأجهزة — سيرفضه أندرويد لاختلاف التوقيع.
+
+`android/app/build.gradle` يقرأ المفتاح من متغيّرات البيئة
+(`NOOR_KEYSTORE_PATH`, `NOOR_KEYSTORE_PASSWORD`, `NOOR_KEY_ALIAS`, `NOOR_KEY_PASSWORD`)،
+لذلك لا يُخزَّن أي سر داخل الريبو، ونفس الطريقة تعمل محلياً.
+
+### البناء محلياً (يتطلب Android SDK)
 
 ```bash
 npm install
-npm run build:debug      # أو build:release للنسخة الموقّعة
+npm run build:debug      # أو build:release
 ```
 
-بعدها، كل تحديث لاحق:
+### بعد أول APK
+
+الـ APK يُبنى **مرة واحدة فقط**. كل تحديث لاحق لكود الويب:
 
 ```bash
 npm version patch && npm run bundle:upload
 ```
+
+لا داعي لتشغيل الـ workflow إلا إن غيّرت شيئاً أصلياً (صلاحية جديدة، كود جافا،
+بلاجن Capacitor جديد، أيقونة أو اسم التطبيق).
