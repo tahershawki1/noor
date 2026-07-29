@@ -5,6 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:offline": "node tests/offline.mjs",
+    "data:quran": "node scripts/build-quran-data.mjs",
+    "data:tafsir": "node scripts/build-tafsir-data.mjs",
+    "data:cities": "node scripts/build-cities-data.mjs",
+    "data:fonts": "node scripts/build-fonts.mjs",
     "sync:web": "node scripts/sync-web.js",
     "sync": "npm run sync:web && npx cap sync android",
     "open:android": "npx cap open android",

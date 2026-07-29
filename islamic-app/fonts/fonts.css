@@ -1,0 +1,90 @@
+/* مولَّد آلياً بواسطة scripts/build-fonts.mjs — لا تعدّله يدوياً. */
+/* خطوط محلية بدل Google Fonts حتى يعمل التطبيق دون إنترنت. */
+@font-face {
+  font-family: "Amiri Quran";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./amiri-quran-arabic-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./amiri-arabic-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Amiri";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./amiri-arabic-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Scheherazade New";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./scheherazade-new-arabic-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Scheherazade New";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./scheherazade-new-arabic-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lateef";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("./lateef-arabic-400-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lateef";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("./lateef-arabic-700-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./noto-naskh-arabic-arabic-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Reem Kufi";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("./reem-kufi-arabic-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("./cairo-arabic-wght-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cairo";
+  font-style: normal;
+  font-weight: 200 1000;
+  font-display: swap;
+  src: url("./cairo-latin-wght-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215;
+}
