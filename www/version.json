@@ -1,18 +1,18 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-07-29T09:06:41.785Z",
+  "generatedAt": "2026-07-29T12:08:30.561Z",
   "app": {
-    "version": "1.2.0",
-    "versionCode": 10200,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.2.0/noor-1.2.0.apk",
-    "sizeBytes": 9207172,
-    "sha256": "0f586dcaed9683cc205971eda1b02e5ae094bbd6fd2147944d7e432dd5d680e4",
+    "version": "1.2.1",
+    "versionCode": 10201,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.2.1/noor-1.2.1.apk",
+    "sizeBytes": 10957762,
+    "sha256": "b643944aab2d3ef9dcf64d4b88bc1332adba29ed51dd898fe58715edfc275be0",
     "notes": "ودجتان للشاشة الرئيسية (بطاقة الصلاة القادمة وعدّاد مصغّر)، ونظام تحديث ذاتي من GitHub: تحديثات الويب تصل صامتة، وتحديثات التطبيق بإشعار وموافقة.",
     "mandatory": false
   },
   "web": {
-    "version": "1.2.0",
-    "url": "https://github.com/tahershawki1/noor/releases/download/v1.2.0/noor-web-1.2.0.zip",
-    "checksum": ""
+    "version": "1.2.1",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.2.1/noor-web-1.2.1.zip",
+    "checksum": "2347db9d732162c2c89efed0e565c22ffb0cbc7fd7a4ae2faed8448f550da387"
   }
 }
