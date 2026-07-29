@@ -2,4 +2,9 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="my_images" path="." />
     <cache-path name="my_cache_images" path="." />
+    <!--
+        ملفات تحديث التطبيق التي ينزّلها AppUpdaterPlugin. شاشة تثبيت الحزم
+        عملية خارجية، فلا تقرأ الملف إلا عبر content:// يمنحه FileProvider.
+    -->
+    <external-files-path name="noor_updates" path="Download/" />
 </paths>

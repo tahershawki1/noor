@@ -89,6 +89,11 @@ jobs:
           npm run sync:web
           npx cap sync android
 
+      - name: فحص تطابق حاسبَي المواقيت ومنطق التحديث
+        run: |
+          npm run test:prayer-calc
+          npm run test:update-flow
+
       - name: اختبار الاستقلال عن الإنترنت
         run: |
           npm i --no-save playwright
@@ -143,11 +148,72 @@ jobs:
           echo "name=$TARGET" >> "$GITHUB_OUTPUT"
           echo "- الملف: \`$TARGET\` ($(du -h "$TARGET" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
 
+      # ــــــــ قلب نظام التحديث الذاتي ــــــــ
+      # version.json هو ما تقرأه الأجهزة المثبَّتة لتعرف أن هناك جديداً. يُكتب
+      # هنا لأن روابط الإصدار تصير معلومة الآن (الوسم + أسماء المرفقات)، ويُدفع
+      # مع كوميت الإصدار فينشره GitHub Pages تلقائياً.
+      - name: تجهيز حزمة الويب وكتابة version.json
+        id: manifest
+        env:
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          # مُصدَّرة لأن سكربت node أدناه يقرؤها من البيئة
+          export VERSION="${{ steps.version.outputs.new }}"
+          export TAG="${{ steps.version.outputs.tag }}"
+          export APK="${{ steps.apk.outputs.name }}"
+          export ZIP="noor-web-$VERSION.zip"
+          export BASE="https://github.com/${{ github.repository }}/releases/download/$TAG"
+
+          # حزمة الويب = محتوى www بلا version.json نفسه: الأجهزة تقرأ الملف
+          # المنشور على الشبكة، فلا معنى لأن تحمل الحزمة نسخة منه تتقادم.
+          ( cd www && zip -qr "$GITHUB_WORKSPACE/$ZIP" . -x 'version.json' )
+
+          export APK_SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          export ZIP_SHA=$(sha256sum "$ZIP"  | cut -d' ' -f1)
+          export APK_SIZE=$(stat -c%s "$APK")
+
+          # نفس معادلة android/app/build.gradle: 1.2.3 → 10203
+          export VERSION_CODE=$(node -p "
+            const [a,b,c] = process.env.VERSION.split('.').map(Number);
+            a * 10000 + b * 100 + c;
+          ")
+
+          export NOTES="${RELEASE_NOTES:-تحديث $VERSION}"
+
+          node -e '
+            const fs = require("fs");
+            const manifest = {
+              _comment: "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
+              generatedAt: new Date().toISOString(),
+              app: {
+                version: process.env.VERSION,
+                versionCode: Number(process.env.VERSION_CODE),
+                apkUrl: process.env.BASE + "/" + process.env.APK,
+                sizeBytes: Number(process.env.APK_SIZE),
+                sha256: process.env.APK_SHA,
+                notes: process.env.NOTES,
+                mandatory: false,
+              },
+              web: {
+                version: process.env.VERSION,
+                url: process.env.BASE + "/" + process.env.ZIP,
+                checksum: process.env.ZIP_SHA,
+              },
+            };
+            fs.writeFileSync("islamic-app/version.json", JSON.stringify(manifest, null, 2) + "\n");
+          '
+          npm run sync:web
+          cat islamic-app/version.json
+
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+          echo "- حزمة الويب: \`$ZIP\`" >> "$GITHUB_STEP_SUMMARY"
+        shell: bash
+
       - name: تثبيت النسخة في المستودع ووسمها
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json package-lock.json www android/app/capacitor.build.gradle android/capacitor.settings.gradle
+          git add package.json package-lock.json www islamic-app/version.json android/app/capacitor.build.gradle android/capacitor.settings.gradle
           git commit -m "إصدار ${{ steps.version.outputs.tag }}"
           git tag -a "${{ steps.version.outputs.tag }}" -m "إصدار ${{ steps.version.outputs.tag }}"
           git push origin HEAD:"${{ github.ref_name }}"
@@ -166,6 +232,8 @@ jobs:
             echo "### التثبيت"
             echo
             echo "نزّل \`${{ steps.apk.outputs.name }}\` وثبّته على جهاز أندرويد."
+            echo
+            echo "> الأجهزة التي عليها نور بالفعل ستكتشف هذا الإصدار وحدها وتعرض إشعاراً بالتحديث."
             if [ "${{ steps.build.outputs.type }}" = "debug" ]; then
               echo
               echo "> نسخة debug — للتثبيت المباشر. لإصدار موقّع، اضبط أسرار التوقيع (انظر docs/native-shell.md)."
@@ -174,6 +242,7 @@ jobs:
 
           gh release create "${{ steps.version.outputs.tag }}" \
             "${{ steps.apk.outputs.name }}" \
+            "${{ steps.manifest.outputs.zip }}" \
             --title "نور ${{ steps.version.outputs.tag }}" \
             --notes-file "$NOTES_FILE" \
             --generate-notes \

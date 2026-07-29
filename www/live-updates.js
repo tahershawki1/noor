@@ -216,13 +216,25 @@
         });
     },
 
-    /** ينزّل ويطبّق نسخة محددة يدوياً (للاستضافة الذاتية أو التجارب). */
+    /**
+     * ينزّل ويطبّق حزمة ويب محددة يدوياً.
+     *
+     * هذا هو المسار الذي يستعمله app-updates.js: نقرأ رابط الحزمة من
+     * version.json على GitHub ونمرّره هنا، فلا نحتاج خادم تحديثات أصلاً.
+     * والـ checksum (sha256) يجعل البلاجن يرفض أي ملف وصل ناقصاً أو معطوباً.
+     *
+     * ملاحظة: set() تعيد تحميل التطبيق فوراً، فلا تضع منطقاً بعدها.
+     */
     installBundle: function (options) {
       if (!plugin) {
         return Promise.reject(new Error('التحديث المباشر غير متاح خارج التطبيق'));
       }
+      var request = { url: options.url, version: options.version };
+      if (options.checksum) {
+        request.checksum = options.checksum;
+      }
       return plugin
-        .download({ url: options.url, version: options.version })
+        .download(request)
         .then(function (bundle) {
           report('downloaded', bundle);
           return plugin.set({ id: bundle.id });

@@ -1986,3 +1986,71 @@ document.addEventListener("backbutton", (e) => {
     window.Capacitor.Plugins.App.exitApp();
   }
 }, false);
+
+/* ============================================================================
+ * شريط تحديث التطبيق
+ * ============================================================================
+ * تحديثات الويب تُطبَّق صامتةً (يتكفّل بها app-updates.js ثم يعيد التطبيق
+ * تحميل نفسه). أما تحديث الـ APK فلا يمرّ إلا بموافقة المستخدم، وهذا الشريط
+ * هو موضع الموافقة.
+ * ========================================================================== */
+
+function showUpdateBanner(update) {
+  if (!update) return;
+  const banner = $("updateBanner");
+  if (!banner) return;
+
+  const size = update.sizeBytes
+    ? ` — ${(update.sizeBytes / 1048576).toFixed(1)} ميجابايت`
+    : "";
+  $("updateBannerNote").textContent =
+    `النسخة ${update.version} جاهزة${size}` +
+    (update.installedVersion ? ` (لديك ${update.installedVersion})` : "");
+
+  // التحديث الإجباري لا يُرفض
+  $("updateDismissBtn").classList.toggle("hidden", !!update.mandatory);
+  banner.classList.remove("hidden");
+}
+
+function hideUpdateBanner() {
+  const banner = $("updateBanner");
+  if (banner) banner.classList.add("hidden");
+}
+
+function initAppUpdates() {
+  if (typeof AppUpdates === "undefined" || !AppUpdates.isAvailable()) return;
+
+  $("updateInstallBtn").addEventListener("click", () => {
+    $("updateInstallBtn").disabled = true;
+    $("updateProgress").classList.remove("hidden");
+    AppUpdates.install();
+  });
+
+  $("updateDismissBtn").addEventListener("click", () => {
+    AppUpdates.dismiss();
+    hideUpdateBanner();
+  });
+
+  AppUpdates.on((event, data) => {
+    if (event === "downloadProgress") {
+      $("updateProgressFill").style.width = `${data.percent || 0}%`;
+      $("updateBannerNote").textContent = `جارٍ التنزيل… ${data.percent || 0}%`;
+    } else if (event === "downloadFailed") {
+      $("updateInstallBtn").disabled = false;
+      $("updateProgress").classList.add("hidden");
+      $("updateBannerNote").textContent = "تعذّر التنزيل — جرّب مرة أخرى";
+      showToast("تعذّر تنزيل التحديث");
+    } else if (event === "installPermissionDenied") {
+      $("updateInstallBtn").disabled = false;
+      $("updateProgress").classList.add("hidden");
+      showToast("لتثبيت التحديث، اسمح بتثبيت التطبيقات غير المعروفة");
+    }
+  });
+
+  // الفحص بعد إقلاع الواجهة حتى لا يزاحم أول رسم للشاشة
+  setTimeout(() => {
+    AppUpdates.check().then(showUpdateBanner).catch(() => { /* لا يعطّل التطبيق */ });
+  }, 2500);
+}
+
+initAppUpdates();

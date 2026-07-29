@@ -8,6 +8,9 @@
     "cleartext": false,
     "allowNavigation": [
       "tahershawki1.github.io",
+      "raw.githubusercontent.com",
+      "github.com",
+      "objects.githubusercontent.com",
       "api.alquran.cloud",
       "cdn.islamic.network",
       "everyayah.com",
@@ -25,7 +28,8 @@
   },
   "plugins": {
     "CapacitorUpdater": {
-      "autoUpdate": true,
+      "_comment": "autoUpdate = false مقصود: مصدر التحديثات صار version.json على GitHub، ويقوده app-updates.js عبر download()+set(). عناوين Capgo تُترك هنا كخطة بديلة لمن يفعّل autoUpdate.",
+      "autoUpdate": false,
       "updateUrl": "https://plugin.capgo.app/updates",
       "statsUrl": "https://plugin.capgo.app/stats",
       "channelUrl": "https://plugin.capgo.app/channel_self",

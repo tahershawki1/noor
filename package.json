@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:offline": "node tests/offline.mjs",
     "test:prayer-calc": "node tests/prayer-calc-parity.mjs",
+    "test:update-flow": "node tests/update-flow.mjs",
     "data:quran": "node scripts/build-quran-data.mjs",
     "data:tafsir": "node scripts/build-tafsir-data.mjs",
     "data:cities": "node scripts/build-cities-data.mjs",

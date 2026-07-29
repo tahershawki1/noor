@@ -1,0 +1,18 @@
+{
+  "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً. تقرأه الأجهزة المثبَّتة من https://tahershawki1.github.io/noor/version.json لتعرف أن هناك تحديثاً.",
+  "generatedAt": "2026-07-29T00:00:00Z",
+  "app": {
+    "version": "1.1.0",
+    "versionCode": 10100,
+    "apkUrl": null,
+    "sizeBytes": 0,
+    "sha256": null,
+    "notes": "ودجتان للشاشة الرئيسية: بطاقة الصلاة القادمة وعدّاد مصغّر.",
+    "mandatory": false
+  },
+  "web": {
+    "version": "1.1.0",
+    "url": null,
+    "checksum": null
+  }
+}

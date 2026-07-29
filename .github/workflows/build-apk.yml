@@ -102,6 +102,11 @@ jobs:
       - name: فحص تطابق حاسبَي المواقيت
         run: npm run test:prayer-calc
 
+      # منطق التحديث الذاتي يعمل بلا رقيب على أجهزة المستخدمين — نختبره بمحاكاة
+      # الطبقة الأصلية قبل أن يخرج أي بناء.
+      - name: فحص منطق التحديث الذاتي
+        run: npm run test:update-flow
+
       - name: نسخ أصول الويب ومزامنة Capacitor
         run: |
           npm run sync:web
