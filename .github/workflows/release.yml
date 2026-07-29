@@ -157,27 +157,40 @@ jobs:
         env:
           RELEASE_NOTES: ${{ inputs.notes }}
         run: |
-          # مُصدَّرة لأن سكربت node أدناه يقرؤها من البيئة
+          # مُصدَّرة لأن سكربت node أدناه يقرؤها من البيئة.
+          #
+          # ⚠️ لا تسمِّ أياً منها ZIP أو ZIPOPT: برنامج zip يقرأ خياراته
+          # الافتراضية من هذين المتغيّرين، فلو صدّرنا ZIP="ملف.zip" ابتلعه zip
+          # كاسم للأرشيف وكتبه في المجلد الحالي متجاهلاً المسار الذي نعطيه —
+          # بصمت وبرمز خروج 0. لهذا الاسم هنا WEB_ZIP.
           export VERSION="${{ steps.version.outputs.new }}"
           export TAG="${{ steps.version.outputs.tag }}"
           export APK="${{ steps.apk.outputs.name }}"
-          export ZIP="noor-web-$VERSION.zip"
+          export WEB_ZIP="noor-web-$VERSION.zip"
           export BASE="https://github.com/${{ github.repository }}/releases/download/$TAG"
 
           # حزمة الويب = محتوى www بلا version.json نفسه: الأجهزة تقرأ الملف
           # المنشور على الشبكة، فلا معنى لأن تحمل الحزمة نسخة منه تتقادم.
-          ( cd www && zip -qr "$GITHUB_WORKSPACE/$ZIP" . -x 'version.json' )
+          ( cd www && zip -qr "$GITHUB_WORKSPACE/$WEB_ZIP" . -x 'version.json' )
 
-          export APK_SHA=$(sha256sum "$APK" | cut -d' ' -f1)
-          export ZIP_SHA=$(sha256sum "$ZIP"  | cut -d' ' -f1)
-          export APK_SIZE=$(stat -c%s "$APK")
+          if [ ! -f "$WEB_ZIP" ]; then
+            echo "::error::لم تُنشأ حزمة الويب $WEB_ZIP"
+            exit 1
+          fi
+
+          # إسناد عادي لا export: ‏export يعيد رمز نجاحه هو، فيخفي فشل الأمر
+          # داخله عن set -e. بهذا الشكل يفشل البناء فوراً لو فشل أي أمر.
+          APK_SHA=$(sha256sum "$APK" | cut -d' ' -f1)
+          ZIP_SHA=$(sha256sum "$WEB_ZIP" | cut -d' ' -f1)
+          APK_SIZE=$(stat -c%s "$APK")
 
           # نفس معادلة android/app/build.gradle: 1.2.3 → 10203
-          export VERSION_CODE=$(node -p "
+          VERSION_CODE=$(node -p "
             const [a,b,c] = process.env.VERSION.split('.').map(Number);
             a * 10000 + b * 100 + c;
           ")
 
+          export APK_SHA ZIP_SHA APK_SIZE VERSION_CODE
           export NOTES="${RELEASE_NOTES:-تحديث $VERSION}"
 
           node -e '
@@ -196,7 +209,7 @@ jobs:
               },
               web: {
                 version: process.env.VERSION,
-                url: process.env.BASE + "/" + process.env.ZIP,
+                url: process.env.BASE + "/" + process.env.WEB_ZIP,
                 checksum: process.env.ZIP_SHA,
               },
             };
@@ -205,8 +218,8 @@ jobs:
           npm run sync:web
           cat islamic-app/version.json
 
-          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
-          echo "- حزمة الويب: \`$ZIP\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "zip=$WEB_ZIP" >> "$GITHUB_OUTPUT"
+          echo "- حزمة الويب: \`$WEB_ZIP\` ($(du -h "$WEB_ZIP" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
         shell: bash
 
       - name: تثبيت النسخة في المستودع ووسمها
