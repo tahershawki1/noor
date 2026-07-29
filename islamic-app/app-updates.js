@@ -216,6 +216,12 @@
         return null;
       }
     }
+    // أخطر حالة في التحديث: اختلاف مفتاح التوقيع. أندرويد يرفض عندها استبدال
+    // التطبيق المثبَّت، فلا سبيل إلا حذفه — وحذفه يمحو بيانات المستخدم. نكتشفها
+    // هنا قبل التنزيل، فيتحوّل التحديث إلى مسار مختلف: احفظ بياناتك أولاً.
+    var requiresReinstall = !!(app.sha256Cert && installed.signature
+      && String(app.sha256Cert).toLowerCase() !== String(installed.signature).toLowerCase());
+
     return {
       version: app.version,
       versionCode: published,
@@ -223,7 +229,8 @@
       notes: app.notes || '',
       sizeBytes: app.sizeBytes || 0,
       mandatory: !!app.mandatory,
-      installedVersion: installed.versionName
+      installedVersion: installed.versionName,
+      requiresReinstall: requiresReinstall
     };
   }
 
@@ -290,13 +297,63 @@
               // إشعار النظام حتى ينتبه المستخدم لو لم يكن ينظر إلى الشاشة
               updater.notifyUpdateAvailable({
                 version: update.version,
-                notes: update.notes
+                notes: update.requiresReinstall
+                  ? 'هذا التحديث يتطلّب حذف النسخة القديمة — افتح التطبيق لحفظ بياناتك أولاً'
+                  : update.notes
               }).catch(function () { /* الإشعارات قد تكون محجوبة */ });
             }
             return update;
           });
         });
       });
+    },
+
+    /**
+     * مسار التحديث الذي يتطلّب حذف النسخة القديمة (اختلاف مفتاح التوقيع).
+     *
+     * الترتيب هنا ليس تفصيلاً تجميلياً — أي خطأ فيه يضيّع بيانات المستخدم:
+     *   1. تُحفظ النسخة الاحتياطية في التخزين المشترك، ولا نكمل إن فشلت.
+     *   2. يُنزَّل الـ APK إلى «التنزيلات» العامة لا مجلد التطبيق، لأن الحذف
+     *      يمحو مجلد التطبيق ومعه الملف الذي نزّلناه.
+     *   3. عندها فقط تُفتح شاشة الحذف، ويثبّت المستخدم الملف من مدير الملفات.
+     */
+    prepareReinstall: function (update) {
+      var target = update || pendingUpdate;
+      if (!updater || !target) {
+        return Promise.resolve({ ready: false, reason: 'NO_UPDATE' });
+      }
+
+      var backup = (typeof NoorBackup !== 'undefined' && NoorBackup.isAvailable())
+        ? NoorBackup.save({ force: true })
+        : Promise.resolve({ saved: false, reason: 'UNSUPPORTED' });
+
+      return backup.then(function (result) {
+        if (!result || !result.saved) {
+          // لا نُقدِم على خطوة تمحو البيانات وقد فشل حفظها
+          emit('backupFailed', result || {});
+          return { ready: false, reason: 'BACKUP_FAILED', detail: result };
+        }
+        emit('backupReady', result);
+        return updater.downloadAndInstall({
+          url: target.url,
+          version: target.version,
+          publicDownloads: true,
+          autoInstall: false
+        }).then(function (download) {
+          return { ready: true, backup: result, destination: download && download.destination };
+        });
+      }).catch(function (error) {
+        emit('downloadFailed', { message: String(error) });
+        return { ready: false, reason: String(error) };
+      });
+    },
+
+    /** يفتح شاشة حذف التطبيق — بعد أن تكون النسخة الاحتياطية والملف جاهزين. */
+    uninstall: function () {
+      if (!updater) {
+        return Promise.resolve();
+      }
+      return updater.uninstallSelf().catch(function () { /* المستخدم قد يلغي */ });
     },
 
     /**
@@ -307,6 +364,9 @@
       var target = update || pendingUpdate;
       if (!updater || !target) {
         return Promise.resolve({ started: false, reason: 'NO_UPDATE' });
+      }
+      if (target.requiresReinstall) {
+        return this.prepareReinstall(target);
       }
 
       return updater.canInstall().then(function (status) {

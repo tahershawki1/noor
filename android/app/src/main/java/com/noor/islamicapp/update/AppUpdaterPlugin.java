@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -24,6 +25,8 @@ import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * تحديث التطبيق نفسه (الـ APK) دون متجر.
@@ -58,10 +61,19 @@ public class AppUpdaterPlugin extends Plugin {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private long downloadId = -1L;
     private Runnable poller;
+    /** هل نفتح شاشة التثبيت تلقائياً عند اكتمال التنزيل؟ */
+    private boolean autoInstall = true;
 
     // ==================== معلومات النسخة المثبّتة ====================
 
-    /** نسخة التطبيق المثبّتة على الجهاز الآن. */
+    /**
+     * نسخة التطبيق المثبّتة على الجهاز الآن، ومعها بصمة شهادة التوقيع.
+     *
+     * البصمة هي ما يكشف الحالة التي لا يمكن فيها التحديث فوق المثبَّت: أندرويد
+     * يرفض استبدال تطبيق بآخر موقّع بمفتاح مختلف، فلا حلّ إلا حذف القديم —
+     * وحذفه يمحو بيانات المستخدم. مقارنة هذه البصمة بنظيرتها في version.json
+     * تجعل التطبيق يعرف ذلك <em>قبل</em> التنزيل فينبّه المستخدم لحفظ بياناته.
+     */
     @PluginMethod
     public void getInstalled(PluginCall call) {
         JSObject result = new JSObject();
@@ -71,9 +83,50 @@ public class AppUpdaterPlugin extends Plugin {
             result.put("packageName", info.packageName);
             result.put("versionName", info.versionName);
             result.put("versionCode", versionCodeOf(info));
+            result.put("signature", signingCertificateSha256());
             call.resolve(result);
         } catch (PackageManager.NameNotFoundException e) {
             call.reject("تعذّر قراءة نسخة التطبيق: " + e.getMessage(), "VERSION_UNAVAILABLE");
+        }
+    }
+
+    /**
+     * بصمة SHA-256 لشهادة التوقيع، بنفس الصيغة التي يطبعها
+     * {@code apksigner verify --print-certs} فتُقارن بها مباشرة.
+     */
+    @SuppressWarnings("deprecation")
+    private String signingCertificateSha256() {
+        try {
+            Context context = getContext();
+            PackageManager manager = context.getPackageManager();
+            String packageName = context.getPackageName();
+            Signature[] signatures;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                PackageInfo info = manager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES);
+                if (info.signingInfo == null) {
+                    return null;
+                }
+                signatures = info.signingInfo.hasMultipleSigners()
+                    ? info.signingInfo.getApkContentsSigners()
+                    : info.signingInfo.getSigningCertificateHistory();
+            } else {
+                PackageInfo info = manager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+                signatures = info.signatures;
+            }
+
+            if (signatures == null || signatures.length == 0) {
+                return null;
+            }
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(signatures[0].toByteArray());
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                hex.append(Character.forDigit((b >> 4) & 0xF, 16));
+                hex.append(Character.forDigit(b & 0xF, 16));
+            }
+            return hex.toString();
+        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+            return null;
         }
     }
 
@@ -174,17 +227,23 @@ public class AppUpdaterPlugin extends Plugin {
         String version = call.getString("version", "latest");
         String fileName = "noor-" + version + ".apk";
 
+        // حين يتغيّر مفتاح التوقيع يجب حذف التطبيق قبل تثبيت الجديد — وحذفه
+        // يمحو مجلده الخاص ومعه أي ملف نزّلناه هناك. لذلك ننزّل في «التنزيلات»
+        // العامة التي تبقى بعد الحذف، ونترك التثبيت للمستخدم من مدير الملفات.
+        boolean publicDownloads = Boolean.TRUE.equals(call.getBoolean("publicDownloads", false));
+        boolean autoInstall = Boolean.TRUE.equals(call.getBoolean("autoInstall", true));
+
         DownloadManager manager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
         if (manager == null) {
             call.reject("خدمة التنزيل غير متاحة على هذا الجهاز", "NO_DOWNLOAD_MANAGER");
             return;
         }
 
+        File target = publicDownloads
+            ? new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName)
+            : new File(getContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
+
         // ملف قديم بنفس الاسم يُحذف أولاً وإلا أضاف DownloadManager لاحقة للاسم
-        File target = new File(
-            getContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
-            fileName
-        );
         if (target.exists() && !target.delete()) {
             call.reject("تعذّر حذف ملف تحديث قديم", "STALE_FILE");
             return;
@@ -196,18 +255,42 @@ public class AppUpdaterPlugin extends Plugin {
                 .setDescription("جارٍ تنزيل النسخة الجديدة")
                 .setMimeType("application/vnd.android.package-archive")
                 .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
-                .setDestinationInExternalFilesDir(getContext(), Environment.DIRECTORY_DOWNLOADS, fileName)
                 .setAllowedOverRoaming(false);
 
+            if (publicDownloads) {
+                request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, fileName);
+            } else {
+                request.setDestinationInExternalFilesDir(getContext(), Environment.DIRECTORY_DOWNLOADS, fileName);
+            }
+
             cancelActiveDownload(manager);
+            this.autoInstall = autoInstall;
             downloadId = manager.enqueue(request);
             startPolling(manager, target);
 
             JSObject result = new JSObject();
             result.put("started", true);
+            result.put("destination", target.getAbsolutePath());
             call.resolve(result);
         } catch (Exception e) {
             call.reject("تعذّر بدء التنزيل: " + e.getMessage(), "DOWNLOAD_START_FAILED");
+        }
+    }
+
+    /**
+     * يفتح شاشة حذف التطبيق. الخطوة التي لا مفرّ منها حين يختلف مفتاح التوقيع،
+     * ولا تُستدعى إلا بعد أن يؤكّد الويب أن النسخة الاحتياطية حُفظت.
+     */
+    @PluginMethod
+    public void uninstallSelf(PluginCall call) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_DELETE)
+                .setData(Uri.parse("package:" + getContext().getPackageName()))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("تعذّر فتح شاشة الحذف: " + e.getMessage(), "UNINSTALL_FAILED");
         }
     }
 
@@ -260,7 +343,9 @@ public class AppUpdaterPlugin extends Plugin {
                         stopPolling();
                         emitProgress(total, total);
                         notifyListeners(EVENT_READY, new JSObject().put("path", target.getAbsolutePath()), true);
-                        install(target);
+                        if (autoInstall) {
+                            install(target);
+                        }
                         return;
                     }
 

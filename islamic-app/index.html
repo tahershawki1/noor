@@ -455,6 +455,78 @@
           <span class="preview-label">معاينة</span>
           <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
         </div>
+
+        <!-- النسخة الاحتياطية — داخل تطبيق الأندرويد فقط -->
+        <div class="field hidden" id="backupField">
+          <label class="field-label">النسخة الاحتياطية</label>
+          <div class="backup-status">
+            <span class="backup-dot" id="backupDot"></span>
+            <span id="backupStatusText">لم تُحفظ نسخة بعد</span>
+          </div>
+          <div class="backup-actions">
+            <button class="btn btn-soft btn-sm" id="backupSaveBtn">احفظ الآن</button>
+            <button class="btn btn-soft btn-sm" id="backupRestoreBtn">استرجاع من ملف</button>
+            <button class="btn btn-soft btn-sm" id="backupExportBtn">تصدير إلى…</button>
+          </div>
+          <p class="field-hint">
+            تُحفظ بياناتك تلقائياً في «المستندات ← Noor» — وهو مكان يبقى حتى لو حذفت
+            التطبيق، فتسترجعها بعد إعادة التثبيت.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- تحديث يتطلّب حذف النسخة القديمة (اختلاف مفتاح التوقيع) -->
+  <div id="reinstallOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>تحديث يحتاج خطوة إضافية</h3>
+        <button id="closeReinstall" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
+      </div>
+      <div class="modal-body">
+        <p class="reinstall-lead" id="reinstallLead">
+          النسخة الجديدة موقّعة بمفتاح مختلف، وأندرويد لا يسمح بتثبيتها فوق النسخة
+          الحالية. لذلك لا بد من حذف القديمة أولاً — وحذفها يمسح بياناتك، فنحفظها الآن.
+        </p>
+
+        <ol class="reinstall-steps">
+          <li class="reinstall-step" id="reinstallStep1">
+            <span class="rs-num">١</span>
+            <div class="rs-body">
+              <div class="rs-title">حفظ بياناتك</div>
+              <div class="rs-note" id="reinstallStep1Note">محفوظاتك وأذكارك وإعداداتك</div>
+            </div>
+            <span class="rs-check" id="reinstallStep1Check">✓</span>
+          </li>
+          <li class="reinstall-step" id="reinstallStep2">
+            <span class="rs-num">٢</span>
+            <div class="rs-body">
+              <div class="rs-title">تنزيل النسخة الجديدة</div>
+              <div class="rs-note" id="reinstallStep2Note">إلى مجلد التنزيلات</div>
+            </div>
+            <span class="rs-check" id="reinstallStep2Check">✓</span>
+          </li>
+          <li class="reinstall-step" id="reinstallStep3">
+            <span class="rs-num">٣</span>
+            <div class="rs-body">
+              <div class="rs-title">حذف القديمة ثم تثبيت الجديدة</div>
+              <div class="rs-note">من مجلد التنزيلات</div>
+            </div>
+            <span class="rs-check" id="reinstallStep3Check">✓</span>
+          </li>
+        </ol>
+
+        <div class="ub-progress hidden" id="reinstallProgress">
+          <span class="ub-progress-fill" id="reinstallProgressFill"></span>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="reinstallStartBtn">ابدأ — احفظ بياناتي</button>
+        <button class="btn btn-soft btn-block hidden" id="reinstallUninstallBtn">احذف النسخة القديمة</button>
+        <p class="field-hint" id="reinstallHint">
+          بعد إعادة التثبيت، افتح الإعدادات ← النسخة الاحتياطية ← «استرجاع من ملف».
+        </p>
       </div>
     </div>
   </div>
@@ -644,6 +716,7 @@
 <script src="live-updates.js"></script>
 <script src="floating-widget.js"></script>
 <script src="prayer-widget.js"></script>
+<script src="backup.js"></script>
 <script src="app-updates.js"></script>
 
 <script src="quran-data.js"></script>

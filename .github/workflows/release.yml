@@ -93,6 +93,7 @@ jobs:
         run: |
           npm run test:prayer-calc
           npm run test:update-flow
+          npm run test:backup
 
       - name: اختبار الاستقلال عن الإنترنت
         run: |
@@ -184,13 +185,25 @@ jobs:
           ZIP_SHA=$(sha256sum "$WEB_ZIP" | cut -d' ' -f1)
           APK_SIZE=$(stat -c%s "$APK")
 
+          # بصمة شهادة التوقيع: يقارنها التطبيق بشهادته المثبَّتة. اختلافهما
+          # يعني أن أندرويد سيرفض التحديث فوق المثبَّت، فيتحوّل التطبيق إلى
+          # مسار «احفظ بياناتك ثم احذف القديمة» بدل تنزيل لن يُثبَّت.
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner | sort | tail -1)
+          CERT_SHA=$("$APKSIGNER" verify --print-certs "$APK" 2>/dev/null \
+            | grep -i "SHA-256 digest" | head -1 | awk '{print $NF}')
+          if [ -z "$CERT_SHA" ]; then
+            echo "::error::تعذّرت قراءة بصمة شهادة التوقيع من $APK"
+            exit 1
+          fi
+          echo "بصمة شهادة التوقيع: $CERT_SHA"
+
           # نفس معادلة android/app/build.gradle: 1.2.3 → 10203
           VERSION_CODE=$(node -p "
             const [a,b,c] = process.env.VERSION.split('.').map(Number);
             a * 10000 + b * 100 + c;
           ")
 
-          export APK_SHA ZIP_SHA APK_SIZE VERSION_CODE
+          export APK_SHA ZIP_SHA APK_SIZE VERSION_CODE CERT_SHA
           export NOTES="${RELEASE_NOTES:-تحديث $VERSION}"
 
           node -e '
@@ -204,6 +217,7 @@ jobs:
                 apkUrl: process.env.BASE + "/" + process.env.APK,
                 sizeBytes: Number(process.env.APK_SIZE),
                 sha256: process.env.APK_SHA,
+                sha256Cert: process.env.CERT_SHA,
                 notes: process.env.NOTES,
                 mandatory: false,
               },

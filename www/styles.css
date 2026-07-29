@@ -1661,3 +1661,92 @@ input[type="number"].search-input { text-align: center; }
   cursor: pointer;
 }
 .ub-dismiss:active { color: var(--text); }
+
+/* ---------------- 26. النسخة الاحتياطية وإعادة التثبيت ---------------- */
+.backup-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+.backup-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex: none;
+}
+.backup-dot.ok { background: var(--brand); }
+.backup-dot.warn { background: var(--danger); }
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.backup-actions .btn { padding: 9px 6px; font-size: 0.74rem; }
+
+/* --- نافذة إعادة التثبيت --- */
+.reinstall-lead {
+  font-size: 0.82rem;
+  line-height: 1.9;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+
+.reinstall-steps {
+  list-style: none;
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.reinstall-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  opacity: 0.55;
+  transition: opacity 0.2s, border-color 0.2s;
+}
+.reinstall-step.active { opacity: 1; border-color: var(--brand); }
+.reinstall-step.done { opacity: 1; }
+
+.rs-num {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.reinstall-step.active .rs-num { background: var(--brand); color: var(--on-brand); }
+.reinstall-step.done .rs-num { background: var(--brand-soft); color: var(--brand); }
+
+.rs-body { flex: 1; min-width: 0; }
+.rs-title { font-size: 0.82rem; font-weight: 700; }
+.rs-note { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+
+.rs-check {
+  flex: none;
+  color: var(--brand);
+  font-weight: 800;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.reinstall-step.done .rs-check { opacity: 1; }
+
+#reinstallProgress { margin-bottom: 14px; }
+#reinstallOverlay .btn-block { margin-bottom: 8px; }

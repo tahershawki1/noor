@@ -105,7 +105,9 @@ jobs:
       # منطق التحديث الذاتي يعمل بلا رقيب على أجهزة المستخدمين — نختبره بمحاكاة
       # الطبقة الأصلية قبل أن يخرج أي بناء.
       - name: فحص منطق التحديث الذاتي
-        run: npm run test:update-flow
+        run: |
+          npm run test:update-flow
+          npm run test:backup
 
       - name: نسخ أصول الويب ومزامنة Capacitor
         run: |

@@ -355,6 +355,7 @@ ayahContainerPinchEl.addEventListener(
 
 /* --------- نافذة الإعدادات --------- */
 function openSettings() {
+  if (typeof refreshBackupStatus === "function") refreshBackupStatus();
   $("settingsOverlay").classList.remove("hidden");
 }
 function closeSettingsModal() {
@@ -2003,9 +2004,12 @@ function showUpdateBanner(update) {
   const size = update.sizeBytes
     ? ` — ${(update.sizeBytes / 1048576).toFixed(1)} ميجابايت`
     : "";
-  $("updateBannerNote").textContent =
-    `النسخة ${update.version} جاهزة${size}` +
-    (update.installedVersion ? ` (لديك ${update.installedVersion})` : "");
+  // التحديث الذي يتطلّب حذف القديمة له مسار خاص، ونصّه ينبّه لذلك من الشريط
+  $("updateBannerNote").textContent = update.requiresReinstall
+    ? `النسخة ${update.version} تحتاج حذف القديمة — بياناتك ستُحفظ أولاً`
+    : `النسخة ${update.version} جاهزة${size}` +
+      (update.installedVersion ? ` (لديك ${update.installedVersion})` : "");
+  $("updateInstallBtn").textContent = update.requiresReinstall ? "التفاصيل" : "تثبيت";
 
   // التحديث الإجباري لا يُرفض
   $("updateDismissBtn").classList.toggle("hidden", !!update.mandatory);
@@ -2021,6 +2025,13 @@ function initAppUpdates() {
   if (typeof AppUpdates === "undefined" || !AppUpdates.isAvailable()) return;
 
   $("updateInstallBtn").addEventListener("click", () => {
+    const pending = AppUpdates.getPending();
+    // تحديث يغيّر مفتاح التوقيع لا يُثبَّت بضغطة — له نافذة تشرح وتحفظ أولاً
+    if (pending && pending.requiresReinstall) {
+      hideUpdateBanner();
+      openReinstallFlow(pending);
+      return;
+    }
     $("updateInstallBtn").disabled = true;
     $("updateProgress").classList.remove("hidden");
     AppUpdates.install();
@@ -2054,3 +2065,131 @@ function initAppUpdates() {
 }
 
 initAppUpdates();
+
+/* ============================================================================
+ * النسخة الاحتياطية
+ * ============================================================================
+ * تُحفظ تلقائياً (backup.js يتكفّل بذلك)، وهذا القسم للتحكّم اليدوي وعرض الحالة.
+ * ========================================================================== */
+
+function refreshBackupStatus() {
+  const field = $("backupField");
+  if (!field || typeof NoorBackup === "undefined" || !NoorBackup.isAvailable()) return;
+  field.classList.remove("hidden");
+
+  const lastSaved = NoorBackup.getLastSaved();
+  const dot = $("backupDot");
+  const text = $("backupStatusText");
+  if (lastSaved) {
+    dot.className = "backup-dot ok";
+    text.textContent = `آخر نسخة: ${formatRelativeTime(new Date(lastSaved).getTime())}`;
+  } else {
+    dot.className = "backup-dot warn";
+    text.textContent = "لم تُحفظ نسخة بعد";
+  }
+}
+
+function initBackup() {
+  if (typeof NoorBackup === "undefined" || !NoorBackup.isAvailable()) return;
+
+  $("backupSaveBtn").addEventListener("click", async () => {
+    const result = await NoorBackup.save({ force: true });
+    showToast(result.saved ? "تم حفظ النسخة ✓" : "تعذّر الحفظ — جرّب «تصدير إلى…»");
+    refreshBackupStatus();
+  });
+
+  $("backupExportBtn").addEventListener("click", async () => {
+    const result = await NoorBackup.exportManually();
+    if (result.saved) showToast("تم التصدير ✓");
+  });
+
+  $("backupRestoreBtn").addEventListener("click", async () => {
+    const result = await NoorBackup.restoreFromPicker();
+    if (result.restored) {
+      showToast(`تم استرجاع ${result.itemCount} عنصر — سيُعاد التحميل`);
+      setTimeout(() => location.reload(), 1200);
+    } else if (result.reason !== "CANCELLED") {
+      showToast(result.reason === "INVALID_FILE" ? "الملف غير صالح" : "تعذّر الاسترجاع");
+    }
+  });
+
+  // تثبيت جديد وبياناته فارغة: نعرض الاسترجاع بدل أن يبدأ المستخدم من الصفر
+  if (NoorBackup.looksEmpty()) {
+    NoorBackup.restoreAuto().then((result) => {
+      if (result.restored) {
+        showToast(`تم استرجاع بياناتك (${result.itemCount} عنصر)`);
+        setTimeout(() => location.reload(), 1200);
+      }
+    });
+  }
+}
+
+/* ============================================================================
+ * تحديث يتطلّب حذف النسخة القديمة
+ * ============================================================================ */
+
+let reinstallTarget = null;
+
+function openReinstallFlow(update) {
+  reinstallTarget = update;
+  $("reinstallLead").textContent =
+    `النسخة ${update.version} موقّعة بمفتاح مختلف عن النسخة المثبّتة، وأندرويد لا يسمح ` +
+    `بتثبيتها فوقها. لذلك لا بد من حذف القديمة أولاً — وحذفها يمسح بياناتك، فنحفظها الآن.`;
+  $("reinstallStep1").className = "reinstall-step active";
+  $("reinstallStep2").className = "reinstall-step";
+  $("reinstallStep3").className = "reinstall-step";
+  $("reinstallStartBtn").classList.remove("hidden");
+  $("reinstallStartBtn").disabled = false;
+  $("reinstallUninstallBtn").classList.add("hidden");
+  $("reinstallProgress").classList.add("hidden");
+  $("reinstallOverlay").classList.remove("hidden");
+}
+
+function initReinstallFlow() {
+  if (typeof AppUpdates === "undefined" || !AppUpdates.isAvailable()) return;
+
+  $("closeReinstall").addEventListener("click", () =>
+    $("reinstallOverlay").classList.add("hidden"));
+
+  $("reinstallStartBtn").addEventListener("click", async () => {
+    $("reinstallStartBtn").disabled = true;
+    $("reinstallProgress").classList.remove("hidden");
+
+    const result = await AppUpdates.prepareReinstall(reinstallTarget);
+
+    if (!result.ready) {
+      $("reinstallStartBtn").disabled = false;
+      $("reinstallStep1Note").textContent =
+        result.reason === "BACKUP_FAILED"
+          ? "تعذّر حفظ النسخة — جرّب «تصدير إلى…» من الإعدادات أولاً"
+          : "تعذّر التجهيز — حاول مرة أخرى";
+      showToast("لم نكمل: بياناتك لم تُحفظ بعد");
+      return;
+    }
+    // الحفظ نجح والتنزيل بدأ؛ بقية التقدّم تصل عبر أحداث AppUpdates
+    $("reinstallStep1").className = "reinstall-step done";
+    $("reinstallStep2").className = "reinstall-step active";
+  });
+
+  $("reinstallUninstallBtn").addEventListener("click", () => AppUpdates.uninstall());
+
+  AppUpdates.on((event, data) => {
+    if (event === "backupReady") {
+      $("reinstallStep1Note").textContent = "حُفظت في: " + (data.location || "المستندات/Noor");
+    } else if (event === "downloadProgress" && reinstallTarget) {
+      $("reinstallProgressFill").style.width = `${data.percent || 0}%`;
+      $("reinstallStep2Note").textContent = `جارٍ التنزيل… ${data.percent || 0}%`;
+      if ((data.percent || 0) >= 100) {
+        $("reinstallStep2").className = "reinstall-step done";
+        $("reinstallStep3").className = "reinstall-step active";
+        $("reinstallStartBtn").classList.add("hidden");
+        $("reinstallUninstallBtn").classList.remove("hidden");
+        $("reinstallHint").textContent =
+          "بعد الحذف، افتح مجلد التنزيلات وثبّت الملف. ثم: الإعدادات ← النسخة الاحتياطية ← «استرجاع من ملف».";
+      }
+    }
+  });
+}
+
+initBackup();
+initReinstallFlow();

@@ -36,12 +36,15 @@ function check(label, condition, detail = '') {
 // بيئة وهمية تحاكي التطبيق الأصلي
 // ---------------------------------------------------------------------------
 
-function buildEnvironment({ manifest, installed, currentBundle, failFirstSource = false }) {
+function buildEnvironment({
+  manifest, installed, currentBundle, failFirstSource = false, backupFails = false,
+}) {
   const calls = {
     fetched: [],
     installBundle: [],
     notified: [],
     downloadAndInstall: [],
+    backupSaved: false,
   };
 
   const store = new Map();
@@ -53,6 +56,7 @@ function buildEnvironment({ manifest, installed, currentBundle, failFirstSource 
 
   const appUpdater = {
     getInstalled: async () => installed,
+    uninstallSelf: async () => { calls.uninstall = true; },
     canInstall: async () => ({ granted: true }),
     requestInstallPermission: async () => ({ granted: true }),
     notifyUpdateAvailable: async (options) => { calls.notified.push(options); },
@@ -77,6 +81,14 @@ function buildEnvironment({ manifest, installed, currentBundle, failFirstSource 
       current: async () => currentBundle,
       installBundle: async (options) => { calls.installBundle.push(options); },
     },
+    NoorBackup: {
+      isAvailable: () => true,
+      save: async () => {
+        if (backupFails) return { saved: false, reason: 'PERMISSION' };
+        calls.backupSaved = true;
+        return { saved: true, location: 'Documents/Noor/noor-backup.json' };
+      },
+    },
     fetch: async (url) => {
       calls.fetched.push(url);
       if (failFirstSource && url.includes('raw.githubusercontent.com')) {
@@ -92,7 +104,12 @@ function buildEnvironment({ manifest, installed, currentBundle, failFirstSource 
   return { AppUpdates: sandbox.AppUpdates, calls, localStorage };
 }
 
-const INSTALLED = { packageName: 'com.noor.islamicapp', versionName: '1.2.0', versionCode: 10200 };
+const INSTALLED = {
+  packageName: 'com.noor.islamicapp',
+  versionName: '1.2.0',
+  versionCode: 10200,
+  signature: 'aa11bb22cc33dd44ee55ff66aa11bb22cc33dd44ee55ff66aa11bb22cc33dd44',
+};
 const BUILTIN_BUNDLE = { bundle: { id: 'builtin', version: 'builtin' }, native: '1.2.0' };
 
 function manifestFor(appVersion, appCode, webVersion, extra = {}) {
@@ -282,6 +299,61 @@ console.log('\n[10] مسار التثبيت');
   check('يستدعي التنزيل بالرابط الصحيح',
     calls.downloadAndInstall.length === 1 &&
     String(calls.downloadAndInstall[0].url).endsWith('noor-1.3.0.apk'));
+}
+
+// ---------- 11) اختلاف مفتاح التوقيع ----------
+console.log('\n[11] النسخة الجديدة موقّعة بمفتاح مختلف');
+{
+  const manifest = manifestFor('1.3.0', 10300, '1.2.0', {
+    sha256Cert: '9999999999999999999999999999999999999999999999999999999999999999',
+  });
+  const { AppUpdates, calls } = buildEnvironment({
+    manifest, installed: INSTALLED, currentBundle: BUILTIN_BUNDLE,
+  });
+  const update = await AppUpdates.check({ force: true });
+  check('يكتشف أن التحديث يتطلّب حذف القديمة', update?.requiresReinstall === true);
+  check('الإشعار ينبّه لحفظ البيانات لا للتثبيت المباشر',
+    /حذف النسخة القديمة/.test(calls.notified[0]?.notes || ''),
+    JSON.stringify(calls.notified[0]));
+
+  // install() يجب أن يتحوّل لمسار إعادة التثبيت لا التنزيل المباشر
+  const result = await AppUpdates.install();
+  check('install يتحوّل تلقائياً لمسار إعادة التثبيت', result?.ready === true);
+  check('النسخة الاحتياطية حُفظت قبل أي شيء آخر', calls.backupSaved === true);
+  check('نزّل إلى التنزيلات العامة (تبقى بعد الحذف)',
+    calls.downloadAndInstall[0]?.publicDownloads === true);
+  check('لم يفتح شاشة التثبيت تلقائياً (الحذف أولاً)',
+    calls.downloadAndInstall[0]?.autoInstall === false);
+}
+
+// ---------- 12) فشل النسخة الاحتياطية يوقف كل شيء ----------
+console.log('\n[12] تعذّر حفظ النسخة الاحتياطية');
+{
+  const manifest = manifestFor('1.3.0', 10300, '1.2.0', {
+    sha256Cert: '9999999999999999999999999999999999999999999999999999999999999999',
+  });
+  const { AppUpdates, calls } = buildEnvironment({
+    manifest, installed: INSTALLED, currentBundle: BUILTIN_BUNDLE, backupFails: true,
+  });
+  await AppUpdates.check({ force: true });
+  const result = await AppUpdates.install();
+  check('يتوقّف ولا يكمل', result?.ready === false && result?.reason === 'BACKUP_FAILED');
+  check('لم ينزّل شيئاً — لا نُقدِم على خطوة تمحو بيانات غير محفوظة',
+    calls.downloadAndInstall.length === 0);
+}
+
+// ---------- 13) نفس المفتاح ----------
+console.log('\n[13] نفس مفتاح التوقيع');
+{
+  const manifest = manifestFor('1.3.0', 10300, '1.2.0', { sha256Cert: INSTALLED.signature });
+  const { AppUpdates, calls } = buildEnvironment({
+    manifest, installed: INSTALLED, currentBundle: BUILTIN_BUNDLE,
+  });
+  const update = await AppUpdates.check({ force: true });
+  check('تحديث عادي بلا حذف', update?.requiresReinstall === false);
+  await AppUpdates.install();
+  check('ينزّل ويثبّت مباشرة',
+    calls.downloadAndInstall[0]?.publicDownloads !== true && calls.backupSaved !== true);
 }
 
 // ---------------------------------------------------------------------------
