@@ -365,8 +365,9 @@
       if (!updater || !target) {
         return Promise.resolve({ started: false, reason: 'NO_UPDATE' });
       }
+      // بالاسم لا بـ this: الدالة قد تُمرَّر كمرجع (onclick مثلاً) فيضيع السياق
       if (target.requiresReinstall) {
-        return this.prepareReinstall(target);
+        return AppUpdates.prepareReinstall(target);
       }
 
       return updater.canInstall().then(function (status) {

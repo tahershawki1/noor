@@ -2,7 +2,7 @@ name: إصدار جديد (نسخة + APK)
 
 # ينشئ إصداراً كاملاً بضغطة زر:
 #   يرفع رقم النسخة → يبني APK → ينشر Release برابط تحميل مباشر ودائم
-#   → (اختيارياً) يرفع حزمة الويب لـ Capgo فتصل النسخة الجديدة للأجهزة المثبّتة لاسلكياً
+#   → ويكتب version.json فتكتشف الأجهزة المثبّتة التحديث وحدها
 #
 # الاستعمال: تبويب Actions → «إصدار جديد (نسخة + APK)» → Run workflow
 #
@@ -26,9 +26,9 @@ on:
         type: boolean
         default: false
       upload_to_capgo:
-        description: 'رفع حزمة الويب لـ Capgo أيضاً (يتطلب سر CAPGO_TOKEN)'
+        description: 'رفع حزمة الويب لـ Capgo أيضاً (خطة بديلة — التحديث يعمل من GitHub بدونها)'
         type: boolean
-        default: true
+        default: false
 
 permissions:
   contents: write

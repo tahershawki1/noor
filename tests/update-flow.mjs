@@ -316,8 +316,10 @@ console.log('\n[11] النسخة الجديدة موقّعة بمفتاح مخت
     /حذف النسخة القديمة/.test(calls.notified[0]?.notes || ''),
     JSON.stringify(calls.notified[0]));
 
-  // install() يجب أن يتحوّل لمسار إعادة التثبيت لا التنزيل المباشر
-  const result = await AppUpdates.install();
+  // install() يجب أن يتحوّل لمسار إعادة التثبيت لا التنزيل المباشر.
+  // نستدعيها منزوعة السياق عمداً — هكذا تُمرَّر كمرجع في معالِج نقرة.
+  const detachedInstall = AppUpdates.install;
+  const result = await detachedInstall();
   check('install يتحوّل تلقائياً لمسار إعادة التثبيت', result?.ready === true);
   check('النسخة الاحتياطية حُفظت قبل أي شيء آخر', calls.backupSaved === true);
   check('نزّل إلى التنزيلات العامة (تبقى بعد الحذف)',

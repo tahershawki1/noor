@@ -7,18 +7,22 @@
 islamic-app/          ← مصدر الويب (المنشور على GitHub Pages + مصدر حزم التحديث)
   ├─ index.html
   ├─ app.js, styles.css, adhkar-data.js
-  ├─ live-updates.js    ← وحدة التحديثات المباشرة (Capgo)
-  └─ floating-widget.js ← الـ SDK الخاص بالزر العائم
+  ├─ live-updates.js    ← تطبيق حزم الويب الجديدة
+  ├─ app-updates.js     ← التحديث الذاتي: يقرأ version.json ويقرّر أي مسار
+  ├─ backup.js          ← نسخة احتياطية تنجو من حذف التطبيق
+  ├─ prayer-widget.js   ← الـ SDK الخاص بودجتات الشاشة الرئيسية
+  ├─ floating-widget.js ← الـ SDK الخاص بالزر العائم
+  └─ version.json       ← تكتبه الـ CI؛ وهو ما تقرأه الأجهزة لتعرف أن هناك تحديثاً
 www/                  ← نسخة الويب التي يحملها Capacitor (تُولَّد بـ npm run sync:web)
 android/
   ├─ app/src/main/AndroidManifest.xml         ← كل الصلاحيات معلنة مسبقاً
   └─ app/src/main/java/com/noor/islamicapp/
-       ├─ MainActivity.java                    ← يسجّل البلاجن المحلي
-       └─ floating/
-            ├─ FloatingWidgetPlugin.java       ← جسر الجافاسكريبت
-            ├─ FloatingWidgetService.java      ← الطبقة العائمة فوق التطبيقات
-            └─ FloatingWidgetConfig.java       ← نموذج الإعدادات القادمة من الويب
-capacitor.config.json ← إعدادات Capacitor + Capgo
+       ├─ MainActivity.java                    ← يسجّل البلاجنات المحلية
+       ├─ floating/                            ← الزر العائم فوق التطبيقات
+       ├─ widget/                              ← ودجتا الشاشة الرئيسية + حاسب المواقيت
+       ├─ update/                              ← تنزيل الـ APK وتثبيته والإشعار به
+       └─ backup/                              ← النسخة الاحتياطية في التخزين المشترك
+capacitor.config.json ← إعدادات Capacitor
 scripts/sync-web.js   ← islamic-app/ → www/
 ```
 
@@ -30,7 +34,7 @@ scripts/sync-web.js   ← islamic-app/ → www/
 
 | المفتاح | القيمة | السبب |
 |---|---|---|
-| `webDir` | `www` | أصول الويب تُحزم داخل الـ APK فتعمل بلا إنترنت، ثم تُستبدل لاسلكياً عبر Capgo |
+| `webDir` | `www` | أصول الويب تُحزم داخل الـ APK فتعمل بلا إنترنت، ثم تُستبدل لاسلكياً بحزمة من GitHub |
 | `server.androidScheme` | `https` | يجعل أصل الـ WebView هو `https://localhost` — **شرط أساسي** لعمل `getUserMedia` و`geolocation` وService Workers (المتصفحات ترفضها على أصل غير آمن) |
 | `server.allowNavigation` | نطاقات الـ API | يسمح بالانتقال إلى نطاقات alquran / aladhan / everyayah دون خروج للمتصفح |
 | `android.allowMixedContent` | `false` | يمنع تحميل موارد http داخل صفحة https |
@@ -55,7 +59,7 @@ scripts/sync-web.js   ← islamic-app/ → www/
 - `server.url` يتعارض مع Capgo: البلاجن يبدّل مجلد الأصول المحلي، وهو ما يُتجاهل تماماً حين يكون التحميل من رابط خارجي.
 - سياسات Google Play تتشدّد مع التطبيقات التي هي مجرد إطار لموقع.
 
-الوضع الحالي (أصول محزّمة + Capgo) يعطيك نفس النتيجة — تحديث فوري بلا APK جديد — مع بقاء العمل دون اتصال.
+الوضع الحالي (أصول محزّمة + حزمة تُنزَّل من GitHub) يعطيك نفس النتيجة — تحديث فوري بلا APK جديد — مع بقاء العمل دون اتصال.
 
 ### الكاميرا والميكروفون (WebRTC)
 
@@ -106,7 +110,12 @@ const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: t
 
 ---
 
-## 3) التحديثات المباشرة (`@capgo/capacitor-updater`)
+## 3) آلية استبدال حزمة الويب (`@capgo/capacitor-updater`)
+
+> **اقرأ القسم 6 أولاً.** مصدر التحديثات في نور هو **GitHub** لا خوادم Capgo،
+> و`autoUpdate` مضبوط على `false`. البلاجن يُستعمل هنا كـ«محرّك» فقط: هو ما
+> يعرف كيف ينزّل حزمة Zip ويستبدل بها أصول الويب ويتراجع إن فشلت. وما تبقّى من
+> هذا القسم يصف قدرات البلاجن وخدمة Capgo كخطة بديلة.
 
 الوحدة البرمجية: [`islamic-app/live-updates.js`](../islamic-app/live-updates.js) — وفيها الشرح الكامل داخل الكود.
 
@@ -375,7 +384,7 @@ await PrayerWidget.clear();
   وضع Doze وقد يتأخر دقائق، وأسوأ أثر لذلك عدّاد سالب قصير يصحّح نفسه.
 - `RECEIVE_BOOT_COMPLETED` صلاحية عادية تُمنح تلقائياً، ولزومها أن إعادة التشغيل
   تمحو كل المنبّهات.
-- الودجت **ليس** من الأشياء التي تصل عبر تحديث Capgo: أي تعديل على تخطيطه أو
+- الودجت **ليس** من الأشياء التي تصل عبر تحديث الويب: أي تعديل على تخطيطه أو
   حسابه يحتاج بناء APK جديد.
 
 ---
