@@ -1,0 +1,194 @@
+name: إصدار جديد (نسخة + APK)
+
+# ينشئ إصداراً كاملاً بضغطة زر:
+#   يرفع رقم النسخة → يبني APK → ينشر Release برابط تحميل مباشر ودائم
+#   → (اختيارياً) يرفع حزمة الويب لـ Capgo فتصل النسخة الجديدة للأجهزة المثبّتة لاسلكياً
+#
+# الاستعمال: تبويب Actions → «إصدار جديد (نسخة + APK)» → Run workflow
+#
+# رقم النسخة مصدره package.json، ومنه يشتق android/app/build.gradle قيمتَي
+# versionName و versionCode تلقائياً.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'نوع الزيادة في رقم النسخة'
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      notes:
+        description: 'ملاحظات الإصدار (اختياري — تُولَّد من الكوميتات إن تُركت فارغة)'
+        type: string
+        required: false
+      prerelease:
+        description: 'إصدار تجريبي (لا يظهر كأحدث إصدار)'
+        type: boolean
+        default: false
+      upload_to_capgo:
+        description: 'رفع حزمة الويب لـ Capgo أيضاً (يتطلب سر CAPGO_TOKEN)'
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      CAPGO_TOKEN: ${{ secrets.CAPGO_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: تجهيز Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: تجهيز Gradle مع التخزين المؤقت
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: تجهيز Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: تجهيز Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: تثبيت الاعتماديات
+        run: npm ci
+
+      - name: رفع رقم النسخة
+        id: version
+        run: |
+          OLD=$(node -p "require('./package.json').version")
+          npm version "${{ inputs.bump }}" --no-git-tag-version > /dev/null
+          NEW=$(node -p "require('./package.json').version")
+          echo "old=$OLD"       >> "$GITHUB_OUTPUT"
+          echo "new=$NEW"       >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW"      >> "$GITHUB_OUTPUT"
+          echo "### الإصدار $OLD ← $NEW" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: نسخ أصول الويب ومزامنة Capacitor
+        run: |
+          npm run sync:web
+          npx cap sync android
+
+      - name: اختبار الاستقلال عن الإنترنت
+        run: |
+          npm i --no-save playwright
+          npx playwright install --with-deps chromium
+          npm run test:offline
+
+      - name: تحديد نوع البناء
+        id: build
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "type=release" >> "$GITHUB_OUTPUT"
+            echo "task=assembleRelease" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::لا يوجد مفتاح توقيع — سيصدر APK بنسخة debug"
+            echo "type=debug" >> "$GITHUB_OUTPUT"
+            echo "task=assembleDebug" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: فك تشفير مفتاح التوقيع
+        if: steps.build.outputs.type == 'release'
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/noor.keystore"
+          echo "NOOR_KEYSTORE_PATH=$RUNNER_TEMP/noor.keystore" >> "$GITHUB_ENV"
+
+      - name: بناء الـ APK
+        working-directory: android
+        env:
+          NOOR_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          NOOR_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          NOOR_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ steps.build.outputs.task }} --stacktrace
+
+      - name: تجهيز الملف والتحقق من رقم النسخة داخله
+        id: apk
+        run: |
+          TYPE="${{ steps.build.outputs.type }}"
+          SOURCE="android/app/build/outputs/apk/$TYPE/app-$TYPE.apk"
+          TARGET="noor-${{ steps.version.outputs.new }}.apk"
+          cp "$SOURCE" "$TARGET"
+
+          # نتأكد أن الـ APK يحمل فعلاً النسخة الجديدة قبل نشرها
+          AAPT=$(find "$ANDROID_HOME/build-tools" -name aapt2 | sort | tail -1)
+          BADGING=$("$AAPT" dump badging "$TARGET" 2>/dev/null | head -1 || true)
+          echo "$BADGING"
+          if ! echo "$BADGING" | grep -q "versionName='${{ steps.version.outputs.new }}'"; then
+            echo "::error::رقم النسخة داخل الـ APK لا يطابق ${{ steps.version.outputs.new }}"
+            exit 1
+          fi
+
+          echo "name=$TARGET" >> "$GITHUB_OUTPUT"
+          echo "- الملف: \`$TARGET\` ($(du -h "$TARGET" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: تثبيت النسخة في المستودع ووسمها
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json www android/app/capacitor.build.gradle android/capacitor.settings.gradle
+          git commit -m "إصدار ${{ steps.version.outputs.tag }}"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "إصدار ${{ steps.version.outputs.tag }}"
+          git push origin HEAD:"${{ github.ref_name }}"
+          git push origin "${{ steps.version.outputs.tag }}"
+
+      - name: نشر الإصدار وإرفاق الـ APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_NOTES: ${{ inputs.notes }}
+        run: |
+          NOTES_FILE="$RUNNER_TEMP/notes.md"
+          {
+            if [ -n "$RELEASE_NOTES" ]; then
+              printf '%s\n\n' "$RELEASE_NOTES"
+            fi
+            echo "### التثبيت"
+            echo
+            echo "نزّل \`${{ steps.apk.outputs.name }}\` وثبّته على جهاز أندرويد."
+            if [ "${{ steps.build.outputs.type }}" = "debug" ]; then
+              echo
+              echo "> نسخة debug — للتثبيت المباشر. لإصدار موقّع، اضبط أسرار التوقيع (انظر docs/native-shell.md)."
+            fi
+          } > "$NOTES_FILE"
+
+          gh release create "${{ steps.version.outputs.tag }}" \
+            "${{ steps.apk.outputs.name }}" \
+            --title "نور ${{ steps.version.outputs.tag }}" \
+            --notes-file "$NOTES_FILE" \
+            --generate-notes \
+            ${{ inputs.prerelease && '--prerelease' || '--latest' }}
+
+          echo "- الإصدار: $(gh release view "${{ steps.version.outputs.tag }}" --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: رفع حزمة الويب لـ Capgo (تحديث لاسلكي للأجهزة المثبّتة)
+        if: inputs.upload_to_capgo
+        run: |
+          if [ -z "$CAPGO_TOKEN" ]; then
+            echo "::notice::لم يُضبط سر CAPGO_TOKEN — تخطّي التحديث اللاسلكي"
+            exit 0
+          fi
+          npx @capgo/cli@latest bundle upload \
+            --apikey "$CAPGO_TOKEN" \
+            --path www \
+            --channel production
