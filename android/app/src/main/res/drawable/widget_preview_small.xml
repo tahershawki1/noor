@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- معاينة ودجت العدّاد الصغير: البطاقة والعدّاد الذهبي فقط. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="110dp"
+    android:height="48dp"
+    android:viewportWidth="110"
+    android:viewportHeight="48">
+
+    <path
+        android:fillColor="#0E5C42"
+        android:pathData="M16,0 L94,0 A16,16 0 0 1 110,16 L110,32 A16,16 0 0 1 94,48 L16,48 A16,16 0 0 1 0,32 L0,16 A16,16 0 0 1 16,0 Z" />
+
+    <path
+        android:fillColor="#F0D6A6"
+        android:pathData="M22,17 L88,17 L88,31 L22,31 Z" />
+</vector>

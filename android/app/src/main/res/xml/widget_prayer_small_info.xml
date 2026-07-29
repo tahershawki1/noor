@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    تعريف ودجت العدّاد الصغير: خانتان × خانة واحدة، وهو أصغر حجم عملي يتّسع
+    لعدّاد بصيغة ساعة:دقيقة:ثانية.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="80dp"
+    android:minResizeHeight="40dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_prayer_small"
+    android:previewImage="@drawable/widget_preview_small"
+    android:previewLayout="@layout/widget_prayer_small"
+    android:description="@string/widget_small_description" />

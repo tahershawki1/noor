@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ألوان ونصوص ودجت الشاشة الرئيسية.
+
+    الألوان منقولة حرفياً من متغيّرات التصميم في islamic-app/styles.css حتى يبدو
+    الودجت امتداداً للبطاقة الرئيسية داخل التطبيق لا عنصراً غريباً عنه.
+-->
+<resources>
+
+    <!-- تدرّج البطاقة الرئيسية: من hero‑1 إلى hero‑2 -->
+    <color name="widget_hero_start">#FF0E5C42</color>
+    <color name="widget_hero_end">#FF072E24</color>
+
+    <!-- gold‑soft: لون العدّاد -->
+    <color name="widget_gold">#FFF0D6A6</color>
+    <color name="widget_white">#FFFFFFFF</color>
+
+    <!-- طبقات الشفافية البيضاء المستعملة في البطاقة -->
+    <color name="widget_white_08">#14FFFFFF</color>
+    <color name="widget_white_12">#1FFFFFFF</color>
+    <color name="widget_white_16">#29FFFFFF</color>
+    <color name="widget_white_18">#2EFFFFFF</color>
+    <color name="widget_white_34">#57FFFFFF</color>
+    <color name="widget_white_68">#ADFFFFFF</color>
+    <color name="widget_white_72">#B8FFFFFF</color>
+    <color name="widget_white_90">#E6FFFFFF</color>
+
+    <string name="widget_large_label">ودجت نور — الصلاة القادمة</string>
+    <string name="widget_small_label">ودجت نور — العدّاد</string>
+    <string name="widget_large_description">بطاقة الصلاة القادمة بنفس شكلها داخل التطبيق: الاسم والعدّاد وشريط التقدّم وأوقات اليوم</string>
+    <string name="widget_small_description">عدّاد الوقت المتبقي للصلاة القادمة فقط، بأصغر حجم</string>
+
+    <string name="widget_next_prayer">الصلاة القادمة</string>
+    <string name="widget_time_now">حان وقت الصلاة 🕌</string>
+    <string name="widget_no_data">افتح «نور» وحدّد موقعك لعرض المواقيت</string>
+    <string name="widget_placeholder_countdown">--:--</string>
+</resources>

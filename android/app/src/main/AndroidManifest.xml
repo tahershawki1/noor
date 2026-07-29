@@ -62,6 +62,14 @@
     <!-- مطلوبة منذ Android 14 (API 34) لأن targetSdk = 36 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
+    <!-- ==================== 8) ودجت الشاشة الرئيسية ==================== -->
+    <!--
+        إعادة التشغيل تمحو كل المنبّهات المضبوطة، ومنها منبّه انتقال الودجت إلى
+        الصلاة التالية. هذه الصلاحية تسمح لنا بإعادة ضبطه بعد الإقلاع.
+        صلاحية عادية (normal) تُمنح تلقائياً ولا يراها المستخدم كطلب.
+    -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- ============ ميزات اختيارية: حتى لا يُمنع التثبيت على الأجهزة الناقصة ============ -->
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
@@ -114,6 +122,55 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="persistent_floating_overlay_widget_controlled_by_web_app" />
         </service>
+
+        <!--
+            ==================== ودجتات الشاشة الرئيسية ====================
+            ودجتان مستقلّان: بطاقة الصلاة القادمة الكاملة، وعدّاد مصغّر.
+            كلاهما يرسم نفسه من نفس الحساب في PrayerWidgetRenderer.
+        -->
+        <receiver
+            android:name=".widget.PrayerWidgetLargeProvider"
+            android:label="@string/widget_large_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_prayer_large_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.PrayerWidgetSmallProvider"
+            android:label="@string/widget_small_label"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_prayer_small_info" />
+        </receiver>
+
+        <!--
+            يعيد رسم الودجتات ويعيد ضبط منبّهها بعد الإقلاع، وعند تغيّر الساعة أو
+            المنطقة الزمنية (المسافر)، وعند منتصف الليل، وبعد تحديث التطبيق.
+            exported=true ضروري لأن مُرسل هذه البثوث هو النظام لا تطبيقنا؛
+            وأكشن المنبّه الخاص بنا لا يمكن لأي تطبيق آخر إرساله لأنه موجَّه
+            بالاسم إلى هذا الصنف تحديداً، وأسوأ ما قد يفعله بثّ خارجي هو إعادة
+            رسم لا أثر لها.
+        -->
+        <receiver
+            android:name=".widget.PrayerWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
 
         <provider
             android:name="androidx.core.content.FileProvider"

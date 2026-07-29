@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    تعريف الودجت الكبير.
+
+    الحجم المقترح 4×3 خانات، ويمكن للمستخدم تصغيره حتى 180×80dp — وعندها يخفي
+    الودجت شريط أوقات اليوم ثم شريط التقدّم تلقائياً بدل أن تتزاحم العناصر.
+
+    updatePeriodMillis هنا شبكة أمان فقط (نصف ساعة، وهو أقصر ما يسمح به النظام):
+    العدّاد يتحرك وحده عبر Chronometer، وإعادة الحساب الحقيقية يقودها منبّه
+    مضبوط على لحظة دخول الصلاة القادمة — انظر PrayerWidgetRenderer#scheduleNext.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="160dp"
+    android:minResizeWidth="180dp"
+    android:minResizeHeight="80dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="3"
+    android:updatePeriodMillis="1800000"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialLayout="@layout/widget_prayer_large"
+    android:previewImage="@drawable/widget_preview_large"
+    android:previewLayout="@layout/widget_prayer_large"
+    android:description="@string/widget_large_description" />

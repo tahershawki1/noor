@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    خلفية بطاقة الودجت — مقابل ‎.hero-card في styles.css:
+    تدرّج خطي بزاوية 145deg بين اللونين hero‑1 و hero‑2، مع حواف دائرية.
+
+    الزاوية 315 في أندرويد تعني تدرّجاً من أعلى اليسار نحو أسفل اليمين، وهي
+    أقرب مضاعف لـ 45 درجة إلى 145deg في CSS (أندرويد لا يقبل غير المضاعفات).
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="315"
+        android:startColor="@color/widget_hero_start"
+        android:endColor="@color/widget_hero_end"
+        android:type="linear" />
+    <corners android:radius="24dp" />
+</shape>

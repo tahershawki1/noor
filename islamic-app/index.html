@@ -494,6 +494,34 @@
           <p class="field-hint">لضبط الأوقات لتطابق مسجد حيّك، أضف أو أنقص دقائق لكل صلاة</p>
         </div>
         <button id="resetTuneBtn" class="btn btn-soft btn-block">إعادة تعيين التصحيح</button>
+
+        <!-- ودجت الشاشة الرئيسية — يظهر في تطبيق الأندرويد فقط -->
+        <div class="field hidden" id="prayerWidgetField">
+          <label class="field-label">ودجت الشاشة الرئيسية</label>
+          <div class="widget-picker">
+            <button class="widget-pick" data-widget-size="large">
+              <span class="widget-pick-preview lg">
+                <span class="wp-label">الصلاة القادمة</span>
+                <span class="wp-name">العصر</span>
+                <span class="wp-countdown">01:24:36</span>
+                <span class="wp-progress"><span class="wp-progress-fill"></span></span>
+                <span class="wp-strip"><i></i><i></i><i></i><i class="on"></i><i></i><i></i></span>
+              </span>
+              <span class="widget-pick-name">البطاقة الكاملة</span>
+              <span class="widget-pick-note">الاسم والعدّاد وأوقات اليوم</span>
+            </button>
+            <button class="widget-pick" data-widget-size="small">
+              <span class="widget-pick-preview sm">
+                <span class="wp-countdown">01:24:36</span>
+              </span>
+              <span class="widget-pick-name">العدّاد المصغّر</span>
+              <span class="widget-pick-note">الوقت المتبقي فقط</span>
+            </button>
+          </div>
+          <p class="field-hint" id="prayerWidgetHint">
+            اختر الحجم ليُضاف إلى الشاشة الرئيسية. العدّاد يتحرك ثانيةً بثانية ويعمل دون إنترنت.
+          </p>
+        </div>
       </div>
     </div>
   </div>
@@ -598,6 +626,7 @@
 <!-- الغلاف الأصلي (Capacitor): يعملان بلا ضرر في المتصفح العادي أيضاً -->
 <script src="live-updates.js"></script>
 <script src="floating-widget.js"></script>
+<script src="prayer-widget.js"></script>
 
 <script src="quran-data.js"></script>
 <script src="prayer-times.js"></script>

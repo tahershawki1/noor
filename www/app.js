@@ -1117,6 +1117,9 @@ function storeAndRenderPrayerData(data, locationLabel) {
  * التاريخ الهجري من Intl، وهو متاح دون إنترنت كذلك.
  */
 function computeAndStorePrayerTimes(lat, lng, locationLabel) {
+  // الإحداثيات المحسومة (سواء جاءت من الـ GPS أو من اختيار مدينة) — يقرأها
+  // ودجت الشاشة الرئيسية ليحسب المواقيت بنفسه والتطبيق مغلق.
+  localStorage.setItem("prayerResolvedCoords", JSON.stringify({ lat, lng }));
   const timings = PrayerCalc.calculate({
     latitude: lat,
     longitude: lng,
@@ -1207,6 +1210,10 @@ function renderPrayerTimes() {
   $("lastUpdated").classList.remove("hidden");
 
   renderPrayerRowsAndCountdown(timings, tune);
+
+  // مسار واحد يمرّ به كل تغيير في المواقيت أو إعداداتها، فهو أنسب موضع
+  // لمزامنة ودجت الشاشة الرئيسية. لا يفعل شيئاً في المتصفح العادي.
+  if (typeof PrayerWidget !== "undefined") PrayerWidget.sync();
 }
 
 function renderHomePrayerWidget(timings, nextName) {
@@ -1356,10 +1363,59 @@ $("madhabSelect").addEventListener("change", (e) => {
   retryPrayerFetch(true);
 });
 
+/* --------- ودجت الشاشة الرئيسية --------- */
+
+/**
+ * قسم الودجت يظهر في تطبيق الأندرويد فقط — في المتصفح لا معنى له.
+ * نُبرز الحجم المضاف بالفعل، ونبدّل التلميح حسب الحالة.
+ */
+async function refreshPrayerWidgetSection() {
+  const field = $("prayerWidgetField");
+  if (!field || typeof PrayerWidget === "undefined" || !PrayerWidget.isAvailable()) return;
+  field.classList.remove("hidden");
+
+  const status = await PrayerWidget.getStatus();
+  field
+    .querySelector('[data-widget-size="large"]')
+    .classList.toggle("selected", status.largeCount > 0);
+  field
+    .querySelector('[data-widget-size="small"]')
+    .classList.toggle("selected", status.smallCount > 0);
+
+  const hint = $("prayerWidgetHint");
+  if (!hint) return;
+  if (!status.hasData) {
+    hint.textContent = "حدّد موقعك أولاً حتى يعرض الودجت المواقيت.";
+  } else if (status.largeCount + status.smallCount > 0) {
+    hint.textContent =
+      "الودجت مضاف بالفعل. غيّر حجمه بالضغط المطوّل عليه وسحب مقابضه، وسيتكيّف المحتوى تلقائياً.";
+  } else {
+    hint.textContent =
+      "اختر الحجم ليُضاف إلى الشاشة الرئيسية. العدّاد يتحرك ثانيةً بثانية ويعمل دون إنترنت.";
+  }
+}
+
+async function addPrayerWidget(size) {
+  if (typeof PrayerWidget === "undefined") return;
+  await PrayerWidget.sync();
+  const result = await PrayerWidget.requestPin(size);
+  if (result.requested) {
+    showToast("أكّد الإضافة من النافذة التي ظهرت");
+  } else {
+    // بعض مشغّلات الشاشة الرئيسية لا تدعم الإضافة من داخل التطبيق
+    showToast("اضغط مطوّلاً على الشاشة الرئيسية ← الودجتات ← نور");
+  }
+}
+
+$("prayerWidgetField")
+  .querySelectorAll("[data-widget-size]")
+  .forEach((btn) => btn.addEventListener("click", () => addPrayerWidget(btn.dataset.widgetSize)));
+
 function openPrayerSettings() {
   $("calcMethodSelect").value = getPrayerMethod();
   $("madhabSelect").value = getPrayerMadhab();
   renderTuneList();
+  refreshPrayerWidgetSection();
   $("prayerSettingsOverlay").classList.remove("hidden");
 }
 function closePrayerSettingsModal() {

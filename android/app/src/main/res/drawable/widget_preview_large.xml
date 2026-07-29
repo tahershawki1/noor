@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    معاينة الودجت الكبير في قائمة اختيار الودجتات.
+    أندرويد 12 فأحدث يستعمل previewLayout (الودجت الحقيقي)، وهذه المعاينة
+    للأجهزة الأقدم: رسم مبسّط لنفس البطاقة — شارة، اسم، عدّاد ذهبي، شريط تقدّم،
+    وست خانات لأوقات اليوم.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="160dp"
+    android:viewportWidth="250"
+    android:viewportHeight="160">
+
+    <!-- البطاقة -->
+    <path
+        android:fillColor="#0E5C42"
+        android:pathData="M24,0 L226,0 A24,24 0 0 1 250,24 L250,136 A24,24 0 0 1 226,160 L24,160 A24,24 0 0 1 0,136 L0,24 A24,24 0 0 1 24,0 Z" />
+
+    <!-- شارة «الصلاة القادمة» -->
+    <path
+        android:fillColor="#33FFFFFF"
+        android:pathData="M96,18 L154,18 A7,7 0 0 1 154,32 L96,32 A7,7 0 0 1 96,18 Z" />
+
+    <!-- اسم الصلاة -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M100,42 L150,42 L150,54 L100,54 Z" />
+
+    <!-- العدّاد -->
+    <path
+        android:fillColor="#F0D6A6"
+        android:pathData="M78,62 L172,62 L172,86 L78,86 Z" />
+
+    <!-- شريط التقدّم -->
+    <path
+        android:fillColor="#29FFFFFF"
+        android:pathData="M16,96 L234,96 L234,101 L16,101 Z" />
+    <path
+        android:fillColor="#F0D6A6"
+        android:pathData="M16,96 L142,96 L142,101 L16,101 Z" />
+
+    <!-- ست خانات لأوقات اليوم -->
+    <path
+        android:fillColor="#14FFFFFF"
+        android:pathData="M16,112 L50,112 L50,146 L16,146 Z
+                          M54,112 L88,112 L88,146 L54,146 Z
+                          M92,112 L126,112 L126,146 L92,146 Z
+                          M130,112 L164,112 L164,146 L130,146 Z
+                          M168,112 L202,112 L202,146 L168,146 Z" />
+    <path
+        android:fillColor="#2EFFFFFF"
+        android:pathData="M206,112 L234,112 L234,146 L206,146 Z" />
+</vector>

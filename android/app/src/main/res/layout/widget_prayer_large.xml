@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    ودجت «الصلاة القادمة» الكبير.
+
+    تخطيط مطابق للبطاقة الرئيسية في التطبيق (‎.hero-card في styles.css):
+    شارة «الصلاة القادمة» ← اسم الصلاة ← العدّاد الذهبي ← شريط التقدّم ← شريط
+    أوقات اليوم الستة.
+
+    التكيّف مع الحجم: العناصر الأقل أهمية (الشريط ثم شريط التقدّم ثم الشارة)
+    تُخفى برمجياً حين يصغّر المستخدم الودجت — انظر PrayerWidgetRenderer.
+
+    العدّاد Chronometer وليس TextView عادياً: النظام هو من يحرّك أرقامه ثانيةً
+    بثانية داخل عملية الـ launcher، فنحصل على عدّاد حيّ كما في التطبيق دون أي
+    استيقاظ دوري لتطبيقنا ودون أي استهلاك للبطارية.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layoutDirection="rtl"
+    android:background="@drawable/widget_bg_hero">
+
+    <!-- ==================== الحالة العادية ==================== -->
+    <LinearLayout
+        android:id="@+id/widget_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="10dp">
+
+        <TextView
+            android:id="@+id/widget_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/widget_bg_pill"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="@string/widget_next_prayer"
+            android:textColor="@color/widget_white_72"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:maxLines="1" />
+
+        <TextView
+            android:id="@+id/widget_prayer_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/widget_white"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:text="—" />
+
+        <!-- العدّاد الحيّ: يُضبط أساسه من الكود ويعدّ تنازلياً وحده -->
+        <Chronometer
+            android:id="@+id/widget_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:textColor="@color/widget_gold"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textDirection="ltr" />
+
+        <!-- يحلّ محلّ العدّاد عند دخول وقت الصلاة -->
+        <TextView
+            android:id="@+id/widget_countdown_done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/widget_time_now"
+            android:textColor="@color/widget_gold"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/widget_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="5dp"
+            android:layout_marginTop="10dp"
+            android:max="100"
+            android:progress="0"
+            android:progressDrawable="@drawable/widget_progress" />
+
+        <!-- شريط أوقات اليوم الستة — مقابل ‎.prayer-strip -->
+        <LinearLayout
+            android:id="@+id/widget_strip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+
+            <LinearLayout
+                android:id="@+id/widget_cell_0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_0"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_0"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_0"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_cell_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_1"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_1"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_1"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_cell_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_2"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_2"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_2"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_cell_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_3"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_3"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_3"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_cell_4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_4"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_4"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_4"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/widget_cell_5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:background="@drawable/widget_strip_cell">
+                <TextView android:id="@+id/widget_cell_icon_5"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:maxLines="1" android:includeFontPadding="false" />
+                <TextView android:id="@+id/widget_cell_name_5"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="8sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white_68" android:maxLines="1" />
+                <TextView android:id="@+id/widget_cell_time_5"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:textSize="9sp" android:textStyle="bold"
+                    android:textColor="@color/widget_white" android:maxLines="1"
+                    android:textDirection="ltr" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ==================== قبل ضبط الموقع ==================== -->
+    <TextView
+        android:id="@+id/widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="@string/widget_no_data"
+        android:textColor="@color/widget_white_90"
+        android:textSize="12sp"
+        android:lineSpacingExtra="4dp"
+        android:visibility="gone" />
+</FrameLayout>
