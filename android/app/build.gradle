@@ -1,5 +1,29 @@
 apply plugin: 'com.android.application'
 
+// مفتاح التوقيع يأتي من متغيّرات البيئة، فلا يُخزَّن أي سر داخل الريبو.
+// على GitHub Actions تأتي من الأسرار، ومحلياً تضبطها في الطرفية قبل البناء:
+//   export NOOR_KEYSTORE_PATH=~/noor.keystore
+//   export NOOR_KEYSTORE_PASSWORD=... NOOR_KEY_ALIAS=... NOOR_KEY_PASSWORD=...
+// وبدونها يعمل البناء طبيعياً وتُنتج نسخة release غير موقّعة.
+def noorKeystorePath = System.getenv("NOOR_KEYSTORE_PATH")
+def hasSigningKey = noorKeystorePath != null && !noorKeystorePath.isEmpty() && file(noorKeystorePath).exists()
+
+// نسخة التطبيق مصدرها الوحيد package.json، فلا تتفرّق النسخ بين الويب والأندرويد.
+// versionName يُعرض للمستخدم، أما versionCode فرقم متزايد يفرض أندرويد زيادته
+// في كل إصدار وإلا رفض التثبيت فوق نسخة مثبّتة.
+//   1.0.0 → 10000 ، 1.0.1 → 10001 ، 1.2.3 → 10203 ، 2.0.0 → 20000
+def appVersionName = new groovy.json.JsonSlurper()
+    .parseText(file("../../package.json").getText("UTF-8")).version
+def versionParts = appVersionName.replaceAll("[^0-9.].*\$", "").tokenize(".")
+def versionMajor = versionParts.size() > 0 ? versionParts[0].toInteger() : 0
+def versionMinor = versionParts.size() > 1 ? versionParts[1].toInteger() : 0
+def versionPatch = versionParts.size() > 2 ? versionParts[2].toInteger() : 0
+def appVersionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
+
+if (versionMinor > 99 || versionPatch > 99) {
+    throw new GradleException("رقم النسخة ${appVersionName} خارج المدى — الحد الأقصى 99 للـ minor والـ patch")
+}
+
 android {
     namespace = "com.noor.islamicapp"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +31,8 @@ android {
         applicationId "com.noor.islamicapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +40,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasSigningKey) {
+            release {
+                storeFile file(noorKeystorePath)
+                storePassword System.getenv("NOOR_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("NOOR_KEY_ALIAS")
+                keyPassword System.getenv("NOOR_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasSigningKey) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
@@ -33,6 +70,9 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    // مطلوبتان صراحةً للزر العائم: ServiceCompat/NotificationCompat و ActivityResult
+    implementation "androidx.core:core:$androidxCoreVersion"
+    implementation "androidx.activity:activity:$androidxActivityVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')

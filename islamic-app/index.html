@@ -8,9 +8,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>نور — تطبيق إسلامي</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Scheherazade+New:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Lateef:wght@400;700&family=Reem+Kufi:wght@400;500;600;700&family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- خطوط محلية بدل Google Fonts — التطبيق يعمل دون إنترنت (scripts/build-fonts.mjs) -->
+  <link rel="stylesheet" href="fonts/fonts.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -143,6 +142,8 @@
       <!-- ======== قسم القرآن الكريم ======== -->
       <section id="quran" class="tab-panel">
         <div id="surahListView">
+          <!-- بطاقة متابعة القراءة — تظهر فقط إن وُجد موضع محفوظ -->
+          <div id="resumeCard" class="resume-card hidden"></div>
           <div class="search-field">
             <svg class="ic search-ic"><use href="#i-search"></use></svg>
             <input type="search" id="surahSearch" class="search-input" placeholder="ابحث عن سورة أو رقمها" />
@@ -594,6 +595,12 @@
 
 </div>
 
+<!-- الغلاف الأصلي (Capacitor): يعملان بلا ضرر في المتصفح العادي أيضاً -->
+<script src="live-updates.js"></script>
+<script src="floating-widget.js"></script>
+
+<script src="quran-data.js"></script>
+<script src="prayer-times.js"></script>
 <script src="adhkar-data.js"></script>
 <script src="app.js"></script>
 </body>

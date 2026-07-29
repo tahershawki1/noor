@@ -1,10 +1,22 @@
 {
   "name": "eslamic-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "نور — تطبيق إسلامي: غلاف أندرويد أصلي (Capacitor) بتحديثات ويب مباشرة",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:offline": "node tests/offline.mjs",
+    "data:quran": "node scripts/build-quran-data.mjs",
+    "data:tafsir": "node scripts/build-tafsir-data.mjs",
+    "data:cities": "node scripts/build-cities-data.mjs",
+    "data:fonts": "node scripts/build-fonts.mjs",
+    "sync:web": "node scripts/sync-web.js",
+    "sync": "npm run sync:web && npx cap sync android",
+    "open:android": "npx cap open android",
+    "build:debug": "npm run sync && cd android && ./gradlew assembleDebug",
+    "build:release": "npm run sync && cd android && ./gradlew assembleRelease",
+    "bundle:zip": "npm run sync:web && npx @capgo/cli@latest bundle zip --path www",
+    "bundle:upload": "npm run sync:web && npx @capgo/cli@latest bundle upload --path www --channel production"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +25,7 @@
   "dependencies": {
     "@capacitor/android": "^8.4.2",
     "@capacitor/cli": "^8.4.2",
-    "@capacitor/core": "^8.4.2"
+    "@capacitor/core": "^8.4.2",
+    "@capgo/capacitor-updater": "^8.51.2"
   }
 }

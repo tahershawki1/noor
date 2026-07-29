@@ -47,7 +47,10 @@ function setHeaderMode(mode, title = "", subtitle = "") {
   }
 }
 
-function navigateTo(tab) {
+function navigateTo(tab, options = {}) {
+  // ندخل من تبويب آخر؟ يُستعمل لتقرير فتح آخر موضع قراءة تلقائياً
+  const cameFromAnotherTab = currentTab !== tab;
+
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
   const panel = $(tab);
   if (panel) panel.classList.add("active");
@@ -55,6 +58,7 @@ function navigateTo(tab) {
 
   if (tab === "bookmarks") renderBookmarks();
   if (tab === "adiyah") renderAdiyah();
+  if (tab === "prayer") ensurePrayerTimesFresh();
 
   document.querySelectorAll(".nav-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);
@@ -65,10 +69,16 @@ function navigateTo(tab) {
   else setHeaderMode("back", SECTION_TITLES[tab] || "");
 
   $("mainContent").scrollTop = 0;
+
+  // فتح القرآن من شريط التنقل يستأنف آخر موضع قراءة مباشرةً.
+  // الشرط cameFromAnotherTab يمنع إعادة الفتح بعد الرجوع لقائمة السور.
+  if (tab === "quran" && options.resume && cameFromAnotherTab && $("surahReadView").classList.contains("hidden")) {
+    resumeReading();
+  }
 }
 
 document.querySelectorAll(".nav-btn").forEach((btn) => {
-  btn.addEventListener("click", () => navigateTo(btn.dataset.tab));
+  btn.addEventListener("click", () => navigateTo(btn.dataset.tab, { resume: true }));
 });
 
 // زر الرجوع في الشريط العلوي — يعرف السياق الذي هو فيه
@@ -108,32 +118,70 @@ function exitReaderHeaderMode() {
 /* ============================================================
    ١) قسم القرآن الكريم
    ============================================================ */
-const QURAN_API = "https://api.alquran.cloud/v1";
+// كل بيانات القرآن محلية داخل التطبيق (islamic-app/data) — لا اتصال بأي API.
+// انظر quran-data.js لطبقة التحميل، و scripts/build-quran-data.mjs لتوليد البيانات.
 let surahs = [];
 let currentSurah = null;
 let pendingAyahScroll = null;
 
+/**
+ * تطبيع عربي شامل للبحث: يزيل التشكيل وعلامات المصحف والتطويل، ويوحّد
+ * أشكال الألف (ومنها ألف الوصل التي يكثر ورودها في رسم المصحف)، والتاء
+ * المربوطة، والألف المقصورة، والهمزات. بدونه يفشل البحث عن "الفاتحة"
+ * لأن الاسم المخزَّن يكتبها بألف وصل وتشكيل كامل.
+ */
+function normalizeArabic(text) {
+  return String(text || "")
+    .replace(/[ؐ-ًؚ-ٰٟۖ-ۭ]/g, "") // تشكيل وعلامات مصحفية
+    .replace(/ـ/g, "")                                          // تطويل
+    .replace(/[آأإٱٲٳٵ]/g, "ا") // أشكال الألف
+    .replace(/ة/g, "ه")                                    // ة ← ه
+    .replace(/[ىی]/g, "ي")                            // ى ← ي
+    .replace(/ؤ/g, "و")                                    // ؤ ← و
+    .replace(/ئ/g, "ي")                                    // ئ ← ي
+    .replace(/[​-‏؜]/g, "")                           // محارف اتجاه غير مرئية
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/** مفاتيح البحث لكل سورة: الاسم كاملاً، وبدون "سورة"، وبدون "ال"، والاسم اللاتيني. */
+function surahSearchKeys(surah) {
+  const name = normalizeArabic(surah.name);
+  const bare = name.replace(/^سوره\s*/, "");
+  return [name, bare, bare.replace(/^ال/, ""), String(surah.en || "").toLowerCase()];
+}
+
+/** يحوّل الأرقام العربية الهندية إلى لاتينية ليقبل البحث "١٨" و"18". */
+function toLatinDigits(text) {
+  return String(text).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+}
+
 async function loadSurahList() {
   const listEl = $("surahList");
   try {
-    const res = await fetch(`${QURAN_API}/surah`);
-    const json = await res.json();
-    surahs = json.data;
+    await QuranData.loadMeta();
+    surahs = QuranData.getSurahs();
     renderSurahList(surahs);
+    renderResumeCard();
   } catch (e) {
-    listEl.innerHTML = `<div class="error-msg">تعذر تحميل قائمة السور — تأكد من اتصالك بالإنترنت ثم أعد المحاولة.<br><br><button class="btn btn-soft" onclick="loadSurahList()">إعادة المحاولة</button></div>`;
+    listEl.innerHTML = `<div class="error-msg">تعذر قراءة بيانات المصحف المرفقة مع التطبيق.<br><br><button class="btn btn-soft" onclick="loadSurahList()">إعادة المحاولة</button></div>`;
   }
 }
 
 function renderSurahList(list) {
+  if (!list.length) {
+    $("surahList").innerHTML = `<div class="empty-state"><p>لا توجد سورة بهذا الاسم</p></div>`;
+    return;
+  }
   $("surahList").innerHTML = list
     .map(
       (s) => `
-      <div class="surah-card" onclick="openSurah(${s.number})">
-        <div class="surah-number"><span>${s.number}</span></div>
+      <div class="surah-card" onclick="openSurah(${s.n})">
+        <div class="surah-number"><span>${s.n}</span></div>
         <div class="surah-card-info">
           <div class="surah-card-name">${s.name}</div>
-          <div class="surah-card-meta">${s.revelationType === "Meccan" ? "مكية" : "مدنية"} • ${s.numberOfAyahs} آية</div>
+          <div class="surah-card-meta">${s.type} • ${s.ayahs} آية</div>
         </div>
       </div>`
     )
@@ -141,11 +189,17 @@ function renderSurahList(list) {
 }
 
 $("surahSearch").addEventListener("input", (e) => {
-  const q = e.target.value.trim();
-  if (!q) return renderSurahList(surahs);
-  const norm = (t) => t.replace(/[ً-ٰٟ]/g, "").replace(/[أإآ]/g, "ا");
+  const raw = e.target.value.trim();
+  if (!raw) return renderSurahList(surahs);
+
+  const query = normalizeArabic(raw);
+  const digits = toLatinDigits(raw);
+
   renderSurahList(
-    surahs.filter((s) => norm(s.name).includes(norm(q)) || String(s.number) === q)
+    surahs.filter((s) => {
+      if (/^\d+$/.test(digits) && s.n === Number(digits)) return true;
+      return surahSearchKeys(s).some((key) => key && key.includes(query));
+    })
   );
 });
 
@@ -154,16 +208,18 @@ async function openSurah(number, ayahToHighlight = null) {
   pendingAyahScroll = ayahToHighlight;
   $("surahListView").classList.add("hidden");
   $("surahReadView").classList.remove("hidden");
-  $("ayahContainer").innerHTML = '<div class="loading">جارِ تحميل السورة...</div>';
+  $("ayahContainer").innerHTML = '<div class="loading">جارِ فتح السورة...</div>';
   $("ayahContainer").scrollTop = 0;
   enterReaderHeaderMode();
 
   try {
-    const res = await fetch(`${QURAN_API}/surah/${number}`);
-    const json = await res.json();
-    renderSurah(json.data);
+    await QuranData.loadMeta();
+    await QuranData.loadText();
+    const surah = QuranData.getSurah(number);
+    if (!surah) throw new Error("سورة غير موجودة: " + number);
+    renderSurah(surah);
   } catch (e) {
-    $("ayahContainer").innerHTML = `<div class="error-msg">تعذر تحميل السورة — تأكد من الاتصال بالإنترنت.<br><br><button class="btn btn-soft" onclick="openSurah(${number})">إعادة المحاولة</button></div>`;
+    $("ayahContainer").innerHTML = `<div class="error-msg">تعذر قراءة نص السورة من بيانات التطبيق.<br><br><button class="btn btn-soft" onclick="openSurah(${number})">إعادة المحاولة</button></div>`;
   }
 }
 
@@ -333,8 +389,19 @@ function renderSurah(surah) {
     if (stripEmbeddedBasmala) text = stripBasmala(text);
     const key = `${surah.number}:${a.numberInSurah}`;
     const saved = bookmarks.some((b) => b.key === key);
-    return `<span class="ayah-span ${saved ? "bookmarked" : ""}" id="ayah-${a.numberInSurah}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}">${text}<span class="ayah-marker">﴿${toArabicNum(a.numberInSurah)}﴾</span></span>`;
+    const classes = ["ayah-span"];
+    if (saved) classes.push("bookmarked");
+    if (a.sajdah) classes.push("has-sajdah");
+    return `<span class="${classes.join(" ")}" id="ayah-${a.numberInSurah}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}" data-page="${a.page}">${text}<span class="ayah-marker">﴿${toArabicNum(a.numberInSurah)}﴾</span>${a.sajdah ? '<span class="sajdah-mark" title="موضع سجدة">۩</span>' : ""}</span>`;
   };
+
+  // فاصل صفحات المصحف — يُدرج قبل أول آية في كل صفحة جديدة
+  const pageSeparator = (pageNumber) =>
+    `<div class="page-separator" data-page="${pageNumber}">` +
+    `<span class="page-separator-line"></span>` +
+    `<span class="page-separator-label">صفحة ${toArabicNum(pageNumber)}</span>` +
+    `<span class="page-separator-line"></span>` +
+    `</div>`;
 
   let html = showBasmala ? '<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>' : "";
 
@@ -345,14 +412,18 @@ function renderSurah(surah) {
     ayahsToFlow = surah.ayahs.slice(1);
   }
 
+  // النص يتدفق في فقرة لكل صفحة مصحف، ليقع الفاصل بين الفقرات لا داخل السطر
   html += '<p class="mushaf-text" dir="rtl">';
-  html += ayahsToFlow
-    .map((a) => renderAyahSpan(a, a.numberInSurah === 1 && showBasmala) + " ")
-    .join("");
+  ayahsToFlow.forEach((a, index) => {
+    if (a.pageStart && index > 0) {
+      html += `</p>${pageSeparator(a.page)}<p class="mushaf-text" dir="rtl">`;
+    }
+    html += renderAyahSpan(a, a.numberInSurah === 1 && showBasmala) + " ";
+  });
   html += "</p>";
 
   $("ayahContainer").innerHTML = html;
-  updateJuzHizbBadge();
+  updateReaderProgress();
 
   if (pendingAyahScroll) {
     const el = $(`ayah-${pendingAyahScroll}`);
@@ -365,8 +436,63 @@ function renderSurah(surah) {
   }
 }
 
-/* --------- شارة الجزء والحزب — تتحدث حسب الآية الظاهرة أعلى صندوق القراءة --------- */
-function updateJuzHizbBadge() {
+/* --------- متابعة القراءة — يُحفظ آخر موضع تلقائياً أثناء التصفح --------- */
+const LAST_READ_KEY = "quranLastRead";
+
+function getLastRead() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAST_READ_KEY));
+    return saved && saved.surah ? saved : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function saveLastRead(surahNumber, ayahNumber, surahName) {
+  localStorage.setItem(
+    LAST_READ_KEY,
+    JSON.stringify({ surah: surahNumber, ayah: ayahNumber, surahName, at: Date.now() })
+  );
+}
+
+function clearLastRead() {
+  localStorage.removeItem(LAST_READ_KEY);
+  renderResumeCard();
+  showToast("تم مسح موضع القراءة");
+}
+
+/**
+ * بطاقة "متابعة القراءة" أعلى قائمة السور — تُظهر آخر موضع وتتيح فتحه يدوياً.
+ * الإشارات المرجعية شيء منفصل تماماً: هي علامات يضعها المستخدم بنفسه ولا
+ * تؤثر على موضع المتابعة.
+ */
+function renderResumeCard() {
+  const card = $("resumeCard");
+  if (!card) return;
+  const last = getLastRead();
+  if (!last) {
+    card.classList.add("hidden");
+    return;
+  }
+  card.classList.remove("hidden");
+  card.innerHTML =
+    `<button class="resume-open" onclick="resumeReading()">` +
+    `<span class="resume-label">متابعة القراءة</span>` +
+    `<span class="resume-ref">${last.surahName || ""} — الآية ${toArabicNum(last.ayah)}</span>` +
+    `</button>` +
+    `<button class="icon-action danger" onclick="clearLastRead()" aria-label="مسح موضع القراءة">${icon("trash")}</button>`;
+}
+
+/** يفتح آخر موضع قراءة محفوظ. */
+function resumeReading() {
+  const last = getLastRead();
+  if (!last) return false;
+  openSurah(last.surah, last.ayah);
+  return true;
+}
+
+/* --------- شارة الجزء والحزب والصفحة — تتحدث حسب الآية الظاهرة أعلى صندوق القراءة --------- */
+function updateReaderProgress() {
   const container = $("ayahContainer");
   const spans = container.querySelectorAll(".ayah-span");
   if (!spans.length) return;
@@ -376,10 +502,17 @@ function updateJuzHizbBadge() {
     if (span.getBoundingClientRect().top <= refY) current = span;
     else break;
   }
+
   const juz = parseInt(current.dataset.juz, 10);
   const hizb = Math.ceil(parseInt(current.dataset.hizbQuarter, 10) / 4);
-  $("headerJuzHizb").textContent = `جزء ${toArabicNum(juz)} • حزب ${toArabicNum(hizb)}`;
+  const page = parseInt(current.dataset.page, 10);
+  $("headerJuzHizb").textContent =
+    `جزء ${toArabicNum(juz)} • حزب ${toArabicNum(hizb)} • صفحة ${toArabicNum(page)}`;
   $("headerJuzHizb").classList.remove("hidden");
+
+  if (currentSurah) {
+    saveLastRead(currentSurah, parseInt(current.dataset.ayah, 10), currentSurahName);
+  }
 }
 
 let juzHizbScrollRaf = null;
@@ -389,7 +522,7 @@ $("ayahContainer").addEventListener(
     if (juzHizbScrollRaf) return;
     juzHizbScrollRaf = requestAnimationFrame(() => {
       juzHizbScrollRaf = null;
-      updateJuzHizbBadge();
+      updateReaderProgress();
     });
   },
   { passive: true }
@@ -499,6 +632,14 @@ $("ayahListenBtn").addEventListener("click", () => {
     return;
   }
   const { surah, ayah } = currentDialogAyah;
+
+  // النص والتفسير يعملان دون إنترنت، أما التلاوة الصوتية فتُبَثّ من الشبكة
+  // (ملفات التلاوة كاملةً تتجاوز 200 ميجابايت، فلا تُرفق داخل التطبيق)
+  if (navigator.onLine === false) {
+    showToast("التلاوة الصوتية تحتاج اتصالاً بالإنترنت");
+    return;
+  }
+
   const fileName = `${String(surah).padStart(3, "0")}${String(ayah).padStart(3, "0")}.mp3`;
   audio.src = `https://everyayah.com/data/Alafasy_128kbps/${fileName}`;
   audio
@@ -507,7 +648,7 @@ $("ayahListenBtn").addEventListener("click", () => {
       $("ayahListenBtn").innerHTML = `${icon("pause")} إيقاف الاستماع`;
       $("ayahListenBtn").classList.add("playing");
     })
-    .catch(() => showToast("تعذر تشغيل الصوت لهذه الآية"));
+    .catch(() => showToast("تعذر تشغيل التلاوة — تحقق من الاتصال بالإنترنت"));
 });
 $("ayahAudioPlayer").addEventListener("ended", resetAyahListenBtn);
 
@@ -517,23 +658,27 @@ $("ayahFavoriteBtn").addEventListener("click", () => {
   updateFavoriteBtnLabel();
 });
 
+// التفسير مرفق مع التطبيق (data/tafsir-muyassar.json) ويُقرأ عند أول طلب فقط
 $("ayahTafsirBtn").addEventListener("click", async () => {
   const box = $("ayahTafsirBox");
   box.classList.remove("hidden");
-  box.innerHTML = '<div class="loading">جارِ تحميل التفسير...</div>';
+  box.innerHTML = '<div class="loading">جارِ فتح التفسير...</div>';
   const { surah, ayah } = currentDialogAyah;
   try {
-    const res = await fetch(`${QURAN_API}/ayah/${surah}:${ayah}/ar.muyassar`);
-    const json = await res.json();
-    box.innerHTML = `<p class="tafsir-source">📖 تفسير الميسر</p><p class="tafsir-text">${json.data.text}</p>`;
+    await QuranData.loadTafsir();
+    const text = QuranData.getTafsir(surah, ayah);
+    box.innerHTML = text
+      ? `<p class="tafsir-source">📖 تفسير الميسر</p><p class="tafsir-text">${text.replace(/\n/g, "<br>")}</p>`
+      : '<div class="error-msg">لا يوجد تفسير محفوظ لهذه الآية.</div>';
   } catch (e) {
-    box.innerHTML = '<div class="error-msg">تعذر تحميل التفسير — تأكد من الاتصال بالإنترنت.</div>';
+    box.innerHTML = '<div class="error-msg">تعذر قراءة ملف التفسير المرفق مع التطبيق.</div>';
   }
 });
 
 function goBackToSurahList() {
   $("surahReadView").classList.add("hidden");
   $("surahListView").classList.remove("hidden");
+  renderResumeCard();
   exitReaderHeaderMode();
 }
 
@@ -862,6 +1007,22 @@ const PRAYER_NAMES = {
   Maghrib: { ar: "المغرب", icon: "🌇" },
   Isha: { ar: "العشاء", icon: "🌙" },
 };
+/** أسماء عربية لرموز الدول — لعرض الموقع وللبحث بالدولة. */
+const COUNTRY_NAMES_AR = {
+  EG: "مصر", SA: "السعودية", AE: "الإمارات", KW: "الكويت", QA: "قطر", BH: "البحرين",
+  OM: "عُمان", YE: "اليمن", JO: "الأردن", PS: "فلسطين", IL: "فلسطين", LB: "لبنان",
+  SY: "سوريا", IQ: "العراق", LY: "ليبيا", TN: "تونس", DZ: "الجزائر", MA: "المغرب",
+  MR: "موريتانيا", SD: "السودان", SO: "الصومال", DJ: "جيبوتي", KM: "جزر القمر",
+  TR: "تركيا", IR: "إيران", PK: "باكستان", ID: "إندونيسيا", MY: "ماليزيا",
+  BD: "بنغلاديش", AF: "أفغانستان", BN: "بروناي", MV: "المالديف",
+  NG: "نيجيريا", SN: "السنغال", ML: "مالي", NE: "النيجر", TD: "تشاد",
+  AZ: "أذربيجان", KZ: "كازاخستان", UZ: "أوزبكستان", TM: "تركمانستان",
+  KG: "قيرغيزستان", TJ: "طاجيكستان", AL: "ألبانيا", XK: "كوسوفو", BA: "البوسنة",
+  GB: "بريطانيا", FR: "فرنسا", DE: "ألمانيا", NL: "هولندا", BE: "بلجيكا",
+  ES: "إسبانيا", IT: "إيطاليا", SE: "السويد", NO: "النرويج", DK: "الدنمارك",
+  AT: "النمسا", CH: "سويسرا", RU: "روسيا", US: "أمريكا", CA: "كندا", AU: "أستراليا",
+};
+
 const PRAYER_ORDER_ALL = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
 const PRAYER_ORDER_MAIN = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
 let countdownTimer = null;
@@ -927,16 +1088,16 @@ function retryPrayerFetch(showFeedback) {
 function showPrayerLoading() {
   if (!lastPrayerData) {
     $("prayerTimesList").innerHTML = Array(6).fill('<div class="skeleton-row"></div>').join("");
-    $("prayerLocation").textContent = "جارِ تحميل المواقيت...";
+    $("prayerLocation").textContent = "جارِ حساب المواقيت...";
   }
 }
 
 function handlePrayerFetchError() {
   if (lastPrayerData) {
-    showToast("تعذر التحديث — تُعرض آخر بيانات محفوظة");
+    showToast("تعذر الحساب — تُعرض آخر مواقيت محفوظة");
   } else {
-    $("prayerLocation").textContent = "تعذر تحميل المواقيت — تأكد من الاتصال بالإنترنت";
-    $("prayerTimesList").innerHTML = `<div class="error-msg">تعذر الاتصال بخدمة المواقيت.<br><br><button class="btn btn-soft" onclick="retryPrayerFetch(true)">إعادة المحاولة</button></div>`;
+    $("prayerLocation").textContent = "تعذر حساب المواقيت";
+    $("prayerTimesList").innerHTML = `<div class="error-msg">تعذر حساب المواقيت.<br><br><button class="btn btn-soft" onclick="retryPrayerFetch(true)">إعادة المحاولة</button></div>`;
   }
 }
 
@@ -951,20 +1112,62 @@ function storeAndRenderPrayerData(data, locationLabel) {
   renderPrayerTimes();
 }
 
+/**
+ * المواقيت تُحسب على الجهاز فلكياً (prayer-times.js) — لا اتصال بأي خدمة.
+ * التاريخ الهجري من Intl، وهو متاح دون إنترنت كذلك.
+ */
+function computeAndStorePrayerTimes(lat, lng, locationLabel) {
+  const timings = PrayerCalc.calculate({
+    latitude: lat,
+    longitude: lng,
+    date: new Date(),
+    method: Number(getPrayerMethod()),
+    school: getPrayerMadhab(),
+  });
+  const hijri = PrayerCalc.hijriDate() || { day: "", month: "", year: "" };
+  storeAndRenderPrayerData(
+    { timings, date: { hijri: { day: hijri.day, month: { ar: hijri.month }, year: hijri.year } } },
+    locationLabel
+  );
+}
+
 async function fetchPrayerTimesByCoords(lat, lng) {
   localStorage.setItem("prayerSource", "coords");
   localStorage.setItem("prayerCoords", JSON.stringify({ lat, lng }));
-  showPrayerLoading();
   try {
-    const res = await fetch(
-      `https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lng}&method=${getPrayerMethod()}&school=${getPrayerMadhab()}`
-    );
-    const json = await res.json();
-    if (json.code !== 200) throw new Error("bad response");
-    storeAndRenderPrayerData(json.data, `موقعك الحالي (${lat.toFixed(2)}, ${lng.toFixed(2)})`);
+    computeAndStorePrayerTimes(lat, lng, `موقعك الحالي (${lat.toFixed(2)}, ${lng.toFixed(2)})`);
   } catch (e) {
     handlePrayerFetchError();
   }
+}
+
+/** قائمة المدن المرفقة مع التطبيق — تُقرأ عند أول بحث فقط. */
+let citiesCache = null;
+async function loadCities() {
+  if (!citiesCache) {
+    const res = await fetch("data/cities.json");
+    if (!res.ok) throw new Error("cities " + res.status);
+    citiesCache = await res.json();
+  }
+  return citiesCache;
+}
+
+function findCity(cities, cityQuery, countryQuery) {
+  const query = normalizeArabic(cityQuery);
+  const country = normalizeArabic(countryQuery);
+
+  const matches = cities.filter((c) => {
+    const latin = String(c.n).toLowerCase();
+    const arabic = c.a ? normalizeArabic(c.a) : "";
+    const hit = latin === query || arabic === query || latin.includes(query) || (arabic && arabic.includes(query));
+    if (!hit) return false;
+    if (!country) return true;
+    return String(c.c).toLowerCase() === country || normalizeArabic(COUNTRY_NAMES_AR[c.c] || "") === country;
+  });
+
+  // الأفضلية للمطابقة التامة على المطابقة الجزئية
+  const exact = matches.find((c) => String(c.n).toLowerCase() === query || (c.a && normalizeArabic(c.a) === query));
+  return exact || matches[0] || null;
 }
 
 async function fetchPrayerTimesByCity() {
@@ -976,12 +1179,17 @@ async function fetchPrayerTimesByCity() {
   localStorage.removeItem("prayerCoords");
   showPrayerLoading();
   try {
-    const res = await fetch(
-      `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country || "")}&method=${getPrayerMethod()}&school=${getPrayerMadhab()}`
-    );
-    const json = await res.json();
-    if (json.code !== 200) throw new Error("bad city");
-    storeAndRenderPrayerData(json.data, `${city}${country ? "، " + country : ""}`);
+    const cities = await loadCities();
+    const match = findCity(cities, city, country);
+    if (!match) {
+      $("prayerLocation").textContent = "لم نجد هذه المدينة في القائمة المرفقة";
+      $("prayerTimesList").innerHTML =
+        `<div class="error-msg">المدينة غير موجودة ضمن المدن المرفقة مع التطبيق.<br>` +
+        `جرّب اسم أقرب مدينة كبيرة، أو استعمل زر «موقعي الحالي» فهو الأدق ويعمل دون إنترنت.</div>`;
+      return;
+    }
+    const label = `${match.a || match.n}${match.c ? "، " + (COUNTRY_NAMES_AR[match.c] || match.c) : ""}`;
+    computeAndStorePrayerTimes(match.y, match.x, label);
   } catch (e) {
     handlePrayerFetchError();
   }
@@ -1162,6 +1370,14 @@ $("closePrayerSettings").addEventListener("click", closePrayerSettingsModal);
 $("prayerSettingsOverlay").addEventListener("click", (e) => {
   if (e.target.id === "prayerSettingsOverlay") closePrayerSettingsModal();
 });
+
+/** المواقيت محسوبة ليوم بعينه — نعيد حسابها إن دخل المستخدم بعد منتصف الليل. */
+function ensurePrayerTimesFresh() {
+  if (!lastPrayerData || !lastPrayerData.fetchedAt) return;
+  const sameDay =
+    new Date(lastPrayerData.fetchedAt).toDateString() === new Date().toDateString();
+  if (!sameDay) retryPrayerFetch(false);
+}
 
 // استرجاع آخر بيانات وموقع محفوظين عند فتح التطبيق
 (function restorePrayerLocation() {

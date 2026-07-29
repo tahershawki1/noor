@@ -1418,3 +1418,74 @@ input[type="number"].search-input { text-align: center; }
   .quick-grid { grid-template-columns: repeat(2, 1fr); }
   .nav-label { font-size: 0.58rem; }
 }
+
+/* ============ فاصل صفحات المصحف ============ */
+.page-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 18px;
+  user-select: none;
+}
+.page-separator-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong) 30%, var(--border-strong) 70%, transparent);
+}
+.page-separator-label {
+  font-family: var(--font-ui, inherit);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--gold);
+  background: var(--gold-tint);
+  border: 1px solid var(--gold-tint);
+  border-radius: 999px;
+  padding: 4px 14px;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* ============ علامة السجدة ============ */
+.sajdah-mark {
+  color: var(--gold);
+  font-size: 0.85em;
+  margin: 0 2px;
+}
+
+/* ============ بطاقة متابعة القراءة ============ */
+.resume-card {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.resume-open {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 16px;
+  border: 1px solid var(--gold-tint);
+  border-radius: 14px;
+  background: var(--gold-tint);
+  color: var(--text);
+  cursor: pointer;
+  text-align: start;
+  font-family: inherit;
+  transition: filter 0.15s ease;
+}
+.resume-open:active { filter: brightness(1.15); }
+.resume-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.resume-ref {
+  font-size: 0.92rem;
+  color: var(--text);
+}
+.resume-card .icon-action {
+  align-self: center;
+}

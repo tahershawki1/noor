@@ -1,0 +1,137 @@
+name: بناء تطبيق الأندرويد (APK)
+
+# متى يعمل؟
+#   • يدوياً من تبويب Actions (زر Run workflow) — مع اختيار debug أو release
+#   • تلقائياً عند أي تعديل يمسّ الغلاف الأصلي على main
+#   • على كل pull request كبناء تحقّق
+#
+# الإصدارات المرقّمة لها workflow منفصل: release.yml
+#
+# ملاحظة: بناء الـ APK مطلوب مرة واحدة فقط عملياً. تحديثات كود الويب بعدها
+# تصل للمستخدمين عبر Capgo دون بناء جديد (انظر docs/native-shell.md).
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'نوع البناء'
+        type: choice
+        options: [debug, release]
+        default: debug
+  push:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'islamic-app/**'
+      - 'www/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-apk.yml'
+  # على الـ PR يعمل بناء تحقّق: يضمن أن كود جافا يُصرَّف قبل الدمج
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android/**'
+      - 'islamic-app/**'
+      - 'www/**'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      # فارغة إن لم تُضبط الأسرار — تُستعمل لتحديد إمكانية بناء نسخة موقّعة
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: تجهيز Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: تجهيز Gradle مع التخزين المؤقت
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: تجهيز Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: تجهيز Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;36.0.0'
+
+      - name: تحديد نوع البناء
+        id: cfg
+        run: |
+          TYPE="${{ github.event.inputs.build_type || 'debug' }}"
+          # نسخة release بلا مفتاح توقيع تُنتج APK غير قابل للتثبيت،
+          # فنتراجع إلى debug بدل أن يفشل البناء أو يُنتج ملفاً معطوباً.
+          if [ "$TYPE" = "release" ] && [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "::warning::لم تُضبط أسرار التوقيع — سيُبنى debug بدلاً من release"
+            TYPE=debug
+          fi
+
+          TASK="assemble$(echo "$TYPE" | sed 's/^./\U&/')"
+          echo "type=$TYPE"                                        >> "$GITHUB_OUTPUT"
+          echo "task=$TASK"                                        >> "$GITHUB_OUTPUT"
+          echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: تثبيت الاعتماديات
+        run: npm ci
+
+      - name: نسخ أصول الويب ومزامنة Capacitor
+        run: |
+          npm run sync:web
+          npx cap sync android
+
+      - name: فك تشفير مفتاح التوقيع
+        if: steps.cfg.outputs.type == 'release'
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/noor.keystore"
+          echo "NOOR_KEYSTORE_PATH=$RUNNER_TEMP/noor.keystore" >> "$GITHUB_ENV"
+
+      - name: بناء الـ APK
+        working-directory: android
+        env:
+          NOOR_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          NOOR_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          NOOR_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew ${{ steps.cfg.outputs.task }} --stacktrace
+
+      - name: تسمية الملف
+        id: apk
+        run: |
+          TYPE="${{ steps.cfg.outputs.type }}"
+          SOURCE="android/app/build/outputs/apk/$TYPE/app-$TYPE.apk"
+          TARGET="noor-${{ steps.cfg.outputs.version }}-$TYPE.apk"
+          cp "$SOURCE" "$TARGET"
+          echo "name=$TARGET" >> "$GITHUB_OUTPUT"
+          ls -lh "$TARGET"
+
+      - name: رفع الـ APK كـ Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.name }}
+          path: ${{ steps.apk.outputs.name }}
+          retention-days: 90
+          if-no-files-found: error

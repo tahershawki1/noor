@@ -2,11 +2,43 @@
   "appId": "com.noor.islamicapp",
   "appName": "نور",
   "webDir": "www",
+  "loggingBehavior": "production",
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "cleartext": false,
+    "allowNavigation": [
+      "tahershawki1.github.io",
+      "api.alquran.cloud",
+      "cdn.islamic.network",
+      "everyayah.com",
+      "api.aladhan.com"
+    ]
   },
   "android": {
     "backgroundColor": "#1a1a2e",
-    "allowMixedContent": false
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": true,
+    "useLegacyBridge": false,
+    "appendUserAgent": "NoorNativeShell",
+    "initialFocus": false
+  },
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": true,
+      "updateUrl": "https://plugin.capgo.app/updates",
+      "statsUrl": "https://plugin.capgo.app/stats",
+      "channelUrl": "https://plugin.capgo.app/channel_self",
+      "defaultChannel": "production",
+      "appReadyTimeout": 10000,
+      "responseTimeout": 20,
+      "periodCheckDelay": 600,
+      "autoDeleteFailed": true,
+      "autoDeletePrevious": true,
+      "resetWhenUpdate": true,
+      "autoSplashscreen": false,
+      "allowModifyUrl": true,
+      "allowSetDefaultChannel": true
+    }
   }
 }
