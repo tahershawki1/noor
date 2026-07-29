@@ -25,6 +25,10 @@ on:
         description: 'إصدار تجريبي (لا يظهر كأحدث إصدار)'
         type: boolean
         default: false
+      allow_debug_signing:
+        description: 'اسمح بنشر إصدار موقّع بمفتاح debug (للتجربة فقط — لا يمكن تحديثه لاحقاً)'
+        type: boolean
+        default: false
       upload_to_capgo:
         description: 'رفع حزمة الويب لـ Capgo أيضاً (خطة بديلة — التحديث يعمل من GitHub بدونها)'
         type: boolean
@@ -113,6 +117,22 @@ jobs:
             echo "task=assembleDebug" >> "$GITHUB_OUTPUT"
           fi
 
+      # ــــــــ حاجز يمنع نشر إصدار لا يمكن تحديثه ــــــــ
+      # بناء debug يوقّعه Gradle بمفتاح يولّده في ~/.android/debug.keystore،
+      # وخوادم GitHub تُنشأ من الصفر كل مرة — فكل بناء يخرج بمفتاح مختلف.
+      # وأندرويد يرفض استبدال تطبيق بآخر موقّع بمفتاح مختلف، أي أن كل تحديث
+      # سيفرض على المستخدم حذف التطبيق وفقدان بياناته. هذا ليس افتراضاً:
+      # v1.2.1 خرجت ببصمة 452473ba… و v1.3.0 ببصمة db3cb8c6… من نفس الكود.
+      #
+      # لذلك لا يُنشر إصدار موقّع بمفتاح debug إلا بطلب صريح للتجربة.
+      - name: منع نشر إصدار لا يمكن تحديثه
+        if: steps.build.outputs.type == 'debug' && inputs.allow_debug_signing != true
+        run: |
+          echo "::error::لا يوجد مفتاح توقيع، وبناء debug يحمل مفتاحاً جديداً في كل مرة."
+          echo "::error::نشره يعني أن كل تحديث تالٍ سيفرض حذف التطبيق وفقدان بيانات المستخدم."
+          echo "::error::اضبط أسرار التوقيع أولاً (docs/native-shell.md)، أو فعّل allow_debug_signing للتجربة."
+          exit 1
+
       - name: فك تشفير مفتاح التوقيع
         if: steps.build.outputs.type == 'release'
         run: |
@@ -196,6 +216,15 @@ jobs:
             exit 1
           fi
           echo "بصمة شهادة التوقيع: $CERT_SHA"
+
+          # تغيّر الشهادة عن الإصدار السابق حدث جلل: كل جهاز مثبَّت سيضطر لحذف
+          # التطبيق. مشروع لمرة واحدة عند الانتقال إلى مفتاح ثابت، وكارثة إن تكرّر.
+          PREV_CERT=$(node -p "try{require('./islamic-app/version.json').app.sha256Cert||''}catch(e){''}" 2>/dev/null || true)
+          if [ -n "$PREV_CERT" ] && [ "$PREV_CERT" != "$CERT_SHA" ]; then
+            echo "::warning::تغيّرت شهادة التوقيع عن الإصدار السابق ($PREV_CERT ← $CERT_SHA)."
+            echo "::warning::كل جهاز مثبَّت سيحتاج حذف النسخة القديمة. التطبيق سينبّه المستخدم ويحفظ بياناته أولاً."
+            echo "> ⚠️ تغيّرت شهادة التوقيع — الأجهزة المثبّتة ستحتاج حذف النسخة القديمة." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
           # نفس معادلة android/app/build.gradle: 1.2.3 → 10203
           VERSION_CODE=$(node -p "
