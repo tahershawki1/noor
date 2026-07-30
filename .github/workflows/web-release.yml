@@ -9,6 +9,7 @@ on:
     branches: [main]
     paths:
       - 'islamic-app/**'
+  workflow_dispatch:  # لتشغيله يدوياً عند الحاجة (مثلاً لإصلاح version.json المتقادم)
 
 permissions:
   contents: write
