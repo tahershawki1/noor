@@ -1,0 +1,140 @@
+name: تحديث ويب تلقائي
+
+# عند كل push على main يحتوي تغييراً في مجلد التطبيق، نحزم محتوى الويب
+# الجديد وننشره على GitHub Releases، ثم نحدّث version.json فيلتقطه
+# التطبيق خلال دقائق بدون أي تدخّل يدوي.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'islamic-app/**'
+  workflow_dispatch:  # لتشغيله يدوياً عند الحاجة (مثلاً لإصلاح version.json المتقادم)
+
+permissions:
+  contents: write
+
+concurrency:
+  group: web-release
+  cancel-in-progress: true
+
+jobs:
+  web-release:
+    # كوميتات الـ bot (تحديث version.json) لا تُعيد تشغيل هذا الـ workflow
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: تجهيز Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: تثبيت الاعتماديات
+        run: npm ci
+
+      - name: نسخ أصول الويب
+        run: npm run sync:web
+
+      - name: فحص هل تغيّر المحتوى منذ آخر إصدار ويب
+        id: check
+        run: |
+          # بصمة كل ملفات الويب عدا version.json (يتغير دائماً بعد كل إصدار)
+          HASH=$(find www -type f -not -name 'version.json' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+          LAST=$(node -p "try{require('./islamic-app/version.json').web.contentHash||''}catch(e){''}" 2>/dev/null || echo '')
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          if [ "$HASH" = "$LAST" ] && [ -n "$LAST" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "### لا تغيير في محتوى الويب — تخطي إصدار الويب" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: احتساب رقم النسخة الجديدة
+        if: steps.check.outputs.changed == 'true'
+        id: ver
+        run: |
+          APP=$(node -p "require('./package.json').version")
+          # الرقم الرابع في نسخة الويب (1.4.0.N) يتزايد مع كل تحديث ويب
+          PREV=$(node -p "
+            try {
+              const v = require('./islamic-app/version.json').web.version;
+              const p = String(v).split('.'); p.length >= 4 ? Number(p[3]) : 0
+            } catch(e) { 0 }
+          " 2>/dev/null || echo '0')
+          BUILD=$((PREV + 1))
+          VER="${APP}.${BUILD}"
+          echo "version=$VER"           >> "$GITHUB_OUTPUT"
+          echo "tag=web-v${VER}"        >> "$GITHUB_OUTPUT"
+          echo "zip=noor-web-${VER}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: بناء حزمة الويب
+        if: steps.check.outputs.changed == 'true'
+        id: bundle
+        run: |
+          ZIP="${{ steps.ver.outputs.zip }}"
+          ( cd www && zip -qr "$GITHUB_WORKSPACE/$ZIP" . -x 'version.json' )
+          SHA=$(sha256sum "$ZIP" | cut -d' ' -f1)
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "- حزمة الويب: \`$ZIP\` ($(du -h "$ZIP" | cut -f1))" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: نشر إصدار ويب على GitHub
+        if: steps.check.outputs.changed == 'true'
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          ZIP="${{ steps.ver.outputs.zip }}"
+          VER="${{ steps.ver.outputs.version }}"
+          BASE="https://github.com/${{ github.repository }}/releases/download/$TAG"
+
+          gh release create "$TAG" "$ZIP" \
+            --title "تحديث ويب $VER" \
+            --notes "تحديث تلقائي لمحتوى التطبيق — تلتقطه الأجهزة المثبّتة خلال دقائق." \
+            --latest=false
+
+          echo "url=${BASE}/${ZIP}"    >> "$GITHUB_OUTPUT"
+          echo "- الإصدار: $(gh release view "$TAG" --json url -q .url)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: تحديث version.json وكوميته في المستودع
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN:     ${{ github.token }}
+          VER:          ${{ steps.ver.outputs.version }}
+          URL:          ${{ steps.release.outputs.url }}
+          ZIP_SHA:      ${{ steps.bundle.outputs.sha }}
+          CONTENT_HASH: ${{ steps.check.outputs.hash }}
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = 'islamic-app/version.json';
+            const m = JSON.parse(fs.readFileSync(path, 'utf8'));
+            m.web = {
+              version:     process.env.VER,
+              url:         process.env.URL,
+              checksum:    process.env.ZIP_SHA,
+              contentHash: process.env.CONTENT_HASH,
+            };
+            m.generatedAt = new Date().toISOString();
+            fs.writeFileSync(path, JSON.stringify(m, null, 2) + '\n');
+          "
+          npm run sync:web   # ينسخ version.json المحدَّث إلى www/ أيضاً
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add islamic-app/version.json www/version.json
+          git commit -m "تحديث ويب تلقائي $VER"
+          git push origin main
+
+          # كوميتات GITHUB_TOKEN لا تُطلق push workflows تلقائياً —
+          # نُطلق نشر Pages صراحةً (workflow_dispatch مستثنى من هذا القيد)
+          gh workflow run pages.yml --ref main
+
+          echo "### تحديث ويب $VER ✓" >> "$GITHUB_STEP_SUMMARY"
+          echo "الأجهزة المثبّتة ستكتشفه وتُحدَّث تلقائياً." >> "$GITHUB_STEP_SUMMARY"
