@@ -1750,3 +1750,288 @@ input[type="number"].search-input { text-align: center; }
 
 #reinstallProgress { margin-bottom: 14px; }
 #reinstallOverlay .btn-block { margin-bottom: 8px; }
+
+/* ============================================================
+   ختمة القرآن الكريم + منتقي السور
+   ============================================================ */
+
+/* ---- زر اسم السورة في الشريط العلوي (أثناء القراءة فقط) ---- */
+.surah-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  min-width: 0;
+  max-width: 100%;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
+}
+.surah-nav-chevron {
+  width: 14px; height: 14px;
+  color: var(--muted);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#appShell.reading .surah-nav-btn { cursor: pointer; }
+#appShell.reading .surah-nav-chevron { opacity: 1; }
+#appShell.reading .surah-nav-btn:active { opacity: 0.7; }
+
+/* ---- منتقي السورة (يغطي منطقة القراءة كاملة) ---- */
+.surah-picker {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  animation: pageIn 0.22s var(--ease);
+}
+.surah-picker-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bar-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  flex: none;
+}
+.surah-picker-header h3 {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 800;
+  text-align: center;
+}
+.surah-picker-search {
+  flex: none;
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.surah-picker-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 12px 24px;
+  scrollbar-width: none;
+}
+.surah-picker-list::-webkit-scrollbar { display: none; }
+
+/* ---- لون ختمة القرآن ---- */
+.tone-gold { background: linear-gradient(140deg, #E6BE7B, #A07828); box-shadow: 0 6px 16px -8px rgba(230,190,123,0.7); }
+
+/* ---- صفحة الختمة ---- */
+.khatma-empty {
+  text-align: center;
+  padding: 56px 24px 32px;
+}
+.khatma-empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 14px;
+}
+.khatma-empty p {
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.9;
+  margin-bottom: 24px;
+}
+.khatma-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 4px 2px 14px;
+}
+.khatma-section-head h2 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+.khatma-list { display: flex; flex-direction: column; gap: 12px; }
+
+/* بطاقة الختمة */
+.khatma-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.14s var(--ease), background 0.18s;
+}
+.khatma-card:active { transform: scale(0.98); background: var(--surface-2); }
+
+/* حلقة تقدم الختمة */
+.kring-wrap {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  flex-shrink: 0;
+}
+.kring-wrap svg {
+  width: 68px; height: 68px;
+  transform: rotate(-90deg);
+}
+.kring-track {
+  fill: none;
+  stroke: var(--track);
+  stroke-width: 5.5;
+}
+.kring-fill {
+  fill: none;
+  stroke-width: 5.5;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s var(--ease), stroke 0.4s;
+}
+.kring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.kring-pct { font-size: 0.78rem; font-weight: 800; color: var(--text); line-height: 1; }
+.kring-lbl { font-size: 0.55rem; color: var(--muted); line-height: 1; }
+
+.khatma-card-info { flex: 1; min-width: 0; }
+.khatma-card-name { font-size: 0.92rem; font-weight: 800; margin-bottom: 3px; }
+.khatma-card-meta { color: var(--muted); font-size: 0.72rem; line-height: 1.6; }
+.khatma-card-remaining { color: var(--text-2); font-size: 0.75rem; font-weight: 600; margin-top: 2px; }
+
+.khatma-status-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  margin-top: 3px;
+}
+.kstatus-ahead { background: rgba(52,199,123,0.14); color: var(--brand); }
+.kstatus-ontrack { background: rgba(230,190,123,0.14); color: var(--gold); }
+.kstatus-behind { background: rgba(242,114,107,0.14); color: var(--danger); }
+.kstatus-done { background: rgba(52,199,123,0.2); color: var(--brand); }
+
+.khatma-card-del {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.khatma-card-del:hover { background: var(--surface-3); color: var(--danger); }
+.khatma-card-del .ic { width: 16px; height: 16px; }
+
+/* ---- مودال إنشاء الختمة ---- */
+.khatma-mode-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: 4px;
+  margin-bottom: 20px;
+}
+.khatma-tab {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: calc(var(--r-md) - 2px);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+}
+.khatma-tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-1);
+}
+.khatma-result {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+.khatma-result-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
+.khatma-result-value { font-size: 1.5rem; font-weight: 800; color: var(--brand); }
+.khatma-result-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* ---- عداد قارئ الختمة (عائم فوق النص) ---- */
+.khatma-widget {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xl);
+  padding: 10px 16px 10px 10px;
+  box-shadow: var(--shadow-3);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  white-space: nowrap;
+  animation: widgetIn 0.3s var(--ease);
+}
+@keyframes widgetIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* حلقة العداد الصغيرة */
+.kwidget-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+.kwidget-ring svg {
+  width: 52px; height: 52px;
+  transform: rotate(-90deg);
+}
+.kwidget-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.kwidget-num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text);
+}
+.kwidget-sub {
+  font-size: 0.5rem;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.kwidget-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.kwidget-stat { font-size: 0.72rem; color: var(--muted); }
+.kwidget-stat strong { color: var(--text); }
+.kwidget-pct { font-size: 0.82rem; font-weight: 800; color: var(--brand); }
+.kwidget-badge {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+}

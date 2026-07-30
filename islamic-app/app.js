@@ -32,8 +32,11 @@ const SECTION_TITLES = {
   adhan: "الأذان",
   bookmarks: "المحفوظات",
   adiyah: "الأدعية",
+  khatma: "ختمة القرآن",
 };
 let currentTab = "home";
+let navHistory = [];
+let navigatingBack = false;
 
 function setHeaderMode(mode, title = "", subtitle = "") {
   const isBrand = mode === "brand";
@@ -48,8 +51,12 @@ function setHeaderMode(mode, title = "", subtitle = "") {
 }
 
 function navigateTo(tab, options = {}) {
-  // ندخل من تبويب آخر؟ يُستعمل لتقرير فتح آخر موضع قراءة تلقائياً
   const cameFromAnotherTab = currentTab !== tab;
+  if (cameFromAnotherTab && !navigatingBack) {
+    navHistory.push(currentTab);
+    if (navHistory.length > 20) navHistory.shift();
+  }
+  navigatingBack = false;
 
   document.querySelectorAll(".tab-panel").forEach((p) => p.classList.remove("active"));
   const panel = $(tab);
@@ -59,6 +66,7 @@ function navigateTo(tab, options = {}) {
   if (tab === "bookmarks") renderBookmarks();
   if (tab === "adiyah") renderAdiyah();
   if (tab === "prayer") ensurePrayerTimesFresh();
+  if (tab === "khatma") renderKhatmaSection();
 
   document.querySelectorAll(".nav-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);
@@ -81,11 +89,17 @@ document.querySelectorAll(".nav-btn").forEach((btn) => {
   btn.addEventListener("click", () => navigateTo(btn.dataset.tab, { resume: true }));
 });
 
-// زر الرجوع في الشريط العلوي — يعرف السياق الذي هو فيه
+function navigateBack() {
+  const prev = navHistory.pop();
+  navigatingBack = true;
+  navigateTo(prev || "home");
+}
+
+// زر الرجوع في الشريط العلوي
 $("backBtn").addEventListener("click", () => {
   if (!$("surahReadView").classList.contains("hidden")) return goBackToSurahList();
   if (!$("adhkarListView").classList.contains("hidden")) return backToAdhkarCategories();
-  navigateTo("home");
+  navigateBack();
 });
 
 function showToast(msg) {
@@ -106,13 +120,18 @@ try {
 $("hijriDate").textContent = hijriDateText;
 
 /* ---------------- وضع القراءة الغامر ---------------- */
+let readerReturnTab = "quran";
+
 function enterReaderHeaderMode() {
   setHeaderMode("back", "", "");
   $("appShell").classList.add("reading");
 }
 function exitReaderHeaderMode() {
   $("appShell").classList.remove("reading");
-  navigateTo("quran");
+  const dest = readerReturnTab;
+  readerReturnTab = "quran";
+  navigatingBack = true;
+  navigateTo(dest);
 }
 
 /* ============================================================
@@ -368,6 +387,8 @@ $("settingsOverlay").addEventListener("click", (e) => {
 });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
+  if (!$("surahPickerOverlay").classList.contains("hidden")) { closeSurahPicker(); return; }
+  if (!$("khatmaSetupOverlay").classList.contains("hidden")) { closeKhatmaSetup(); return; }
   if (!$("settingsOverlay").classList.contains("hidden")) closeSettingsModal();
   if (!$("prayerSettingsOverlay").classList.contains("hidden")) closePrayerSettingsModal();
   if (!$("addAdhkarOverlay").classList.contains("hidden")) closeAddAdhkarModal();
@@ -513,6 +534,9 @@ function updateReaderProgress() {
 
   if (currentSurah) {
     saveLastRead(currentSurah, parseInt(current.dataset.ayah, 10), currentSurahName);
+  }
+  if (activeKhatmaId !== null) {
+    updateKhatmaPageProgress(page);
   }
 }
 
@@ -678,8 +702,11 @@ $("ayahTafsirBtn").addEventListener("click", async () => {
 
 function goBackToSurahList() {
   $("surahReadView").classList.add("hidden");
-  $("surahListView").classList.remove("hidden");
-  renderResumeCard();
+  hideKhatmaWidget();
+  if (readerReturnTab === "quran") {
+    $("surahListView").classList.remove("hidden");
+    renderResumeCard();
+  }
   exitReaderHeaderMode();
 }
 
@@ -1948,6 +1975,9 @@ navigateTo("home");
    ============================================================ */
 document.addEventListener("backbutton", (e) => {
   e.preventDefault();
+  // منتقي السورة / مودال الختمة أولاً
+  if (!$("surahPickerOverlay").classList.contains("hidden")) { closeSurahPicker(); return; }
+  if (!$("khatmaSetupOverlay").classList.contains("hidden")) { closeKhatmaSetup(); return; }
   // أولوية الإغلاق: المودالات أولاً، ثم قارئ السورة، ثم تراجع الأقسام
   const modals = [
     "ayahDialogOverlay",
@@ -1976,10 +2006,9 @@ document.addEventListener("backbutton", (e) => {
     backToAdhkarCategories();
     return;
   }
-  // إذا لم نكن في الصفحة الرئيسية، ارجع إليها
-  const homePanel = $("home");
-  if (homePanel && !homePanel.classList.contains("active")) {
-    navigateTo("home");
+  // إذا لم نكن في الصفحة الرئيسية، ارجع للسابق
+  if (currentTab !== "home") {
+    navigateBack();
     return;
   }
   // خروج من التطبيق عبر Capacitor
@@ -2193,3 +2222,262 @@ function initReinstallFlow() {
 
 initBackup();
 initReinstallFlow();
+
+/* ============================================================
+   منتقي السورة — يظهر في وضع القراءة عند النقر على اسم السورة
+   ============================================================ */
+$("surahNavBtn").addEventListener("click", () => {
+  if (!$("appShell").classList.contains("reading")) return;
+  openSurahPicker();
+});
+
+function openSurahPicker() {
+  renderSurahPickerList(surahs);
+  $("surahPickerSearch").value = "";
+  $("surahPickerOverlay").classList.remove("hidden");
+  setTimeout(() => $("surahPickerSearch").focus(), 150);
+}
+
+function closeSurahPicker() {
+  $("surahPickerOverlay").classList.add("hidden");
+}
+
+function renderSurahPickerList(list) {
+  $("surahPickerList").innerHTML = list.map(s =>
+    `<div class="surah-card" onclick="pickSurah(${s.n})">
+      <div class="surah-number"><span>${s.n}</span></div>
+      <div class="surah-card-info">
+        <div class="surah-card-name">${s.name}</div>
+        <div class="surah-card-meta">${s.type} • ${toArabicNum(s.ayahs)} آية</div>
+      </div>
+    </div>`
+  ).join("");
+}
+
+function pickSurah(number) {
+  closeSurahPicker();
+  openSurah(number);
+}
+
+$("closeSurahPicker").addEventListener("click", closeSurahPicker);
+$("surahPickerSearch").addEventListener("input", (e) => {
+  const raw = e.target.value.trim();
+  if (!raw) { renderSurahPickerList(surahs); return; }
+  const query = normalizeArabic(raw);
+  const digits = toLatinDigits(raw);
+  renderSurahPickerList(surahs.filter(s => {
+    if (/^\d+$/.test(digits) && s.n === Number(digits)) return true;
+    return surahSearchKeys(s).some(k => k && k.includes(query));
+  }));
+});
+
+/* ============================================================
+   ختمة القرآن الكريم
+   ============================================================ */
+const QURAN_TOTAL_PAGES = 604;
+const KHATMA_KEY = "khatmaList";
+
+function getKhatmas() {
+  try { return JSON.parse(localStorage.getItem(KHATMA_KEY)) || []; }
+  catch (_) { return []; }
+}
+function saveKhatmas(list) { localStorage.setItem(KHATMA_KEY, JSON.stringify(list)); }
+
+function khatmaDaysElapsed(k) {
+  const msDay = 86400000;
+  const start = new Date(k.startDate); start.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return Math.max(1, Math.floor((today - start) / msDay) + 1);
+}
+
+function khatmaExpectedPages(k) {
+  return Math.min(khatmaDaysElapsed(k) * k.dailyPages, QURAN_TOTAL_PAGES);
+}
+
+function khatmaStatus(k) {
+  if (k.pagesRead >= QURAN_TOTAL_PAGES) return "done";
+  const exp = khatmaExpectedPages(k);
+  if (k.pagesRead >= exp) return "ahead";
+  if (k.pagesRead >= exp * 0.85) return "ontrack";
+  return "behind";
+}
+
+const KSTATUS_LABEL = { ahead: "متقدم", ontrack: "في الموعد", behind: "متأخر", done: "مكتملة ✓" };
+const KSTATUS_COLOR = { ahead: "#34C77B", ontrack: "#E6BE7B", behind: "#F2726B", done: "#34C77B" };
+
+function khatmaRingOffset(progress, circ) {
+  return (circ * (1 - Math.min(1, Math.max(0, progress)))).toFixed(1);
+}
+
+function getSurahForPage(pageNumber) {
+  const list = QuranData.getSurahs();
+  if (!list.length) return 1;
+  let result = 1;
+  for (const s of list) {
+    if (QuranData.pageOf(s.first) <= pageNumber) result = s.n;
+    else break;
+  }
+  return result;
+}
+
+/* ---- عرض قسم الختمة ---- */
+function renderKhatmaSection() {
+  const khatmas = getKhatmas();
+  const C = 175.9; // circumference for r=28
+  if (!khatmas.length) {
+    $("khatmaEmptyView").classList.remove("hidden");
+    $("khatmaListView").classList.add("hidden");
+    return;
+  }
+  $("khatmaEmptyView").classList.add("hidden");
+  $("khatmaListView").classList.remove("hidden");
+  $("khatmaList").innerHTML = khatmas.map(k => {
+    const pct = Math.round(k.pagesRead / QURAN_TOTAL_PAGES * 100);
+    const remaining = QURAN_TOTAL_PAGES - k.pagesRead;
+    const status = khatmaStatus(k);
+    const color = KSTATUS_COLOR[status];
+    const offset = khatmaRingOffset(k.pagesRead / QURAN_TOTAL_PAGES, C);
+    const elapsed = khatmaDaysElapsed(k);
+    const dailyRound = Math.round(k.dailyPages * 10) / 10;
+    return `
+      <div class="khatma-card" onclick="openKhatmaReader(${k.id})">
+        <div class="kring-wrap">
+          <svg viewBox="0 0 68 68">
+            <circle class="kring-track" cx="34" cy="34" r="28"/>
+            <circle class="kring-fill" cx="34" cy="34" r="28"
+              stroke="${color}" stroke-dasharray="${C}" stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="kring-center">
+            <span class="kring-pct">${toArabicNum(pct)}%</span>
+            <span class="kring-lbl">مكتمل</span>
+          </div>
+        </div>
+        <div class="khatma-card-info">
+          <div class="khatma-card-name">ختمة القرآن</div>
+          <div class="khatma-card-meta">منذ ${toArabicNum(elapsed)} يوم • ${toArabicNum(dailyRound)} ص/يوم</div>
+          <div class="khatma-card-remaining">${toArabicNum(remaining)} صفحة متبقية</div>
+          <span class="khatma-status-badge kstatus-${status}">${KSTATUS_LABEL[status]}</span>
+        </div>
+        <button class="khatma-card-del" onclick="deleteKhatma(${k.id}, event)" aria-label="حذف">
+          ${icon("trash")}
+        </button>
+      </div>`;
+  }).join("");
+}
+
+/* ---- مودال إنشاء ختمة ---- */
+let khatmaTabMode = "days";
+
+function openKhatmaSetup() {
+  $("khatmaSetupOverlay").classList.remove("hidden");
+  updateKhatmaCalcs();
+}
+function closeKhatmaSetup() { $("khatmaSetupOverlay").classList.add("hidden"); }
+
+function switchKhatmaTab(tab) {
+  khatmaTabMode = tab;
+  $("khatmaTabDays").classList.toggle("active", tab === "days");
+  $("khatmaTabPages").classList.toggle("active", tab === "pages");
+  $("khatmaDaysPanel").classList.toggle("hidden", tab !== "days");
+  $("khatmaPagesPanel").classList.toggle("hidden", tab !== "pages");
+  updateKhatmaCalcs();
+}
+
+function updateKhatmaCalcs() {
+  if (khatmaTabMode === "days") {
+    const days = Math.max(1, parseInt($("khatmaDaysInput").value) || 30);
+    $("khatmaDailyCalc").textContent = toArabicNum((QURAN_TOTAL_PAGES / days).toFixed(1));
+  } else {
+    const pages = Math.max(1, parseInt($("khatmaPagesInput").value) || 20);
+    $("khatmaDurationCalc").textContent = toArabicNum(Math.ceil(QURAN_TOTAL_PAGES / pages));
+  }
+}
+
+function confirmKhatmaSetup() {
+  let dailyPages;
+  if (khatmaTabMode === "days") {
+    const days = Math.max(1, parseInt($("khatmaDaysInput").value) || 30);
+    dailyPages = QURAN_TOTAL_PAGES / days;
+  } else {
+    dailyPages = Math.max(1, parseInt($("khatmaPagesInput").value) || 20);
+  }
+  const khatmas = getKhatmas();
+  const today = new Date().toISOString().slice(0, 10);
+  khatmas.push({ id: Date.now(), startDate: today, dailyPages, pagesRead: 0 });
+  saveKhatmas(khatmas);
+  closeKhatmaSetup();
+  renderKhatmaSection();
+  showToast("بدأت ختمة جديدة — بالتوفيق!");
+}
+
+function deleteKhatma(id, event) {
+  event.stopPropagation();
+  saveKhatmas(getKhatmas().filter(k => k.id !== id));
+  renderKhatmaSection();
+  showToast("تم حذف الختمة");
+}
+
+$("closeKhatmaSetup").addEventListener("click", closeKhatmaSetup);
+$("khatmaSetupOverlay").addEventListener("click", e => {
+  if (e.target.id === "khatmaSetupOverlay") closeKhatmaSetup();
+});
+$("khatmaConfirmBtn").addEventListener("click", confirmKhatmaSetup);
+$("khatmaDaysInput").addEventListener("input", updateKhatmaCalcs);
+$("khatmaPagesInput").addEventListener("input", updateKhatmaCalcs);
+
+/* ---- وضع قارئ الختمة ---- */
+let activeKhatmaId = null;
+
+function openKhatmaReader(khatmaId) {
+  const khatma = getKhatmas().find(k => k.id === khatmaId);
+  if (!khatma) return;
+  activeKhatmaId = khatmaId;
+  readerReturnTab = "khatma";
+  navigatingBack = true;
+  navigateTo("quran");
+  QuranData.loadMeta().then(() => {
+    const startPage = Math.max(1, khatma.pagesRead);
+    openSurah(getSurahForPage(startPage));
+  });
+}
+
+function hideKhatmaWidget() {
+  if (!$("khatmaWidget")) return;
+  $("khatmaWidget").classList.add("hidden");
+  activeKhatmaId = null;
+}
+
+function updateKhatmaWidget() {
+  if (activeKhatmaId === null) return;
+  const khatma = getKhatmas().find(k => k.id === activeKhatmaId);
+  if (!khatma) { hideKhatmaWidget(); return; }
+  const C = 125.7; // circumference for r=20 in 52px ring
+  const days = khatmaDaysElapsed(khatma);
+  const pagesYest = Math.max(0, (days - 1) * khatma.dailyPages);
+  const todayRead = Math.max(0, khatma.pagesRead - pagesYest);
+  const todayProg = Math.min(1, todayRead / khatma.dailyPages);
+  const status = khatmaStatus(khatma);
+  const color = KSTATUS_COLOR[status];
+  $("kwidgetFill").setAttribute("stroke", color);
+  $("kwidgetFill").setAttribute("stroke-dashoffset", khatmaRingOffset(todayProg, C));
+  $("kwidgetTodayText").textContent =
+    `${toArabicNum(Math.round(todayRead))}/${toArabicNum(Math.ceil(khatma.dailyPages))}`;
+  $("kwidgetRemaining").textContent = toArabicNum(QURAN_TOTAL_PAGES - khatma.pagesRead);
+  $("kwidgetPercent").textContent = `${toArabicNum(Math.round(khatma.pagesRead / QURAN_TOTAL_PAGES * 100))}%`;
+  const badge = $("kwidgetBadge");
+  badge.className = `kwidget-badge kstatus-${status}`;
+  badge.textContent = KSTATUS_LABEL[status];
+  $("khatmaWidget").classList.remove("hidden");
+}
+
+function updateKhatmaPageProgress(currentPage) {
+  if (activeKhatmaId === null) return;
+  const khatmas = getKhatmas();
+  const idx = khatmas.findIndex(k => k.id === activeKhatmaId);
+  if (idx === -1) return;
+  if (currentPage > khatmas[idx].pagesRead) {
+    khatmas[idx].pagesRead = currentPage;
+    saveKhatmas(khatmas);
+    updateKhatmaWidget();
+  }
+}

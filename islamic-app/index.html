@@ -47,6 +47,7 @@
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3.4 2.7 5.5 6 .9-4.3 4.2 1 6-5.4-2.8-5.4 2.8 1-6L3.3 9.8l6-.9z"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5.2 6.4 9H2.8v6h3.6L11 18.8z"/><path d="M15.4 8.9a4.4 4.4 0 0 1 0 6.2"/></symbol>
   <symbol id="i-text-size" viewBox="0 0 24 24"><path d="M3.5 19 8.4 6.2 13.3 19M5.4 14.8h6"/><path d="M14.5 19l3.4-8.8L21.3 19M15.8 16.1h4.2"/></symbol>
+  <symbol id="i-khatma" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
 </svg>
 
 <!-- ============ هيكل التطبيق ============ -->
@@ -67,7 +68,10 @@
     </div>
 
     <div class="ab-title hidden" id="abTitle">
-      <span class="ab-title-main" id="headerSurahName"></span>
+      <button class="surah-nav-btn" id="surahNavBtn" aria-label="قائمة السور">
+        <span class="ab-title-main" id="headerSurahName"></span>
+        <svg class="ic surah-nav-chevron"><use href="#i-chevron"></use></svg>
+      </button>
       <span class="ab-title-sub" id="headerJuzHizb"></span>
     </div>
 
@@ -113,7 +117,7 @@
         </div>
 
         <div class="quick-grid">
-          <button class="quick-tile" onclick="navigateTo('quran')">
+          <button class="quick-tile" onclick="navigateTo('quran',{resume:true})">
             <span class="qt-icon tone-emerald"><svg class="ic"><use href="#i-quran"></use></svg></span>
             <span class="qt-name">القرآن الكريم</span>
           </button>
@@ -136,6 +140,10 @@
           <button class="quick-tile" onclick="navigateTo('adhan')">
             <span class="qt-icon tone-blue"><svg class="ic"><use href="#i-adhan"></use></svg></span>
             <span class="qt-name">الأذان</span>
+          </button>
+          <button class="quick-tile" onclick="navigateTo('khatma')" style="grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 14px 16px;">
+            <span class="qt-icon tone-gold"><svg class="ic"><use href="#i-khatma"></use></svg></span>
+            <span class="qt-name" style="font-size:0.82rem;">ختمة القرآن الكريم</span>
           </button>
         </div>
       </section>
@@ -211,6 +219,28 @@
       <section id="bookmarks" class="tab-panel">
         <p class="page-note">الآيات التي حفظتها للرجوع إليها</p>
         <div id="bookmarksList"></div>
+      </section>
+
+      <!-- ======== قسم ختمة القرآن ======== -->
+      <section id="khatma" class="tab-panel">
+        <div id="khatmaEmptyView">
+          <div class="khatma-empty">
+            <span class="khatma-empty-icon">📖</span>
+            <p>لا توجد ختمة جارية<br>ابدأ ختمة جديدة وتابع تقدمك في قراءة القرآن الكريم</p>
+            <button class="btn btn-primary" onclick="openKhatmaSetup()">
+              <svg class="ic"><use href="#i-plus"></use></svg> بدء ختمة جديدة
+            </button>
+          </div>
+        </div>
+        <div id="khatmaListView" class="hidden">
+          <div class="khatma-section-head">
+            <h2>ختمات القرآن</h2>
+            <button class="chip-btn" onclick="openKhatmaSetup()">
+              <svg class="ic"><use href="#i-plus"></use></svg> ختمة جديدة
+            </button>
+          </div>
+          <div id="khatmaList" class="khatma-list"></div>
+        </div>
       </section>
 
       <!-- ======== قسم الأدعية ======== -->
@@ -395,6 +425,44 @@
       </section>
 
     </main>
+
+    <!-- منتقي السورة — يظهر فوق قارئ القرآن عند النقر على اسم السورة -->
+    <div id="surahPickerOverlay" class="surah-picker hidden">
+      <div class="surah-picker-header">
+        <button id="closeSurahPicker" class="ab-icon sm" aria-label="إغلاق">
+          <svg class="ic"><use href="#i-close"></use></svg>
+        </button>
+        <h3>انتقال إلى سورة</h3>
+        <div style="width:34px"></div>
+      </div>
+      <div class="surah-picker-search">
+        <div class="search-field" style="margin-bottom:0">
+          <svg class="ic search-ic"><use href="#i-search"></use></svg>
+          <input type="search" id="surahPickerSearch" class="search-input" placeholder="ابحث عن سورة أو رقمها" />
+        </div>
+      </div>
+      <div id="surahPickerList" class="surah-picker-list surah-list"></div>
+    </div>
+
+    <!-- عداد قارئ الختمة (عائم) -->
+    <div id="khatmaWidget" class="khatma-widget hidden">
+      <div class="kwidget-ring">
+        <svg viewBox="0 0 52 52">
+          <circle class="kring-track" cx="26" cy="26" r="20"/>
+          <circle class="kring-fill" id="kwidgetFill" cx="26" cy="26" r="20"
+            stroke-dasharray="125.7" stroke-dashoffset="125.7"/>
+        </svg>
+        <div class="kwidget-center">
+          <span class="kwidget-num" id="kwidgetTodayText">0/0</span>
+          <span class="kwidget-sub">اليوم</span>
+        </div>
+      </div>
+      <div class="kwidget-stats">
+        <div class="kwidget-stat"><strong id="kwidgetRemaining">604</strong> صفحة متبقية</div>
+        <div class="kwidget-pct" id="kwidgetPercent">0%</div>
+        <span class="kwidget-badge kstatus-ontrack" id="kwidgetBadge">في الموعد</span>
+      </div>
+    </div>
   </div>
 
   <!-- ======== شريط التنقل السفلي ======== -->
@@ -420,6 +488,54 @@
       <span class="nav-label">الأذان</span>
     </button>
   </nav>
+
+  <!-- مودال إنشاء ختمة جديدة -->
+  <div id="khatmaSetupOverlay" class="modal-overlay hidden">
+    <div class="modal-panel">
+      <div class="sheet-grab"></div>
+      <div class="modal-header">
+        <h3>ختمة جديدة</h3>
+        <button id="closeKhatmaSetup" class="ab-icon sm" aria-label="إغلاق">
+          <svg class="ic"><use href="#i-close"></use></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="khatma-mode-tabs">
+          <button class="khatma-tab active" id="khatmaTabDays" onclick="switchKhatmaTab('days')">بالمدة (أيام)</button>
+          <button class="khatma-tab" id="khatmaTabPages" onclick="switchKhatmaTab('pages')">بصفحات يومية</button>
+        </div>
+
+        <div id="khatmaDaysPanel">
+          <div class="field">
+            <label class="field-label" for="khatmaDaysInput">عدد الأيام المقررة للختمة</label>
+            <input type="number" id="khatmaDaysInput" class="search-input" min="1" max="3650" value="30" />
+            <p class="field-hint">القرآن الكريم = ٦٠٤ صفحات</p>
+          </div>
+          <div class="khatma-result" id="khatmaDaysResult">
+            <div class="khatma-result-label">المقرر اليومي</div>
+            <div class="khatma-result-value" id="khatmaDailyCalc">٢٠.١</div>
+            <div class="khatma-result-sub">صفحة في اليوم</div>
+          </div>
+        </div>
+
+        <div id="khatmaPagesPanel" class="hidden">
+          <div class="field">
+            <label class="field-label" for="khatmaPagesInput">عدد الصفحات اليومية</label>
+            <input type="number" id="khatmaPagesInput" class="search-input" min="1" max="604" value="20" />
+          </div>
+          <div class="khatma-result" id="khatmaPagesResult">
+            <div class="khatma-result-label">مدة الختمة</div>
+            <div class="khatma-result-value" id="khatmaDurationCalc">٣٠.٢</div>
+            <div class="khatma-result-sub">يوم</div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="khatmaConfirmBtn">
+          <svg class="ic"><use href="#i-khatma"></use></svg> بدء الختمة
+        </button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast hidden"></div>
 
