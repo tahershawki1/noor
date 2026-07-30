@@ -2025,71 +2025,144 @@ document.addEventListener("backbutton", (e) => {
  * هو موضع الموافقة.
  * ========================================================================== */
 
-function showUpdateBanner(update) {
+let _apkUpdate = null;
+
+function showApkUpdateSheet(update) {
   if (!update) return;
-  const banner = $("updateBanner");
-  if (!banner) return;
+  _apkUpdate = update;
 
   const size = update.sizeBytes
-    ? ` — ${(update.sizeBytes / 1048576).toFixed(1)} ميجابايت`
+    ? `${(update.sizeBytes / 1048576).toFixed(1)} ميجابايت`
     : "";
-  // التحديث الذي يتطلّب حذف القديمة له مسار خاص، ونصّه ينبّه لذلك من الشريط
-  $("updateBannerNote").textContent = update.requiresReinstall
-    ? `النسخة ${update.version} تحتاج حذف القديمة — بياناتك ستُحفظ أولاً`
-    : `النسخة ${update.version} جاهزة${size}` +
-      (update.installedVersion ? ` (لديك ${update.installedVersion})` : "");
-  $("updateInstallBtn").textContent = update.requiresReinstall ? "التفاصيل" : "تثبيت";
 
-  // التحديث الإجباري لا يُرفض
-  $("updateDismissBtn").classList.toggle("hidden", !!update.mandatory);
-  banner.classList.remove("hidden");
+  $("ausVersionNew").textContent = `النسخة ${update.version}`;
+  $("ausVersionOld").textContent = update.installedVersion
+    ? `لديك ${update.installedVersion}`
+    : "الإصدار الحالي";
+  $("ausMandatoryBadge").classList.toggle("hidden", !update.mandatory);
+
+  const notesEl = $("ausNotes");
+  if (update.notes && update.notes.trim()) {
+    notesEl.textContent = update.notes;
+    notesEl.classList.remove("hidden");
+  } else {
+    notesEl.classList.add("hidden");
+  }
+
+  $("ausSize").textContent = size;
+  $("ausStatus").textContent = "";
+  $("ausProgress").classList.add("hidden");
+  $("ausProgressFill").style.width = "0%";
+  $("ausInstallBtn").disabled = false;
+  $("ausInstallBtn").textContent = update.requiresReinstall ? "التفاصيل" : "تحديث الآن";
+  $("ausDismissBtn").classList.toggle("hidden", !!update.mandatory);
+
+  $("apkUpdateOverlay").classList.remove("hidden");
 }
 
-function hideUpdateBanner() {
-  const banner = $("updateBanner");
-  if (banner) banner.classList.add("hidden");
+function hideApkUpdateSheet() {
+  $("apkUpdateOverlay").classList.add("hidden");
+  _apkUpdate = null;
+}
+
+function showWebUpdatePill(show) {
+  const pill = $("webUpdatePill");
+  if (pill) pill.classList.toggle("hidden", !show);
 }
 
 function initAppUpdates() {
   if (typeof AppUpdates === "undefined" || !AppUpdates.isAvailable()) return;
 
-  $("updateInstallBtn").addEventListener("click", () => {
-    const pending = AppUpdates.getPending();
-    // تحديث يغيّر مفتاح التوقيع لا يُثبَّت بضغطة — له نافذة تشرح وتحفظ أولاً
+  // عرض رقم النسخة المثبَّتة في الإعدادات
+  const appInfoField = $("appInfoField");
+  if (appInfoField) {
+    appInfoField.classList.remove("hidden");
+    AppUpdates.getInstalled()
+      .then(info => {
+        if (info && info.versionName && $("installedVersionLabel")) {
+          $("installedVersionLabel").textContent = info.versionName;
+        }
+      })
+      .catch(() => {});
+  }
+
+  // زر «تحقق من التحديثات» في الإعدادات
+  const checkBtn = $("checkUpdatesBtn");
+  if (checkBtn) {
+    checkBtn.addEventListener("click", () => {
+      const hint = $("checkUpdatesHint");
+      checkBtn.disabled = true;
+      if (hint) hint.textContent = "جاري الفحص…";
+      AppUpdates.check({ force: true })
+        .then(update => {
+          checkBtn.disabled = false;
+          if (update) {
+            if (hint) hint.textContent = `يوجد تحديث — النسخة ${update.version}`;
+            showApkUpdateSheet(update);
+          } else {
+            if (hint) hint.textContent = "التطبيق محدَّث بالكامل ✓";
+          }
+        })
+        .catch(() => {
+          checkBtn.disabled = false;
+          if ($("checkUpdatesHint")) $("checkUpdatesHint").textContent = "تعذّر الفحص — تحقق من الاتصال";
+        });
+    });
+  }
+
+  // «تحديث الآن» داخل النافذة
+  $("ausInstallBtn").addEventListener("click", () => {
+    const pending = _apkUpdate || AppUpdates.getPending();
     if (pending && pending.requiresReinstall) {
-      hideUpdateBanner();
+      hideApkUpdateSheet();
       openReinstallFlow(pending);
       return;
     }
-    $("updateInstallBtn").disabled = true;
-    $("updateProgress").classList.remove("hidden");
+    $("ausInstallBtn").disabled = true;
+    $("ausStatus").textContent = "جارٍ التنزيل…";
+    $("ausProgress").classList.remove("hidden");
     AppUpdates.install();
   });
 
-  $("updateDismissBtn").addEventListener("click", () => {
+  // «لاحقاً»
+  $("ausDismissBtn").addEventListener("click", () => {
     AppUpdates.dismiss();
-    hideUpdateBanner();
+    hideApkUpdateSheet();
+  });
+
+  // إغلاق بالضغط على الخلفية — إلا في التحديثات الإجبارية
+  $("apkUpdateOverlay").addEventListener("click", e => {
+    if (e.target !== $("apkUpdateOverlay")) return;
+    if (_apkUpdate && _apkUpdate.mandatory) return;
+    AppUpdates.dismiss();
+    hideApkUpdateSheet();
   });
 
   AppUpdates.on((event, data) => {
     if (event === "downloadProgress") {
-      $("updateProgressFill").style.width = `${data.percent || 0}%`;
-      $("updateBannerNote").textContent = `جارٍ التنزيل… ${data.percent || 0}%`;
+      const pct = data.percent || 0;
+      $("ausProgressFill").style.width = `${pct}%`;
+      $("ausStatus").textContent = `جارٍ التنزيل… ${pct}%`;
     } else if (event === "downloadFailed") {
-      $("updateInstallBtn").disabled = false;
-      $("updateProgress").classList.add("hidden");
-      $("updateBannerNote").textContent = "تعذّر التنزيل — جرّب مرة أخرى";
+      $("ausInstallBtn").disabled = false;
+      $("ausProgress").classList.add("hidden");
+      $("ausStatus").textContent = "تعذّر التنزيل — جرّب مرة أخرى";
       showToast("تعذّر تنزيل التحديث");
     } else if (event === "installPermissionDenied") {
-      $("updateInstallBtn").disabled = false;
-      $("updateProgress").classList.add("hidden");
+      $("ausInstallBtn").disabled = false;
+      $("ausProgress").classList.add("hidden");
+      $("ausStatus").textContent = "يحتاج إذن التثبيت";
       showToast("لتثبيت التحديث، اسمح بتثبيت التطبيقات غير المعروفة");
+    } else if (event === "webUpdateStarted") {
+      showWebUpdatePill(true);
+    } else if (event === "webUpdateFailed") {
+      showWebUpdatePill(false);
     }
   });
 
-  // الفحص بعد إقلاع الواجهة حتى لا يزاحم أول رسم للشاشة
+  // الفحص بعد إقلاع الواجهة
   setTimeout(() => {
-    AppUpdates.check().then(showUpdateBanner).catch(() => { /* لا يعطّل التطبيق */ });
+    AppUpdates.check().then(showApkUpdateSheet).catch(() => {});
   }, 2500);
 }
 

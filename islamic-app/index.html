@@ -589,6 +589,20 @@
             التطبيق، فتسترجعها بعد إعادة التثبيت.
           </p>
         </div>
+
+        <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
+        <div class="field hidden" id="appInfoField">
+          <label class="field-label">عن التطبيق</label>
+          <div class="app-ver-row">
+            <span class="avr-label">الإصدار المثبَّت</span>
+            <span class="avr-value" id="installedVersionLabel">—</span>
+          </div>
+          <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
+            <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
+            تحقق من التحديثات
+          </button>
+          <p class="field-hint" id="checkUpdatesHint"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -810,22 +824,49 @@
     </div>
   </div>
 
-</div>
 
-<!-- شريط «يوجد تحديث» — يظهر داخل التطبيق الأصلي فقط -->
-<div id="updateBanner" class="update-banner hidden">
-  <span class="ub-icon"><svg class="ic"><use href="#i-download"></use></svg></span>
-  <div class="ub-body">
-    <div class="ub-title">تحديث جديد لتطبيق نور</div>
-    <div class="ub-note" id="updateBannerNote">النسخة الجديدة جاهزة</div>
-    <div class="ub-progress hidden" id="updateProgress">
-      <span class="ub-progress-fill" id="updateProgressFill"></span>
+  <!-- ======== نافذة تحديث APK الاحترافية ======== -->
+  <div id="apkUpdateOverlay" class="modal-overlay hidden">
+    <div class="modal-panel aus-panel">
+      <div class="sheet-grab"></div>
+
+      <!-- الرأس: أيقونة + معلومات النسخة -->
+      <div class="aus-header">
+        <div class="aus-icon-wrap">
+          <svg class="ic aus-app-ic"><use href="#i-download"></use></svg>
+        </div>
+        <div class="aus-title-block">
+          <div class="aus-app-name">تحديث تطبيق نور</div>
+          <div class="aus-ver-row">
+            <span class="aus-ver-new" id="ausVersionNew">—</span>
+            <span class="aus-ver-sep">←</span>
+            <span class="aus-ver-old" id="ausVersionOld">—</span>
+          </div>
+        </div>
+        <span class="aus-mandatory hidden" id="ausMandatoryBadge">إجباري</span>
+      </div>
+
+      <div class="modal-body">
+        <p class="aus-notes hidden" id="ausNotes"></p>
+        <div class="aus-meta-row">
+          <span class="aus-size" id="ausSize"></span>
+          <span class="aus-dl-status" id="ausStatus"></span>
+        </div>
+        <div class="aus-progress hidden" id="ausProgress">
+          <span class="aus-progress-fill" id="ausProgressFill"></span>
+        </div>
+        <button class="btn btn-primary btn-block" id="ausInstallBtn">تحديث الآن</button>
+        <button class="btn btn-soft btn-block" id="ausDismissBtn" style="margin-top:10px">لاحقاً</button>
+      </div>
     </div>
   </div>
-  <div class="ub-actions">
-    <button class="btn btn-primary btn-sm" id="updateInstallBtn">تثبيت</button>
-    <button class="ub-dismiss" id="updateDismissBtn" aria-label="لاحقاً">لاحقاً</button>
+
+  <!-- بيل «جاري تحديث الواجهة» — يظهر عند تطبيق تحديث الويب الصامت -->
+  <div id="webUpdatePill" class="web-update-pill hidden">
+    <span class="wup-spinner"></span>
+    <span class="wup-text">جاري تحديث نور…</span>
   </div>
+
 </div>
 
 <!-- الغلاف الأصلي (Capacitor): تعمل بلا ضرر في المتصفح العادي أيضاً -->
