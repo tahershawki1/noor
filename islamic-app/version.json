@@ -1,6 +1,6 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-07-30T06:07:59.495Z",
+  "generatedAt": "2026-07-30T16:09:36.014Z",
   "app": {
     "version": "1.3.1",
     "versionCode": 10301,
@@ -12,9 +12,9 @@
     "mandatory": false
   },
   "web": {
-    "version": "1.4.0.1",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.4.0.1/noor-web-1.4.0.1.zip",
-    "checksum": "1b173f222db5c210c5cf159880eb8eb03cd80432b2b069ff45474851a674366b",
-    "contentHash": "8ae2202fa2de7528961fd436a00d5d383d654116eb094eb3369d116329707d32"
+    "version": "1.4.1.2",
+    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.4.1.2/noor-web-1.4.1.2.zip",
+    "checksum": "f68ddec033a9f5a9a5f0ba888f88b140f81c67a75ab31af472874455d2634742",
+    "contentHash": "b88dff620b218afe700223935c30ff67f5b7293387bd8d8a466190035e96dd53"
   }
 }
