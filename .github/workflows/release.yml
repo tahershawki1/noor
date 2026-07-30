@@ -204,6 +204,8 @@ jobs:
           APK_SHA=$(sha256sum "$APK" | cut -d' ' -f1)
           ZIP_SHA=$(sha256sum "$WEB_ZIP" | cut -d' ' -f1)
           APK_SIZE=$(stat -c%s "$APK")
+          # بصمة المحتوى: يستخدمها web-release.yml لتعرف لو تغيّر الويب بعد هذا الإصدار
+          CONTENT_HASH=$(find www -type f -not -name 'version.json' | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
 
           # بصمة شهادة التوقيع: يقارنها التطبيق بشهادته المثبَّتة. اختلافهما
           # يعني أن أندرويد سيرفض التحديث فوق المثبَّت، فيتحوّل التطبيق إلى
@@ -232,7 +234,7 @@ jobs:
             a * 10000 + b * 100 + c;
           ")
 
-          export APK_SHA ZIP_SHA APK_SIZE VERSION_CODE CERT_SHA
+          export APK_SHA ZIP_SHA APK_SIZE VERSION_CODE CERT_SHA CONTENT_HASH
           export NOTES="${RELEASE_NOTES:-تحديث $VERSION}"
 
           node -e '
@@ -254,6 +256,7 @@ jobs:
                 version: process.env.VERSION,
                 url: process.env.BASE + "/" + process.env.WEB_ZIP,
                 checksum: process.env.ZIP_SHA,
+                contentHash: process.env.CONTENT_HASH,
               },
             };
             fs.writeFileSync("islamic-app/version.json", JSON.stringify(manifest, null, 2) + "\n");
