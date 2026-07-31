@@ -701,6 +701,7 @@ $("ayahTafsirBtn").addEventListener("click", async () => {
 });
 
 function goBackToSurahList() {
+  if (typeof AutoScroll !== "undefined") AutoScroll.hide();
   $("surahReadView").classList.add("hidden");
   hideKhatmaWidget();
   if (readerReturnTab === "quran") {

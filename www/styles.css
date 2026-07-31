@@ -2108,3 +2108,114 @@ input[type="number"].search-input { text-align: center; }
   padding: 2px 8px;
   border-radius: var(--r-pill);
 }
+
+/* ================================================================
+ * شريط التمرير التلقائي
+ * ================================================================ */
+
+/* زر التشغيل في الشريط العلوي — يظهر فقط في وضع القراءة */
+.as-trigger { display: none; }
+.app-shell.reading .as-trigger { display: flex; }
+.as-trigger.as-trigger-on { color: var(--brand); }
+
+/* الشريط العائم */
+.auto-scroll-bar {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xl);
+  padding: 8px 12px;
+  box-shadow: var(--shadow-3);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  white-space: nowrap;
+  animation: asBarIn 0.25s var(--ease);
+}
+.auto-scroll-bar.hidden { display: none; }
+
+@keyframes asBarIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* أزرار الشريط */
+.as-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--r-md);
+  border: none;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: background 0.15s, color 0.15s;
+}
+.as-btn:active { background: var(--surface-2); }
+
+/* زر تشغيل/إيقاف — أكبر قليلاً ومميّز */
+.as-toggle-btn {
+  background: var(--brand);
+  color: #fff;
+  border-radius: var(--r-pill);
+  width: 40px;
+  height: 40px;
+}
+.as-toggle-btn:active { background: var(--brand-dark, var(--brand)); opacity: 0.85; }
+.as-toggle-btn .ic { width: 18px; height: 18px; }
+
+/* زر السرعة */
+.as-speed-btn { font-size: 1.3rem; width: 32px; height: 32px; }
+
+/* عرض السرعة */
+.as-speed-lbl {
+  min-width: 32px;
+  text-align: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--brand);
+  letter-spacing: 0.02em;
+}
+
+/* زر مراقبة النظرة */
+.as-gaze-btn .ic { width: 18px; height: 18px; }
+.as-gaze-btn.as-gaze-on { color: var(--brand); }
+
+/* زر الإغلاق */
+.as-close-btn { opacity: 0.55; }
+.as-close-btn:active { opacity: 1; }
+.as-close-btn .ic { width: 16px; height: 16px; }
+
+/* فاصل ضوئي بين مجموعات الأزرار */
+.as-btn + .as-toggle-btn,
+.as-toggle-btn + .as-gaze-btn {
+  margin-right: 4px;
+  margin-left: 4px;
+}
+
+/* تلميح كاميرا غير متاحة */
+.as-gaze-hint {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  color: var(--muted);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.as-gaze-hint.hidden { display: none; }
