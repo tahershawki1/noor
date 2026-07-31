@@ -48,6 +48,8 @@
   <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5.2 6.4 9H2.8v6h3.6L11 18.8z"/><path d="M15.4 8.9a4.4 4.4 0 0 1 0 6.2"/></symbol>
   <symbol id="i-text-size" viewBox="0 0 24 24"><path d="M3.5 19 8.4 6.2 13.3 19M5.4 14.8h6"/><path d="M14.5 19l3.4-8.8L21.3 19M15.8 16.1h4.2"/></symbol>
   <symbol id="i-khatma" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-autoscroll" viewBox="0 0 24 24"><path d="M12 3v18M8 17l4 4 4-4"/><path d="M7 7h10M7 11h8"/></symbol>
 </svg>
 
 <!-- ============ هيكل التطبيق ============ -->
@@ -76,6 +78,9 @@
     </div>
 
     <div class="ab-actions">
+      <button class="ab-icon as-trigger" id="autoScrollTrigger" aria-label="التمرير التلقائي" title="التمرير التلقائي">
+        <svg class="ic"><use href="#i-autoscroll"></use></svg>
+      </button>
       <button class="ab-icon" id="themeToggle" aria-label="تبديل الوضع">
         <svg class="ic"><use href="#i-sun"></use></svg>
       </button>
@@ -867,6 +872,23 @@
     <span class="wup-text">جاري تحديث نور…</span>
   </div>
 
+  <!-- شريط التمرير التلقائي العائم -->
+  <div id="autoScrollBar" class="auto-scroll-bar hidden">
+    <button class="as-btn as-speed-btn" id="asSlower" aria-label="أبطأ">−</button>
+    <span class="as-speed-lbl" id="asSpeedLabel">1×</span>
+    <button class="as-btn as-speed-btn" id="asFaster" aria-label="أسرع">+</button>
+    <button class="as-btn as-toggle-btn" id="asToggle" aria-label="تشغيل">
+      <svg class="ic"><use href="#i-pause"></use></svg>
+    </button>
+    <button class="as-btn as-gaze-btn" id="asGaze" title="مراقبة النظرة">
+      <svg class="ic"><use href="#i-eye"></use></svg>
+    </button>
+    <button class="as-btn as-close-btn" id="asClose" aria-label="إغلاق">
+      <svg class="ic"><use href="#i-close"></use></svg>
+    </button>
+    <div class="as-gaze-hint hidden" id="asGazeHint">الكاميرا غير متاحة</div>
+  </div>
+
 </div>
 
 <!-- الغلاف الأصلي (Capacitor): تعمل بلا ضرر في المتصفح العادي أيضاً -->
@@ -879,6 +901,7 @@
 <script src="quran-data.js"></script>
 <script src="prayer-times.js"></script>
 <script src="adhkar-data.js"></script>
+<script src="auto-scroll.js"></script>
 <script src="app.js"></script>
 </body>
 </html>
