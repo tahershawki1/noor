@@ -275,6 +275,8 @@ jobs:
           git add package.json package-lock.json www islamic-app/version.json android/app/capacitor.build.gradle android/capacitor.settings.gradle
           git commit -m "إصدار ${{ steps.version.outputs.tag }}"
           git tag -a "${{ steps.version.outputs.tag }}" -m "إصدار ${{ steps.version.outputs.tag }}"
+          # rebase على آخر نسخة من main قبل الرفع لتجنّب رفض non-fast-forward
+          git pull --rebase origin "${{ github.ref_name }}"
           git push origin HEAD:"${{ github.ref_name }}"
           git push origin "${{ steps.version.outputs.tag }}"
 
