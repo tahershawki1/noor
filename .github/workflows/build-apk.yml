@@ -24,8 +24,6 @@ on:
     paths:
       - 'android/**'
       - 'capacitor.config.json'
-      - 'package.json'
-      - 'package-lock.json'
       - '.github/workflows/build-apk.yml'
   # على الـ PR يعمل بناء تحقّق: يضمن أن كود جافا يُصرَّف قبل الدمج
   pull_request:
@@ -33,8 +31,6 @@ on:
     paths:
       - 'android/**'
       - 'capacitor.config.json'
-      - 'package.json'
-      - 'package-lock.json'
       - '.github/workflows/build-apk.yml'
 
 permissions:
