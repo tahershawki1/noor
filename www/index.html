@@ -908,6 +908,12 @@
 <script>
 (function () {
   if (!('serviceWorker' in navigator)) return;
+  // مثل live-updates.js وapp-updates.js: فحص التحديثات الشبكي حكر على
+  // التطبيق الأصلي — لا يعمل على نسخة الويب المباشرة (GitHub Pages في
+  // متصفح عادي)، فلا يخرق استقلاليتها عن الإنترنت.
+  var capacitor = window.Capacitor;
+  var isNative = !!(capacitor && capacitor.isNativePlatform && capacitor.isNativePlatform());
+  if (!isNative) return;
 
   navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
     .then(function (reg) {
