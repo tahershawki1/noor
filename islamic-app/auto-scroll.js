@@ -132,10 +132,18 @@
   }
 
   /* ─── مراقبة النظرة بالكاميرا ─── */
+
+  /*
+   * يكفي وجود getUserMedia لإظهار الزر.
+   * FaceDetector مكافأة اختيارية: على أجهزة لا تدعمه تعمل الميزة بوضع بديل
+   * (الكاميرا مفتوحة = المستخدم يقرأ = التمرير يكمل).
+   */
   function gazeSupported() {
-    return typeof global.FaceDetector !== 'undefined'
-      && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   }
+
+  /* هل الجهاز يدعم الكشف عن الوجه أصلاً؟ */
+  var hasFaceDetector = typeof global.FaceDetector !== 'undefined';
 
   function _startGaze(onResult) {
     if (gazeStream) { onResult(true); return; }
@@ -152,10 +160,14 @@
       gazeVideo.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
       document.body.appendChild(gazeVideo);
 
-      gazeCanvas = document.createElement('canvas');
-      gazeCanvas.width = 240; gazeCanvas.height = 180;
-      gazeCtx = gazeCanvas.getContext('2d');
-      gazeDetector = new global.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+      if (hasFaceDetector) {
+        /* الكشف الحقيقي عن الوجه */
+        gazeCanvas = document.createElement('canvas');
+        gazeCanvas.width = 240; gazeCanvas.height = 180;
+        gazeCtx = gazeCanvas.getContext('2d');
+        gazeDetector = new global.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+      }
+      /* بدون FaceDetector: الكاميرا مفعّلة = المستخدم أمام الشاشة */
 
       gazeEnabled = true;
       _schedulePoll();
@@ -216,32 +228,31 @@
     if (slowerBtn) slowerBtn.addEventListener('click', slower);
     if (closeBtn)  closeBtn.addEventListener('click', hideBar);
 
-    // زر النظرة — إخفاؤه إن لم يكن FaceDetector متاحاً
+    // زر النظرة — إخفاؤه فقط إن لم يكن getUserMedia متاحاً
     if (gazeBtn) {
       if (!gazeSupported()) {
         gazeBtn.style.display = 'none';
-      } else {
-        gazeBtn.addEventListener('click', function () {
-          if (!gazeEnabled) {
-            _startGaze(function (ok) {
-              if (ok) {
-                gazeBtn.classList.add('as-gaze-on');
-                gazeBtn.title = 'إيقاف مراقبة النظرة';
-                // إذا كان التمرير متوقفاً ابدأه مع النظرة
-                if (!running) _play();
-              } else {
-                // الكاميرا مرفوضة — أخبر المستخدم
-                var hint = document.getElementById('asGazeHint');
-                if (hint) { hint.classList.remove('hidden'); setTimeout(function () { hint.classList.add('hidden'); }, 3000); }
-              }
-            });
-          } else {
-            _stopGaze();
-            gazeBtn.classList.remove('as-gaze-on');
-            gazeBtn.title = 'مراقبة النظرة';
-          }
-        });
       }
+      gazeBtn.addEventListener('click', function () {
+        if (!gazeEnabled) {
+          _startGaze(function (ok) {
+            if (ok) {
+              gazeBtn.classList.add('as-gaze-on');
+              gazeBtn.title = 'إيقاف مراقبة النظرة';
+              // إذا كان التمرير متوقفاً ابدأه مع النظرة
+              if (!running) _play();
+            } else {
+              // الكاميرا مرفوضة — أخبر المستخدم
+              var hint = document.getElementById('asGazeHint');
+              if (hint) { hint.classList.remove('hidden'); setTimeout(function () { hint.classList.add('hidden'); }, 3000); }
+            }
+          });
+        } else {
+          _stopGaze();
+          gazeBtn.classList.remove('as-gaze-on');
+          gazeBtn.title = 'مراقبة النظرة';
+        }
+      });
     }
 
     // زر التشغيل في شريط القراءة (يفتح/يغلق الشريط)

@@ -903,5 +903,52 @@
 <script src="adhkar-data.js"></script>
 <script src="auto-scroll.js"></script>
 <script src="app.js"></script>
+
+<!-- تسجيل Service Worker للتحديثات التلقائية والعمل دون إنترنت -->
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
+    .then(function (reg) {
+      /* عند كل فتح للتطبيق: اطلب من الـ SW فحص التحديثات */
+      function askCheck() {
+        var sw = reg.active || reg.waiting || reg.installing;
+        if (sw) sw.postMessage({ type: 'CHECK_UPDATE' });
+      }
+      if (reg.active) {
+        askCheck();
+      } else {
+        reg.addEventListener('updatefound', function () {
+          var sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', function () {
+            if (sw.state === 'activated') askCheck();
+          });
+        });
+      }
+    })
+    .catch(function (err) {
+      console.warn('[SW] فشل التسجيل:', err);
+    });
+
+  /* استقبال رسائل الـ SW */
+  navigator.serviceWorker.addEventListener('message', function (event) {
+    if (!event.data) return;
+    var type = event.data.type;
+
+    if (type === 'UPDATE_STARTED') {
+      /* أظهر بيل التحديث إن كان موجوداً */
+      var pill = document.getElementById('webUpdatePill');
+      if (pill) pill.classList.remove('hidden');
+    }
+
+    if (type === 'RELOAD') {
+      /* أعد تحميل الصفحة لتطبيق التحديث */
+      setTimeout(function () { location.reload(); }, 800);
+    }
+  });
+}());
+</script>
 </body>
 </html>
