@@ -160,17 +160,19 @@
       gazeVideo.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
       document.body.appendChild(gazeVideo);
 
+      gazeEnabled = true;
+
       if (hasFaceDetector) {
         /* الكشف الحقيقي عن الوجه */
         gazeCanvas = document.createElement('canvas');
         gazeCanvas.width = 240; gazeCanvas.height = 180;
         gazeCtx = gazeCanvas.getContext('2d');
         gazeDetector = new global.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
+        _schedulePoll();
       }
-      /* بدون FaceDetector: الكاميرا مفعّلة = المستخدم أمام الشاشة */
+      /* بدون FaceDetector (كل أجهزة أندرويد حالياً): لا يوجد شيء نراقبه فعلياً،
+         فلا نجدول أي polling — الكاميرا المفتوحة نفسها هي الضمان البديل. */
 
-      gazeEnabled = true;
-      _schedulePoll();
       onResult(true);
     }).catch(function (err) {
       console.warn('[AutoScroll] الكاميرا غير متاحة:', err);
