@@ -2359,7 +2359,11 @@ function saveKhatmas(list) { localStorage.setItem(KHATMA_KEY, JSON.stringify(lis
 
 function khatmaDaysElapsed(k) {
   const msDay = 86400000;
-  const start = new Date(k.startDate); start.setHours(0, 0, 0, 0);
+  // startDate مخزَّنة "YYYY-MM-DD" بتوقيت محلي (localDateStamp) — نبنيها من
+  // مكوّناتها مباشرة، لا عبر new Date(string) التي تُفسَّر كـ UTC وتزيح
+  // التاريخ المحلي يوماً كاملاً لمن يقيم غرب غرينتش.
+  const [y, m, d] = k.startDate.split("-").map(Number);
+  const start = new Date(y, m - 1, d);
   const today = new Date(); today.setHours(0, 0, 0, 0);
   return Math.max(1, Math.floor((today - start) / msDay) + 1);
 }
@@ -2476,7 +2480,8 @@ function confirmKhatmaSetup() {
     dailyPages = Math.max(1, parseInt($("khatmaPagesInput").value) || 20);
   }
   const khatmas = getKhatmas();
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   khatmas.push({ id: Date.now(), startDate: today, dailyPages, pagesRead: 0 });
   saveKhatmas(khatmas);
   closeKhatmaSetup();
@@ -2511,7 +2516,11 @@ function openKhatmaReader(khatmaId) {
   navigateTo("quran");
   QuranData.loadMeta().then(() => {
     const startPage = Math.max(1, khatma.pagesRead);
-    openSurah(getSurahForPage(startPage));
+    const surahNumber = getSurahForPage(startPage);
+    const surahMeta = QuranData.getSurahMeta(surahNumber);
+    const firstAyahId = QuranData.firstAyahOfPage(startPage);
+    const ayahInSurah = Math.max(1, firstAyahId - surahMeta.first + 1);
+    openSurah(surahNumber, ayahInSurah);
   });
 }
 

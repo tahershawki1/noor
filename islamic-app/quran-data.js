@@ -125,6 +125,11 @@
       return cache.meta.pageStarts[pageIndex] === ayahId;
     },
 
+    /** رقم الآية عالمياً (1..6236) التي تبدأ عندها صفحة المصحف رقم pageNumber. */
+    firstAyahOfPage: function (pageNumber) {
+      return cache.meta.pageStarts[pageNumber - 1];
+    },
+
     /** آية السجدة في السورة إن وُجدت، وإلا null. */
     sajdahAyahOf: function (surahNumber) {
       var sajdah = cache.meta && cache.meta.sajdah;
