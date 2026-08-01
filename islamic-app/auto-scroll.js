@@ -3,30 +3,48 @@
  * ================================================================
  *
  * AutoScroll: يُمرّر #ayahContainer بسلاسة باستخدام requestAnimationFrame
- *   مع ستة مستويات سرعة وشريط تحكم عائم أسفل الشاشة.
+ *   مع خمس عشرة درجة سرعة وشريط تحكم عائم أسفل الشاشة.
  *
  * GazeWatcher: يستخدم FaceDetector (Chrome/Chromium WebView) للكشف عن
  *   وجه المستخدم أمام الكاميرا الأمامية — إن أزاح نظره يتوقف التمرير
  *   تلقائياً حتى يعود، دون أن يضيع المكان.
  *
- * مستويات السرعة (بكسل/إطار عند 60fps):
- *   ¼× = 0.25  ½× = 0.5  1× = 1  1½× = 1.5  2½× = 2.5  4× = 4
+ * مستويات السرعة: ١٥ درجة خطية من ٠٫٥× إلى ٤× (بكسل/إطار عند 60fps)،
+ * بفارق ٠٫٢٥ بين كل درجة والتالية.
  * ================================================================ */
 
 (function (global) {
   'use strict';
 
   /* ─── الثوابت ─── */
-  var SPEEDS = [0.25, 0.5, 1, 1.5, 2.5, 4];
-  var SPEED_LABELS = ['¼×', '½×', '1×', '1½×', '2½×', '4×'];
+  var SPEED_MIN = 0.5;
+  var SPEED_MAX = 4;
+  var SPEED_LEVELS = 15;
+  var SPEED_STEP = (SPEED_MAX - SPEED_MIN) / (SPEED_LEVELS - 1); // 0.25
+  var SPEEDS = [];
+  for (var _i = 0; _i < SPEED_LEVELS; _i++) {
+    SPEEDS.push(Math.round((SPEED_MIN + _i * SPEED_STEP) * 100) / 100);
+  }
   var DEFAULT_IDX = 2;   // 1×
   var GAZE_POLL_MS = 700;
+
+  /* رقم عربي بدل اللاتيني، بنفس أسلوب toArabicNum في app.js — نسخة محلية
+     حتى يبقى هذا الملف مستقلاً بلا اعتماد على ترتيب تحميل app.js. */
+  function toArabicDigits(str) {
+    return String(str).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; });
+  }
+  function speedLabel(idx) {
+    return '×' + toArabicDigits(SPEEDS[idx]);
+  }
 
   /* ─── الحالة ─── */
   var running = false;
   var speedIdx = DEFAULT_IDX;
   var rafId = null;
   var lastTs = null;
+  var scrollAccPx = null; // مُراكِم كسري لموضع التمرير — منفصل عن scrollTop
+                           // لأن المتصفح يقرّب scrollTop لأقرب بكسل صحيح،
+                           // فتُفقَد أي زيادة أقل من ١px في كل إطار بدونه.
 
   /* ─── حالة مراقبة النظرة ─── */
   var gazeEnabled = false;
@@ -51,7 +69,9 @@
 
     var el = getEl();
     if (el) {
-      el.scrollTop += SPEEDS[speedIdx] * (dt / 16.667);
+      if (scrollAccPx === null) scrollAccPx = el.scrollTop;
+      scrollAccPx += SPEEDS[speedIdx] * (dt / 16.667);
+      el.scrollTop = Math.round(scrollAccPx);
       // وصل للنهاية — أوقف
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
         _pause();
@@ -66,6 +86,7 @@
     if (running) return;
     running = true;
     lastTs = null;
+    scrollAccPx = null;
     rafId = requestAnimationFrame(tick);
     syncUI();
   }
@@ -76,6 +97,7 @@
     cancelAnimationFrame(rafId);
     rafId = null;
     lastTs = null;
+    scrollAccPx = null;
     syncUI();
   }
 
@@ -103,7 +125,7 @@
 
   function syncSpeed() {
     var lbl = document.getElementById('asSpeedLabel');
-    if (lbl) lbl.textContent = SPEED_LABELS[speedIdx];
+    if (lbl) lbl.textContent = speedLabel(speedIdx);
   }
 
   /* ─── إظهار / إخفاء الشريط ─── */
