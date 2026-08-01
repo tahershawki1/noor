@@ -599,8 +599,12 @@
         <div class="field hidden" id="appInfoField">
           <label class="field-label">عن التطبيق</label>
           <div class="app-ver-row">
-            <span class="avr-label">الإصدار المثبَّت</span>
+            <span class="avr-label">إصدار التطبيق (APK)</span>
             <span class="avr-value" id="installedVersionLabel">—</span>
+          </div>
+          <div class="app-ver-row">
+            <span class="avr-label">إصدار محتوى الويب</span>
+            <span class="avr-value" id="webVersionLabel">—</span>
           </div>
           <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
             <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
@@ -904,57 +908,23 @@
 <script src="auto-scroll.js"></script>
 <script src="app.js"></script>
 
-<!-- تسجيل Service Worker للتحديثات التلقائية والعمل دون إنترنت -->
+<!-- تنظيف: أزيل sw.js نهائياً (كان يتعارض مع live-updates.js/app-updates.js).
+     الأجهزة التي سبق أن سجّلته يبقى تسجيله فعّالاً عندها حتى لو توقفنا عن
+     تسجيله من جديد، فنُلغيه صراحة هنا مع كاشه ليعود الاعتماد الكامل على
+     live-updates.js/app-updates.js وحدهما. -->
 <script>
-(function () {
-  if (!('serviceWorker' in navigator)) return;
-  // مثل live-updates.js وapp-updates.js: فحص التحديثات الشبكي حكر على
-  // التطبيق الأصلي — لا يعمل على نسخة الويب المباشرة (GitHub Pages في
-  // متصفح عادي)، فلا يخرق استقلاليتها عن الإنترنت.
-  var capacitor = window.Capacitor;
-  var isNative = !!(capacitor && capacitor.isNativePlatform && capacitor.isNativePlatform());
-  if (!isNative) return;
-
-  navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
-    .then(function (reg) {
-      /* عند كل فتح للتطبيق: اطلب من الـ SW فحص التحديثات */
-      function askCheck() {
-        var sw = reg.active || reg.waiting || reg.installing;
-        if (sw) sw.postMessage({ type: 'CHECK_UPDATE' });
-      }
-      if (reg.active) {
-        askCheck();
-      } else {
-        reg.addEventListener('updatefound', function () {
-          var sw = reg.installing;
-          if (!sw) return;
-          sw.addEventListener('statechange', function () {
-            if (sw.state === 'activated') askCheck();
-          });
-        });
-      }
-    })
-    .catch(function (err) {
-      console.warn('[SW] فشل التسجيل:', err);
-    });
-
-  /* استقبال رسائل الـ SW */
-  navigator.serviceWorker.addEventListener('message', function (event) {
-    if (!event.data) return;
-    var type = event.data.type;
-
-    if (type === 'UPDATE_STARTED') {
-      /* أظهر بيل التحديث إن كان موجوداً */
-      var pill = document.getElementById('webUpdatePill');
-      if (pill) pill.classList.remove('hidden');
-    }
-
-    if (type === 'RELOAD') {
-      /* أعد تحميل الصفحة لتطبيق التحديث */
-      setTimeout(function () { location.reload(); }, 800);
-    }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function (regs) {
+    regs.forEach(function (reg) { reg.unregister(); });
   });
-}());
+}
+if ('caches' in window) {
+  caches.keys().then(function (keys) {
+    keys.forEach(function (key) {
+      if (key.indexOf('noor-app') === 0) caches.delete(key);
+    });
+  });
+}
 </script>
 </body>
 </html>

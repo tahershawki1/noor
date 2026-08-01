@@ -2085,6 +2085,18 @@ function initAppUpdates() {
         }
       })
       .catch(() => {});
+
+    // إصدار محتوى الويب الفعلي المُحمَّل الآن — من version.json نفس الأصل
+    // الذي يخدم منه التطبيق حالياً، لا من دفتر حسابات أي آلية تحديث بعينها،
+    // فيعكس الحقيقة بصرف النظر عن أي آلية طبّقته.
+    fetch("version.json", { cache: "no-store" })
+      .then(r => r.json())
+      .then(manifest => {
+        if (manifest && manifest.web && manifest.web.version && $("webVersionLabel")) {
+          $("webVersionLabel").textContent = manifest.web.version;
+        }
+      })
+      .catch(() => {});
   }
 
   // زر «تحقق من التحديثات» في الإعدادات
