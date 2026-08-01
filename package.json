@@ -1,6 +1,6 @@
 {
   "name": "eslamic-app",
-  "version": "1.6.7",
+  "version": "1.6.8",
   "description": "نور — تطبيق إسلامي: غلاف أندرويد أصلي (Capacitor) بتحديثات ويب مباشرة",
   "main": "index.js",
   "scripts": {

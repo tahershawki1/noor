@@ -906,7 +906,19 @@
 <script src="prayer-times.js"></script>
 <script src="adhkar-data.js"></script>
 <script src="auto-scroll.js"></script>
-<script src="app.js"></script>
+
+<!-- صفحات التطبيق — ملف مستقل لكل صفحة (كان app.js واحداً يجمعها كلها).
+     الترتيب مهم: app-shell.js أولاً (يعرّف $/icon/navigateTo التي تعتمد
+     عليها كل الصفحات)، وخريطة الملفات ← الصفحة موثَّقة في CLAUDE.md. -->
+<script src="app-shell.js"></script>
+<script src="quran-reader.js"></script>
+<script src="adhkar.js"></script>
+<script src="bookmarks.js"></script>
+<script src="prayer-page.js"></script>
+<script src="adiyah.js"></script>
+<script src="adhan-page.js"></script>
+<script src="settings-ui.js"></script>
+<script src="khatma.js"></script>
 
 <!-- تنظيف: أزيل sw.js نهائياً (كان يتعارض مع live-updates.js/app-updates.js).
      الأجهزة التي سبق أن سجّلته يبقى تسجيله فعّالاً عندها حتى لو توقفنا عن

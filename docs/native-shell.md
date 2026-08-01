@@ -5,8 +5,11 @@
 
 ```
 islamic-app/          ← مصدر الويب (المنشور على GitHub Pages + مصدر حزم التحديث)
-  ├─ index.html
-  ├─ app.js, styles.css, adhkar-data.js
+  ├─ index.html, styles.css
+  ├─ app-shell.js, quran-reader.js, adhkar.js, bookmarks.js,
+  │  prayer-page.js, adiyah.js, adhan-page.js, settings-ui.js, khatma.js
+  │                     ← ملف مستقل لكل صفحة (خريطة كاملة في CLAUDE.md)
+  ├─ auto-scroll.js     ← تمرير تلقائي + مراقبة نظرة (MediaPipe، أصولها في vendor/mediapipe/)
   ├─ live-updates.js    ← تطبيق حزم الويب الجديدة
   ├─ app-updates.js     ← التحديث الذاتي: يقرأ version.json ويقرّر أي مسار
   ├─ backup.js          ← نسخة احتياطية تنجو من حذف التطبيق
