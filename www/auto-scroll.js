@@ -5,9 +5,11 @@
  * AutoScroll: يُمرّر #ayahContainer بسلاسة باستخدام requestAnimationFrame
  *   مع خمس عشرة درجة سرعة وشريط تحكم عائم أسفل الشاشة.
  *
- * GazeWatcher: يستخدم FaceDetector (Chrome/Chromium WebView) للكشف عن
- *   وجه المستخدم أمام الكاميرا الأمامية — إن أزاح نظره يتوقف التمرير
- *   تلقائياً حتى يعود، دون أن يضيع المكان.
+ * GazeWatcher: يستخدم MediaPipe Tasks Vision (كشف وجه محلي عبر WASM، بلا
+ *   اتصال إنترنت — انظر islamic-app/vendor/mediapipe/) للكشف عن وجه
+ *   المستخدم أمام الكاميرا الأمامية — إن أزاح نظره يتوقف التمرير تلقائياً
+ *   حتى يعود، دون أن يضيع المكان. يستبدل FaceDetector الأصلي (Shape
+ *   Detection API) غير المطبَّق إطلاقاً في Android WebView.
  *
  * مستويات السرعة: ١٥ درجة خطية من ٠٫٥× إلى ٤× (بكسل/إطار عند 60fps)،
  * بفارق ٠٫٢٥ بين كل درجة والتالية.
@@ -50,10 +52,12 @@
   var gazeEnabled = false;
   var gazeVideo = null;
   var gazeStream = null;
-  var gazeCanvas = null;
-  var gazeCtx = null;
-  var gazeDetector = null;
   var gazePollTimer = null;
+
+  /* كاشف MediaPipe — يُحمَّل مرة واحدة (~12 ميجابايت WASM) ويبقى مُخزَّناً
+     عبر جلسة الصفحة كلها، حتى لا يُعاد تحميله كل مرة يُشغَّل فيها الزر. */
+  var gazeDetector = null;
+  var gazeDetectorLoading = null;
 
   /* ─── عنصر التمرير ─── */
   function getEl() {
@@ -153,22 +157,52 @@
     if (gazeBtn) gazeBtn.classList.remove('as-gaze-on');
   }
 
-  /* ─── مراقبة النظرة بالكاميرا ─── */
+  /* ─── مراقبة النظرة بالكاميرا (MediaPipe Face Detector) ─── */
 
-  /*
-   * يكفي وجود getUserMedia لإظهار الزر.
-   * FaceDetector مكافأة اختيارية: على أجهزة لا تدعمه تعمل الميزة بوضع بديل
-   * (الكاميرا مفتوحة = المستخدم يقرأ = التمرير يكمل).
-   */
   function gazeSupported() {
     return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   }
 
-  /* هل الجهاز يدعم الكشف عن الوجه أصلاً؟ */
-  var hasFaceDetector = typeof global.FaceDetector !== 'undefined';
+  /* مسارات الأصول محلية دائماً — لا CDN، حتى لا تخرق استقلالية أوفلاين
+     التطبيق (انظر tests/offline.mjs). تُحمَّل مرة واحدة فقط عند أول ضغطة
+     فعلية على زر مراقبة النظرة، لا عند فتح التطبيق. */
+  function _loadGazeDetector() {
+    if (gazeDetector) return Promise.resolve(gazeDetector);
+    if (gazeDetectorLoading) return gazeDetectorLoading;
+
+    gazeDetectorLoading = import('./vendor/mediapipe/vision_bundle.mjs')
+      .then(function (mp) {
+        // WasmFileset يدوي بدل FilesetResolver.forVisionTasks: نُحزّم نسخة
+        // SIMD فقط (تدعمها كل أجهزة أندرويد الحديثة عملياً) لا كل النسخ
+        // الثلاث التي ينشرها المسار التلقائي — يوفّر ~23 ميجابايت.
+        var wasmFileset = {
+          wasmLoaderPath: 'vendor/mediapipe/vision_wasm_internal.js',
+          wasmBinaryPath: 'vendor/mediapipe/vision_wasm_internal.wasm'
+        };
+        return mp.FaceDetector.createFromOptions(wasmFileset, {
+          baseOptions: { modelAssetPath: 'vendor/mediapipe/blaze_face_short_range.tflite' },
+          runningMode: 'VIDEO'
+        });
+      })
+      .then(function (detector) {
+        gazeDetector = detector;
+        gazeDetectorLoading = null;
+        return detector;
+      })
+      .catch(function (err) {
+        gazeDetectorLoading = null;
+        throw err;
+      });
+
+    return gazeDetectorLoading;
+  }
 
   function _startGaze(onResult) {
-    if (gazeStream) { onResult(true); return; }
+    if (gazeEnabled) { onResult(true); return; }
+
+    var hint = document.getElementById('asGazeHint');
+    if (hint) { hint.textContent = 'جارِ تجهيز مراقبة النظرة…'; hint.classList.remove('hidden'); }
+
     navigator.mediaDevices.getUserMedia({
       video: { facingMode: 'user', width: { ideal: 240 }, height: { ideal: 180 } }
     }).then(function (stream) {
@@ -181,23 +215,20 @@
       gazeVideo.setAttribute('playsinline', '');
       gazeVideo.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none';
       document.body.appendChild(gazeVideo);
-
+      return _loadGazeDetector();
+    }).then(function () {
+      if (hint) hint.classList.add('hidden');
       gazeEnabled = true;
-
-      if (hasFaceDetector) {
-        /* الكشف الحقيقي عن الوجه */
-        gazeCanvas = document.createElement('canvas');
-        gazeCanvas.width = 240; gazeCanvas.height = 180;
-        gazeCtx = gazeCanvas.getContext('2d');
-        gazeDetector = new global.FaceDetector({ fastMode: true, maxDetectedFaces: 1 });
-        _schedulePoll();
-      }
-      /* بدون FaceDetector (كل أجهزة أندرويد حالياً): لا يوجد شيء نراقبه فعلياً،
-         فلا نجدول أي polling — الكاميرا المفتوحة نفسها هي الضمان البديل. */
-
+      _schedulePoll();
       onResult(true);
     }).catch(function (err) {
-      console.warn('[AutoScroll] الكاميرا غير متاحة:', err);
+      console.warn('[AutoScroll] تعذّر تفعيل مراقبة النظرة:', err);
+      if (hint) {
+        hint.textContent = 'الكاميرا أو مراقبة النظرة غير متاحة';
+        setTimeout(function () { hint.classList.add('hidden'); }, 3000);
+      }
+      if (gazeStream) { gazeStream.getTracks().forEach(function (t) { t.stop(); }); gazeStream = null; }
+      if (gazeVideo) { gazeVideo.remove(); gazeVideo = null; }
       onResult(false);
     });
   }
@@ -210,7 +241,8 @@
       gazeStream = null;
     }
     if (gazeVideo) { gazeVideo.remove(); gazeVideo = null; }
-    gazeCanvas = null; gazeCtx = null; gazeDetector = null;
+    // gazeDetector يبقى مُخزَّناً عمداً — إعادة تحميل ~12 ميجابايت WASM في
+    // كل تشغيل/إيقاف للميزة داخل نفس الجلسة مكلفة وغير ضرورية.
   }
 
   function _schedulePoll() {
@@ -218,21 +250,21 @@
   }
 
   function _pollFace() {
-    if (!gazeEnabled || !gazeVideo || gazeVideo.readyState < 2) {
+    if (!gazeEnabled || !gazeVideo || gazeVideo.readyState < 2 || !gazeDetector) {
       if (gazeEnabled) _schedulePoll();
       return;
     }
-    gazeCtx.drawImage(gazeVideo, 0, 0, 240, 180);
-    gazeDetector.detect(gazeCanvas).then(function (faces) {
-      var looking = faces.length > 0;
-      // يراقب — شغّل التمرير لو كان موقوفاً بسبب النظرة
-      if (looking && !running) _play();
-      // بعيد — أوقف التمرير لو كان شغّالاً
-      else if (!looking && running) _pause();
-      if (gazeEnabled) _schedulePoll();
-    }).catch(function () {
-      if (gazeEnabled) _schedulePoll();
-    });
+    var looking = false;
+    try {
+      var result = gazeDetector.detectForVideo(gazeVideo, performance.now());
+      looking = !!(result && result.detections && result.detections.length > 0);
+    } catch (e) { /* إطار عابر غير صالح — تجاهله وحاول في الجولة التالية */ }
+
+    // يراقب — شغّل التمرير لو كان موقوفاً بسبب النظرة
+    if (looking && !running) _play();
+    // بعيد — أوقف التمرير لو كان شغّالاً
+    else if (!looking && running) _pause();
+    if (gazeEnabled) _schedulePoll();
   }
 
   /* ─── التهيئة ─── */
