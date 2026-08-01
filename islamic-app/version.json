@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-01T06:26:47.722Z",
+  "generatedAt": "2026-08-01T06:38:59.243Z",
   "app": {
-    "version": "1.4.2",
-    "versionCode": 10402,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.4.2/noor-1.4.2.apk",
-    "sizeBytes": 8959429,
-    "sha256": "c7d468bef76d2af3b4bb91d7bff875deccf583dd30f178529bfa6edce9de21aa",
+    "version": "1.6.4",
+    "versionCode": 10604,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.6.4/noor-1.6.4.apk",
+    "sizeBytes": 8967328,
+    "sha256": "8b10a60117f2160eead7f04468a58964f3ca73f76093794a8cf97a8f71b46fc9",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "واجهة تحديث احترافية: نافذة APK + بيل الويب + زر التحقق من الإعدادات",
+    "notes": "تحديث 1.6.4",
     "mandatory": false
   },
   "web": {
-    "version": "1.6.3.5",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.6.3.5/noor-web-1.6.3.5.zip",
-    "checksum": "f769d7ec39874d79d1a81f12f5e5fb7d21fed5ca18b79d0d79d818cec1e2ab53",
+    "version": "1.6.4",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.6.4/noor-web-1.6.4.zip",
+    "checksum": "690bfdf7fcd089e97afddf7ca9168fc1ba88620ec952602a3df14cafd90b3743",
     "contentHash": "1b60fec2d60b1b2132f5449c1eb8de05d4120eb8255d2fbc4d8c820b20e3c849"
   }
 }
