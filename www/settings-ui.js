@@ -128,17 +128,29 @@ function initAppUpdates() {
       })
       .catch(() => {});
 
-    // إصدار محتوى الويب الفعلي المُحمَّل الآن — من version.json نفس الأصل
-    // الذي يخدم منه التطبيق حالياً، لا من دفتر حسابات أي آلية تحديث بعينها،
-    // فيعكس الحقيقة بصرف النظر عن أي آلية طبّقته.
-    fetch("version.json", { cache: "no-store" })
-      .then(r => r.json())
-      .then(manifest => {
-        if (manifest && manifest.web && manifest.web.version && $("webVersionLabel")) {
-          $("webVersionLabel").textContent = manifest.web.version;
-        }
-      })
-      .catch(() => {});
+    // إصدار محتوى الويب الفعلي المُحمَّل الآن — من البلاجن مباشرة
+    // (LiveUpdates.current())، لا من ملف version.json: هذا الملف مُستبعَد
+    // عمداً من حزمة أي تحديث ويب (انظر web-release.yml)، فبعد أول تحديث
+    // صامت لا يعود موجوداً داخل الحزمة العاملة ويفشل جلبه صامتاً — فيبقى
+    // الحقل فارغاً للأبد رغم أن التحديث تم فعلاً.
+    if (typeof LiveUpdates !== "undefined" && LiveUpdates.isSupported()) {
+      LiveUpdates.current()
+        .then(result => {
+          let running = result && result.bundle ? result.bundle.version : null;
+          if (!running || running === "builtin") running = (result && result.native) || null;
+          if (running && $("webVersionLabel")) $("webVersionLabel").textContent = running;
+        })
+        .catch(() => {});
+    } else {
+      fetch("version.json", { cache: "no-store" })
+        .then(r => r.json())
+        .then(manifest => {
+          if (manifest && manifest.web && manifest.web.version && $("webVersionLabel")) {
+            $("webVersionLabel").textContent = manifest.web.version;
+          }
+        })
+        .catch(() => {});
+    }
   }
 
   // زر «تحقق من التحديثات» في الإعدادات

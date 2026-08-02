@@ -41,9 +41,9 @@
   var speed = SPEED_DEFAULT;
   var rafId = null;
   var lastTs = null;
-  var scrollAccPx = null;    // مُراكِم كسري لموضع التمرير — منفصل عن scrollTop
-                              // لأن المتصفح يقرّب scrollTop لأقرب بكسل صحيح،
-                              // فتُفقَد أي زيادة أقل من ١px في كل إطار بدونه.
+  var scrollAccPx = null;    // مُراكِم كسري لموضع التمرير — منفصل عن قراءة
+                              // scrollTop حتى لا يتراكم خطأ تقريب صغير بين
+                              // الإطارات مهما كانت دقّة المتصفح في القراءة.
   var lastSetScrollTop = null; // آخر قيمة ضبطناها نحن — لتمييز تمرير المستخدم
                                 // اليدوي (سحب/لمس) عن تمريرنا الذاتي في tick().
 
@@ -74,7 +74,10 @@
     if (el) {
       if (scrollAccPx === null) scrollAccPx = el.scrollTop;
       scrollAccPx += speed * (dt / 16.667);
-      el.scrollTop = Math.round(scrollAccPx);
+      // بلا تقريب: المتصفح (Chromium/WebView) يدعم scrollTop كسرياً ويرسمه
+      // بسلاسة — التقريب لأقرب بكسل صحيح كان هو سبب القفز المتقطّع الملحوظ
+      // في السرعات القليلة، لا قصوراً في المتصفح.
+      el.scrollTop = scrollAccPx;
       lastSetScrollTop = el.scrollTop; // حتى يميّز مستمع scroll هذا التغيير عن تمرير المستخدم
       // وصل للنهاية — أوقف
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
