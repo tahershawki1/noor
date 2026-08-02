@@ -70,6 +70,13 @@
     -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!--
+        منبّه الأذان يحتاج دقة اللحظة (setExactAndAllowWhileIdle). هذه الصلاحية
+        تُمنح تلقائياً للتطبيقات التي وظيفتها الأساسية منبّه — وهذا حالنا حرفياً.
+        بدونها كان أندرويد 12+ يؤجّل الأذان دقائق في وضع Doze.
+    -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
     <!-- ==================== 9) تحديث التطبيق نفسه ==================== -->
     <!--
         التطبيق يُوزَّع كـ APK مباشر لا عبر متجر، فيحدّث نفسه: يقرأ version.json
@@ -177,6 +184,23 @@
                 <action android:name="android.intent.action.TIME_SET" />
                 <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            منبّه الأذان: يستقبل منبّهي دخول الوقت والتنبيه المسبق، ويعيد
+            جدولتهما بعد الأحداث التي تمحو المنبّهات. نفس مبرّر exported=true
+            في مستقبل الودجت أعلاه: البثوث مصدرها النظام، وأكشنا المنبّه
+            موجَّهان بالاسم فلا يضرّ بث خارجي.
+        -->
+        <receiver
+            android:name=".adhan.AdhanAlarmReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>

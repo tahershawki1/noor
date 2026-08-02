@@ -3,6 +3,7 @@ package com.noor.islamicapp;
 import android.os.Bundle;
 
 import com.getcapacitor.BridgeActivity;
+import com.noor.islamicapp.adhan.AdhanPlugin;
 import com.noor.islamicapp.backup.BackupPlugin;
 import com.noor.islamicapp.exit.AppExitPlugin;
 import com.noor.islamicapp.floating.FloatingWidgetPlugin;
@@ -20,6 +21,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AppUpdaterPlugin.class);
         registerPlugin(BackupPlugin.class);
         registerPlugin(AppExitPlugin.class);
+        registerPlugin(AdhanPlugin.class);
         super.onCreate(savedInstanceState);
     }
 

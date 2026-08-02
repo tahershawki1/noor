@@ -56,28 +56,42 @@
     return true;
   }
 
-  /** يجلب آيات السورة تباعاً ويخزّنها؛ onProgress(done, total) بعد كل آية. */
+  /** عدد التنزيلات المتوازية — آية تلو آية كان يجعل البقرة (٢٨٦ آية) تستغرق دقائق. */
+  var DOWNLOAD_CONCURRENCY = 5;
+
+  /** يجلب آيات السورة على دفعات متوازية ويخزّنها؛ onProgress(done, total) بعد كل آية. */
   async function downloadSurah(surahNumber, ayahCount, onProgress) {
     if (!supported) throw new Error('التخزين المؤقت غير مدعوم في هذا المتصفح');
     var cache = await caches.open(CACHE_NAME);
     var failed = 0;
-    for (var ayah = 1; ayah <= ayahCount; ayah++) {
-      var url = urlFor(surahNumber, ayah);
-      var existing = await cache.match(url);
-      if (!existing) {
-        try {
-          var response = await fetch(url);
-          if (response.ok) {
-            await cache.put(url, response);
-          } else {
+    var done = 0;
+    var nextAyah = 1;
+
+    async function worker() {
+      while (nextAyah <= ayahCount) {
+        var ayah = nextAyah++;
+        var url = urlFor(surahNumber, ayah);
+        var existing = await cache.match(url);
+        if (!existing) {
+          try {
+            var response = await fetch(url);
+            if (response.ok) {
+              await cache.put(url, response);
+            } else {
+              failed++;
+            }
+          } catch (e) {
             failed++;
           }
-        } catch (e) {
-          failed++;
         }
+        done++;
+        if (onProgress) onProgress(done, ayahCount);
       }
-      if (onProgress) onProgress(ayah, ayahCount);
     }
+
+    var workers = [];
+    for (var i = 0; i < DOWNLOAD_CONCURRENCY; i++) workers.push(worker());
+    await Promise.all(workers);
     return { total: ayahCount, failed: failed };
   }
 
@@ -86,7 +100,11 @@
     return caches.delete(CACHE_NAME);
   }
 
-  /** حجم وعدد الآيات المخزَّنة فعلياً — لعرضها في الإعدادات. */
+  /**
+   * حجم وعدد الآيات المخزَّنة فعلياً — لعرضها في الإعدادات.
+   * الحجم من ترويسة Content-Length لا بقراءة الـ blob كاملاً: قراءة مئات
+   * الملفات كانت تجعل فتح الإعدادات ثقيلاً كلما زادت الصوتيات المحمّلة.
+   */
   async function getOfflineAudioStats() {
     if (!supported) return { count: 0, bytes: 0 };
     var cache = await caches.open(CACHE_NAME);
@@ -94,7 +112,11 @@
     var bytes = 0;
     for (var i = 0; i < keys.length; i++) {
       var res = await cache.match(keys[i]);
-      if (res) {
+      if (!res) continue;
+      var len = Number(res.headers.get('content-length') || 0);
+      if (len > 0) {
+        bytes += len;
+      } else {
         var blob = await res.blob();
         bytes += blob.size;
       }

@@ -44,9 +44,11 @@ function surahSearchKeys(surah) {
   return [name, bare, bare.replace(/^ال/, ""), String(surah.en || "").toLowerCase()];
 }
 
-/** يحوّل الأرقام العربية الهندية إلى لاتينية ليقبل البحث "١٨" و"18". */
+/** يحوّل الأرقام العربية الهندية والفارسية إلى لاتينية ليقبل البحث "١٨" و"۱۸" و"18". */
 function toLatinDigits(text) {
-  return String(text).replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
+  return String(text)
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0));
 }
 
 async function loadSurahList() {
@@ -264,12 +266,20 @@ $("settingsOverlay").addEventListener("click", (e) => {
 });
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
+  // شيت تحديث الـ APK لا يُغلق إن كان التحديث إجبارياً
+  if (!$("apkUpdateOverlay").classList.contains("hidden")) {
+    if (typeof _apkUpdate !== "undefined" && _apkUpdate && _apkUpdate.mandatory) return;
+    if (typeof AppUpdates !== "undefined") AppUpdates.dismiss();
+    $("apkUpdateOverlay").classList.add("hidden");
+    return;
+  }
+  if (!$("reinstallOverlay").classList.contains("hidden")) { $("reinstallOverlay").classList.add("hidden"); return; }
   if (!$("surahPickerOverlay").classList.contains("hidden")) { closeSurahPicker(); return; }
   if (!$("khatmaSetupOverlay").classList.contains("hidden")) { closeKhatmaSetup(); return; }
-  if (!$("settingsOverlay").classList.contains("hidden")) closeSettingsModal();
-  if (!$("prayerSettingsOverlay").classList.contains("hidden")) closePrayerSettingsModal();
-  if (!$("addAdhkarOverlay").classList.contains("hidden")) closeAddAdhkarModal();
-  if (!$("ayahDialogOverlay").classList.contains("hidden")) closeAyahDialog();
+  if (!$("settingsOverlay").classList.contains("hidden")) { closeSettingsModal(); return; }
+  if (!$("prayerSettingsOverlay").classList.contains("hidden")) { closePrayerSettingsModal(); return; }
+  if (!$("addAdhkarOverlay").classList.contains("hidden")) { closeAddAdhkarModal(); return; }
+  if (!$("ayahDialogOverlay").classList.contains("hidden")) { closeAyahDialog(); return; }
   if (!$("adhanSettingsOverlay").classList.contains("hidden")) $("adhanSettingsOverlay").classList.add("hidden");
 });
 

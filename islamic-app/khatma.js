@@ -88,7 +88,7 @@ function renderKhatmaSection() {
         </div>
         <div class="khatma-card-info">
           <div class="khatma-card-name">ختمة القرآن</div>
-          <div class="khatma-card-meta">منذ ${toArabicNum(elapsed)} يوم • ${toArabicNum(dailyRound)} ص/يوم</div>
+          <div class="khatma-card-meta">منذ ${toArabicNum(arabicCountLabel(elapsed, "يوم واحد", "يومين", "أيام", "يوماً"))} • ${toArabicNum(dailyRound)} ص/يوم</div>
           <div class="khatma-card-remaining">${toArabicNum(remaining)} صفحة متبقية</div>
           <span class="khatma-status-badge kstatus-${status}">${KSTATUS_LABEL[status]}</span>
         </div>
@@ -215,12 +215,20 @@ function updateKhatmaWidget() {
   });
 }
 
+/**
+ * أقصى قفزة أمامية تُحسب قراءةً متصلة. القارئ يسجّل أي صفحة تظهر على الشاشة،
+ * ومنتقي السورة متاح داخل قارئ الختمة — فبدون هذا الحد، القفز لسورة الناس
+ * (صفحة ٦٠٤) كان يُعلّم الختمة كلها مقروءة في لمسة واحدة.
+ */
+const KHATMA_MAX_PAGE_JUMP = 5;
+
 function updateKhatmaPageProgress(currentPage) {
   if (activeKhatmaId === null) return;
   const khatmas = getKhatmas();
   const idx = khatmas.findIndex(k => k.id === activeKhatmaId);
   if (idx === -1) return;
-  if (currentPage > khatmas[idx].pagesRead) {
+  const read = khatmas[idx].pagesRead;
+  if (currentPage > read && currentPage - read <= KHATMA_MAX_PAGE_JUMP) {
     khatmas[idx].pagesRead = currentPage;
     saveKhatmas(khatmas);
     updateKhatmaWidget();

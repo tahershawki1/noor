@@ -21,7 +21,7 @@
     "backgroundColor": "#1a1a2e",
     "allowMixedContent": false,
     "captureInput": true,
-    "webContentsDebuggingEnabled": true,
+    "webContentsDebuggingEnabled": false,
     "useLegacyBridge": false,
     "appendUserAgent": "NoorNativeShell",
     "initialFocus": false

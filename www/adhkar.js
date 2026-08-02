@@ -44,7 +44,7 @@ function renderAdhkarCategories() {
     <div class="category-card" onclick="openAdhkarCategory('${cat.id}')">
       <div class="category-icon">${cat.icon}</div>
       <div class="category-name">${cat.name}</div>
-      <div class="category-count">${count} أذكار</div>
+      <div class="category-count">${arabicCountLabel(count, "ذكر واحد", "ذكران", "أذكار", "ذكراً")}</div>
     </div>`;
   }).join("");
 }
@@ -73,8 +73,8 @@ function renderAdhkarItemsList() {
       .map(
         (item, i) => `
       <div class="dhikr-card">
-        <div class="dhikr-text">${item.text}</div>
-        ${item.benefit ? `<div class="dhikr-benefit">💡 ${item.benefit}</div>` : ""}
+        <div class="dhikr-text">${escapeHtml(item.text)}</div>
+        ${item.benefit ? `<div class="dhikr-benefit">💡 ${escapeHtml(item.benefit)}</div>` : ""}
         <div class="dhikr-footer">
           <div class="reorder-controls">
             <button class="tune-btn" onclick="moveAdhkarItem(${i}, -1)" ${i === 0 ? "disabled" : ""} aria-label="تحريك لأعلى">▲</button>
@@ -92,10 +92,10 @@ function renderAdhkarItemsList() {
     .map(
       (item) => `
       <div class="dhikr-card">
-        <div class="dhikr-text">${item.text}</div>
-        ${item.benefit ? `<div class="dhikr-benefit">💡 ${item.benefit}</div>` : ""}
+        <div class="dhikr-text">${escapeHtml(item.text)}</div>
+        ${item.benefit ? `<div class="dhikr-benefit">💡 ${escapeHtml(item.benefit)}</div>` : ""}
         <div class="dhikr-footer">
-          <span class="dhikr-repeat">التكرار: ${item.repeat} ${item.repeat === 1 ? "مرة" : "مرات"}</span>
+          <span class="dhikr-repeat">التكرار: ${arabicCountLabel(item.repeat, "مرة واحدة", "مرتان", "مرات", "مرة")}</span>
           <button class="dhikr-counter-btn" data-remaining="${item.repeat}" onclick="tickDhikr(this)">
             ${item.repeat}
           </button>

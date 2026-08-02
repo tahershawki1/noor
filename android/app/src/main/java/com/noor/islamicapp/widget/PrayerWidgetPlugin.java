@@ -52,6 +52,8 @@ public class PrayerWidgetPlugin extends Plugin {
         );
 
         PrayerWidgetRenderer.refreshAll(getContext());
+        // مدخلات الحساب تغيّرت — منبّه الأذان يقرأ من نفس المخزن فيُعاد ضبطه
+        com.noor.islamicapp.adhan.AdhanScheduler.reschedule(getContext());
         call.resolve(status());
     }
 

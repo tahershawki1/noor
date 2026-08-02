@@ -54,11 +54,11 @@ function addMinutesToTime(hhmm, offsetMin) {
 function formatRelativeTime(ts) {
   const mins = Math.floor((Date.now() - ts) / 60000);
   if (mins < 1) return "الآن";
-  if (mins < 60) return `منذ ${mins} ${mins === 1 ? "دقيقة" : "دقائق"}`;
+  if (mins < 60) return `منذ ${arabicCountLabel(mins, "دقيقة", "دقيقتين", "دقائق")}`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `منذ ${hours} ${hours === 1 ? "ساعة" : "ساعات"}`;
+  if (hours < 24) return `منذ ${arabicCountLabel(hours, "ساعة", "ساعتين", "ساعات")}`;
   const days = Math.floor(hours / 24);
-  return `منذ ${days} ${days === 1 ? "يوم" : "أيام"}`;
+  return `منذ ${arabicCountLabel(days, "يوم", "يومين", "أيام", "يوماً")}`;
 }
 
 $("useGeo").addEventListener("click", () => {

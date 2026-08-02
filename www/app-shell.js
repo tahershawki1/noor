@@ -9,6 +9,30 @@
 const $ = (id) => document.getElementById(id);
 const icon = (name) => `<svg class="ic"><use href="#i-${name}"></use></svg>`;
 
+/**
+ * تعقيم نص قادم من المستخدم قبل إدراجه بـ innerHTML. بدونها، ذكر مخصص
+ * (أو ملف نسخة احتياطية مُعدَّل يدوياً) يحمل وسوم HTML كان سيُنفَّذ كما هو.
+ */
+function escapeHtml(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
+ * صيغة المعدود العربية الصحيحة: ١ مفرد، ٢ مثنى، ٣–١٠ جمع مع الرقم،
+ * ١١+ مفرد منصوب مع الرقم («٥ دقائق» لكن «١١ دقيقة»).
+ */
+function arabicCountLabel(n, one, two, few, many) {
+  if (n === 1) return one;
+  if (n === 2) return two;
+  if (n >= 3 && n <= 10) return `${n} ${few}`;
+  return `${n} ${many || one}`;
+}
+
 /* ---------------- الوضع النهاري/الليلي ---------------- */
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);

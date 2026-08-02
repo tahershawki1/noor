@@ -7,6 +7,17 @@
    ============================================================ */
 document.addEventListener("backbutton", (e) => {
   e.preventDefault();
+  // شيت تحديث الـ APK — لا يُغلق إن كان التحديث إجبارياً
+  if (!$("apkUpdateOverlay").classList.contains("hidden")) {
+    if (_apkUpdate && _apkUpdate.mandatory) return;
+    AppUpdates.dismiss();
+    hideApkUpdateSheet();
+    return;
+  }
+  if (!$("reinstallOverlay").classList.contains("hidden")) {
+    $("reinstallOverlay").classList.add("hidden");
+    return;
+  }
   // منتقي السورة / مودال الختمة أولاً
   if (!$("surahPickerOverlay").classList.contains("hidden")) { closeSurahPicker(); return; }
   if (!$("khatmaSetupOverlay").classList.contains("hidden")) { closeKhatmaSetup(); return; }
@@ -381,7 +392,9 @@ async function refreshOfflineAudioStatus() {
 
   const { count, bytes } = await QuranAudioOffline.getOfflineAudioStats();
   $("offlineAudioStatusText").textContent =
-    count > 0 ? `${count} آية محمّلة (${formatAudioSize(bytes)})` : "لا توجد صوتيات محمّلة";
+    count > 0
+      ? `${arabicCountLabel(count, "آية واحدة", "آيتان", "آيات", "آية")} محمّلة (${formatAudioSize(bytes)})`
+      : "لا توجد صوتيات محمّلة";
   $("offlineAudioClearBtn").disabled = count === 0;
 }
 

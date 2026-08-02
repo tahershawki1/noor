@@ -6,9 +6,10 @@ node_modules/
 # التحديث الحي) في scripts/sync-web.js لأن البث الافتراضي من everyayah.com
 www/audio/
 
-# APK المفكوك (مرجع محلي فقط)
+# APK المفكوك (مرجع محلي فقط) — والإصدارات تُوزَّع من GitHub Releases
+# لا من المستودع، فأي APK في الجذر لا يُتتبَّع
 base/
-base.apk
+*.apk
 
 # Android build output
 android/build/

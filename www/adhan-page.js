@@ -2,24 +2,65 @@
    adhan-page.js — صفحة الأذان
    ============================================================ */
 
+/**
+ * ملفات الأذان مستضافة ذاتياً في islamic-app/audio/adhan (تُنشر عبر GitHub
+ * Pages مثل تلاوة Opus). Pages يرسل ترويسات CORS فنستطيع تخزين الملف في
+ * Cache API بعد أول تشغيل — بعدها يعمل الأذان دون إنترنت. islamcan.com يبقى
+ * بثاً احتياطياً فقط (بلا CORS فلا يُخزَّن).
+ */
+const ADHAN_AUDIO_BASE = 'https://tahershawki1.github.io/noor/audio/adhan/';
+const ADHAN_FALLBACK_BASE = 'https://www.islamcan.com/audio/adhan/';
+const ADHAN_CACHE_NAME = 'noor-adhan-audio';
+
 const ADHAN_AUDIO_SOURCES = {
-  alafasy: {
-    name: 'مشاري العفاسي',
-    url: 'https://www.islamcan.com/audio/adhan/azan1.mp3',
-  },
-  makkah: {
-    name: 'أذان الحرم المكي',
-    url: 'https://www.islamcan.com/audio/adhan/azan2.mp3',
-  },
-  madinah: {
-    name: 'أذان المسجد النبوي',
-    url: 'https://www.islamcan.com/audio/adhan/azan3.mp3',
-  },
-  egypt: {
-    name: 'أذان مصري كلاسيكي',
-    url: 'https://www.islamcan.com/audio/adhan/azan4.mp3',
-  },
+  alafasy: { name: 'مشاري العفاسي', file: 'azan1.mp3' },
+  makkah: { name: 'أذان الحرم المكي', file: 'azan2.mp3' },
+  madinah: { name: 'أذان المسجد النبوي', file: 'azan3.mp3' },
+  egypt: { name: 'أذان مصري كلاسيكي', file: 'azan4.mp3' },
 };
+
+let adhanObjectUrl = null; // blob URL الحالي — يُحرَّر عند تبديله
+function releaseAdhanObjectUrl() {
+  if (adhanObjectUrl) {
+    URL.revokeObjectURL(adhanObjectUrl);
+    adhanObjectUrl = null;
+  }
+}
+
+/** كاش أولاً، وإلا تنزيل وتخزين، وإلا بث مباشر من المصدر الاحتياطي. */
+async function resolveAdhanAudioUrl(reciter) {
+  const source = ADHAN_AUDIO_SOURCES[reciter];
+  if (!source) return null;
+  const url = ADHAN_AUDIO_BASE + source.file;
+  if (typeof caches === 'undefined') return url;
+  try {
+    const cache = await caches.open(ADHAN_CACHE_NAME);
+    let res = await cache.match(url);
+    if (!res) {
+      res = await fetch(url);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      await cache.put(url, res.clone());
+    }
+    const blob = await res.blob();
+    releaseAdhanObjectUrl();
+    adhanObjectUrl = URL.createObjectURL(blob);
+    return adhanObjectUrl;
+  } catch (e) {
+    return navigator.onLine === false ? null : ADHAN_FALLBACK_BASE + source.file;
+  }
+}
+
+/** يجهّز عنصر الصوت للمؤذن المطلوب — true عند النجاح. */
+let adhanLoadedReciter = null;
+async function loadAdhanAudio(reciter) {
+  if (adhanLoadedReciter === reciter && adhanAudio.src) return true;
+  const url = await resolveAdhanAudioUrl(reciter);
+  if (!url) return false;
+  adhanAudio.src = url;
+  adhanAudio.load();
+  adhanLoadedReciter = reciter;
+  return true;
+}
 
 const ADHAN_TEXT_LINES = [
   'اللهُ أَكْبَرُ، اللهُ أَكْبَرُ',
@@ -35,6 +76,36 @@ const ADHAN_TEXT_LINES = [
   'اللهُ أَكْبَرُ، اللهُ أَكْبَرُ',
   'لَا إِلَهَ إِلَّا اللهُ',
 ];
+
+/* --------- الجسر إلى إشعارات الأذان الأصلية (AdhanPlugin.java) ---------
+   داخل الغلاف الأصلي، منبّه نظام (AlarmManager) يعرض إشعاراً بصوت الأذان
+   الكامل حتى والتطبيق مغلق. في المتصفح plugin = null وكل الدوال بلا أثر. */
+const AdhanNative = (() => {
+  const cap = window.Capacitor;
+  const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+  let plugin = null;
+  if (isNative && cap.registerPlugin) plugin = cap.registerPlugin('AdhanNative');
+  else if (isNative && cap.Plugins) plugin = cap.Plugins.AdhanNative;
+  return {
+    isAvailable: () => !!plugin,
+    /** يدفع الصلوات المفعّلة والتنبيه المسبق للطبقة الأصلية ويعيد جدولة المنبّه. */
+    sync() {
+      if (!plugin) return Promise.resolve(null);
+      return plugin.sync({
+        enabledPrayers: getAdhanEnabledPrayers(),
+        preAlertMinutes: getAdhanPreAlert(),
+      }).catch(() => null);
+    },
+    getStatus() {
+      if (!plugin) return Promise.resolve(null);
+      return plugin.getStatus().catch(() => null);
+    },
+    requestPermission() {
+      if (!plugin) return Promise.resolve(null);
+      return plugin.requestNotificationPermission().catch(() => null);
+    },
+  };
+})();
 
 function getAdhanSettings() {
   try { return JSON.parse(localStorage.getItem('adhanSettings')) || {}; } catch (_) { return {}; }
@@ -99,7 +170,7 @@ function setAdhanPlayState(playing) {
   }
 }
 
-function toggleAdhanPlay() {
+async function toggleAdhanPlay() {
   if (adhanPlaying) {
     adhanAudio.pause();
     setAdhanPlayState(false);
@@ -107,13 +178,9 @@ function toggleAdhanPlay() {
   }
 
   const reciter = $('adhanReciterSelect')?.value || getAdhanReciter();
-  const src = ADHAN_AUDIO_SOURCES[reciter]?.url;
-  if (!src) { showToast('لا يوجد مصدر صوتي'); return; }
+  const loaded = await loadAdhanAudio(reciter);
+  if (!loaded) { showToast('تعذّر تشغيل الأذان — تأكد من الاتصال بالإنترنت'); return; }
 
-  if (adhanAudio.src !== src) {
-    adhanAudio.src = src;
-    adhanAudio.load();
-  }
   adhanAudio.volume = getAdhanVolume();
   adhanAudio.play()
     .then(() => setAdhanPlayState(true))
@@ -132,18 +199,16 @@ adhanAudio.addEventListener('error', () => {
 });
 
 /* --------- تشغيل تلقائي عند دخول وقت الصلاة --------- */
-function autoPlayAdhanForPrayer(prayerName) {
+async function autoPlayAdhanForPrayer(prayerName) {
+  // داخل التطبيق الأصلي، إشعار النظام (بصوت الأذان الكامل) هو المصدر الوحيد
+  // للتشغيل التلقائي — تشغيل ثانٍ هنا كان سيُسمِع أذانين متداخلين.
+  if (AdhanNative.isAvailable()) return;
   const enabled = getAdhanEnabledPrayers();
   if (!enabled[prayerName]) return;
 
-  const reciter = getAdhanReciter();
-  const src = ADHAN_AUDIO_SOURCES[reciter]?.url;
-  if (!src) return;
+  const loaded = await loadAdhanAudio(getAdhanReciter());
+  if (!loaded) return;
 
-  if (adhanAudio.src !== src) {
-    adhanAudio.src = src;
-    adhanAudio.load();
-  }
   adhanAudio.volume = getAdhanVolume();
   adhanAudio.play().then(() => {
     setAdhanPlayState(true);
@@ -259,11 +324,26 @@ function toggleAdhanPrayer(el) {
   if (!s.enabledPrayers) s.enabledPrayers = getAdhanEnabledPrayers();
   s.enabledPrayers[el.dataset.prayer] = el.checked;
   saveAdhanSettings(s);
+  AdhanNative.sync();
 }
 
-function updateNotifStatus() {
+async function updateNotifStatus() {
   const el = $('notifStatusText');
-  if (!el || !('Notification' in window)) return;
+  if (!el) return;
+  // داخل التطبيق الأصلي: الحالة من النظام لا من Web Notification API
+  // (غير المدعومة في WebView أندرويد أصلاً)
+  if (AdhanNative.isAvailable()) {
+    const s = await AdhanNative.getStatus();
+    if (!s) { el.textContent = ''; return; }
+    el.textContent = s.notificationsEnabled
+      ? '✅ مفعّلة — إشعار الأذان يصلك حتى والتطبيق مغلق'
+      : '❌ غير مفعّلة — اضغط الزر أعلاه للسماح بالإشعارات';
+    return;
+  }
+  if (!('Notification' in window)) {
+    el.textContent = 'المتصفح لا يدعم الإشعارات';
+    return;
+  }
   const status = { default: '⚪ لم يُحدَّد بعد', granted: '✅ مفعّل', denied: '❌ محظور — فعِّله من إعدادات المتصفح' };
   el.textContent = status[Notification.permission] || '';
 }
@@ -290,6 +370,7 @@ $('adhanPreAlertSelect')?.addEventListener('change', (e) => {
   const s = getAdhanSettings();
   s.preAlert = e.target.value;
   saveAdhanSettings(s);
+  AdhanNative.sync();
 });
 
 $('adhanVolumeSettings')?.addEventListener('input', (e) => {
@@ -302,6 +383,15 @@ $('adhanVolumeSettings')?.addEventListener('input', (e) => {
 });
 
 $('requestNotifBtn')?.addEventListener('click', async () => {
+  if (AdhanNative.isAvailable()) {
+    const s = await AdhanNative.requestPermission();
+    updateNotifStatus();
+    showToast(s && s.notificationsEnabled
+      ? '✅ تم تفعيل الإشعارات — الأذان سيصلك والتطبيق مغلق'
+      : 'الإشعارات محظورة — فعِّلها من إعدادات النظام لتطبيق نور');
+    AdhanNative.sync();
+    return;
+  }
   if (!('Notification' in window)) {
     showToast('المتصفح لا يدعم الإشعارات');
     return;
@@ -319,6 +409,8 @@ $('adhanReciterSelect')?.addEventListener('change', (e) => {
   // أوقف التشغيل الحالي عند تغيير المؤذن
   if (adhanPlaying) { adhanAudio.pause(); setAdhanPlayState(false); }
   adhanAudio.src = '';
+  adhanLoadedReciter = null;
+  releaseAdhanObjectUrl();
 });
 
 /* --------- شريط التقدم: الضغط للتخطّي --------- */
@@ -352,6 +444,14 @@ function initAdhanPage() {
 
   renderAdhanText();
   initAdhanCollapsibles();
+
+  // داخل التطبيق الأصلي: صحّح نص التلميح (الأذان يعمل والتطبيق مغلق)،
+  // وادفع الإعدادات الحالية للطبقة الأصلية ليُضبط منبّه أول صلاة فوراً
+  if (AdhanNative.isAvailable()) {
+    const hint = $('adhanAutoHint');
+    if (hint) hint.textContent = 'يصلك إشعار بصوت الأذان الكامل حتى والتطبيق مغلق';
+    AdhanNative.sync();
+  }
 
   // استعادة بيانات الصلاة القادمة من آخر حالة محفوظة
   if (lastPrayerData) {

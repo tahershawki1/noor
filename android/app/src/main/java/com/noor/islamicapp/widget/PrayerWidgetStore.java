@@ -5,7 +5,9 @@ import android.content.SharedPreferences;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * مخزن إعدادات ودجت الشاشة الرئيسية، والجسر الذي يحوّلها إلى "لقطة" جاهزة للعرض.
@@ -187,6 +189,49 @@ public final class PrayerWidgetStore {
         }
 
         return new Snapshot(todayMinutes, nextKey, nextAt, previousAt, label);
+    }
+
+    /**
+     * لحظات دخول الصلوات الخمس القادمة خلال اليومين المقبلين، مرتّبة زمنياً.
+     * كل عنصر: {@code { لحظة الدخول بالمللي ثانية، فهرس الصلاة في ALL }}.
+     * يستعملها منبّه الأذان ({@code AdhanScheduler}) ليجد أقرب صلاة مفعّلة
+     * ولو كانت فجر الغد. قائمة فارغة إن لم يُضبط الموقع بعد.
+     */
+    public static List<long[]> upcomingMainPrayers(Context context, long nowMillis) {
+        List<long[]> result = new ArrayList<>();
+        SharedPreferences p = prefs(context);
+        if (!p.getBoolean(KEY_HAS_DATA, false)) {
+            return result;
+        }
+        double latitude = parseDouble(p.getString(KEY_LATITUDE, null));
+        double longitude = parseDouble(p.getString(KEY_LONGITUDE, null));
+        if (Double.isNaN(latitude) || Double.isNaN(longitude)) {
+            return result;
+        }
+        int method = p.getInt(KEY_METHOD, PrayerTimesCalculator.DEFAULT_METHOD);
+        int school = p.getInt(KEY_SCHOOL, 0);
+        double elevation = parseDouble(p.getString(KEY_ELEVATION, "0"));
+        if (Double.isNaN(elevation)) {
+            elevation = 0;
+        }
+
+        for (int dayOffset = 0; dayOffset <= 1; dayOffset++) {
+            Calendar day = midnight(nowMillis);
+            day.add(Calendar.DAY_OF_MONTH, dayOffset);
+            int[] minutes = tuned(p,
+                PrayerTimesCalculator.calculate(latitude, longitude, method, school, elevation, day));
+            for (String prayer : PrayerTimesCalculator.MAIN) {
+                int index = PrayerTimesCalculator.indexOf(prayer);
+                if (minutes[index] == PrayerTimesCalculator.UNDEFINED) {
+                    continue;
+                }
+                long at = day.getTimeInMillis() + minutes[index] * 60_000L;
+                if (at > nowMillis) {
+                    result.add(new long[] { at, index });
+                }
+            }
+        }
+        return result;
     }
 
     // ==================== أدوات ====================
