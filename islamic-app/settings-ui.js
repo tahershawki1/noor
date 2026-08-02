@@ -24,7 +24,6 @@ document.addEventListener("backbutton", (e) => {
   // أولوية الإغلاق: المودالات أولاً، ثم قارئ السورة، ثم تراجع الأقسام
   const modals = [
     "ayahDialogOverlay",
-    "settingsOverlay",
     "prayerSettingsOverlay",
     "addAdhkarOverlay",
     "adhanSettingsOverlay",

@@ -182,6 +182,24 @@ button { background: none; border: none; cursor: pointer; }
   }
 }
 
+/* ---------------- 4. شريط تقدّم الوقت (2px أعلى الشاشة) ---------------- */
+#adhanTimeBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 50;
+  background: transparent;
+  pointer-events: none;
+}
+#adhanTimeBarFill {
+  height: 100%;
+  width: 0%;
+  background: #34C77B;
+  transition: width 1s linear;
+}
+
 /* ---------------- 4. شريط التطبيق العلوي ---------------- */
 .app-bar {
   flex: none;
@@ -635,6 +653,8 @@ input[type="number"].search-input { text-align: center; }
   margin-top: 4px;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
 }
+/* البطاقة دائماً بخلفية خضراء داكنة — اللون الذهبي الفاتح مقروء في كلا الوضعين */
+[data-theme="light"] .hero-countdown { color: #F0D6A6; }
 .hero-note { font-size: 0.78rem; color: rgba(255, 255, 255, 0.7); margin-top: 10px; line-height: 1.7; }
 
 .hero-progress {
@@ -677,12 +697,12 @@ input[type="number"].search-input { text-align: center; }
 
 .home-prayer-item {
   flex: 1 0 auto;
-  min-width: 56px;
+  min-width: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 8px 6px;
+  gap: 2px;
+  padding: 6px 4px;
   border-radius: var(--r-sm);
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid transparent;
@@ -692,10 +712,10 @@ input[type="number"].search-input { text-align: center; }
   background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.34);
 }
-.home-prayer-icon { font-size: 0.8rem; line-height: 1; }
-.home-prayer-name { font-size: 0.62rem; color: rgba(255, 255, 255, 0.68); font-weight: 600; }
+.home-prayer-icon { font-size: 0.72rem; line-height: 1; }
+.home-prayer-name { font-size: 0.56rem; color: rgba(255, 255, 255, 0.68); font-weight: 600; }
 .home-prayer-time {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: #fff;
   font-variant-numeric: tabular-nums;
@@ -1409,6 +1429,8 @@ input[type="number"].search-input { text-align: center; }
   overscroll-behavior: contain;
 }
 .modal-body > .field:last-of-type { margin-bottom: 4px; }
+
+.settings-body { padding: 20px 18px calc(24px + var(--sab)); }
 
 .action-stack { display: flex; flex-direction: column; gap: 9px; }
 .action-stack .btn { padding: 15px; }
