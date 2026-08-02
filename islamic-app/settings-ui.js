@@ -176,6 +176,40 @@ function initAppUpdates() {
     });
   }
 
+  // زر «امسح النسخة الحالية وأعد التحميل» — إجباري، لحل حالات بقاء محتوى
+  // قديم رغم «تحقق من التحديثات» (مثلاً حزمة عالقة لم تُطبَّق فعلياً).
+  // يرجع للحزمة المدمجة في الـ APK ثم يعيد فحص التحديثات فوراً بلا تجاهل
+  // فاصل الست ساعات ولا نسخة رفضها المستخدم سابقاً.
+  const forceRefreshBtn = $("forceRefreshBtn");
+  if (forceRefreshBtn && typeof LiveUpdates !== "undefined" && LiveUpdates.isSupported()) {
+    forceRefreshBtn.addEventListener("click", () => {
+      const hint = $("forceRefreshHint");
+      forceRefreshBtn.disabled = true;
+      if (hint) hint.textContent = "جارِ المسح وإعادة التحميل…";
+      LiveUpdates.reset()
+        .catch(() => {})
+        .then(() => AppUpdates.check({ force: true }))
+        .then(update => {
+          // نجاح تحديث الويب يعيد تحميل التطبيق فوراً ولا يصل الكود هنا.
+          // الوصول لهذه النقطة يعني عدم وجود تحديث ويب أحدث من نسخة الـ APK.
+          forceRefreshBtn.disabled = false;
+          if (update) {
+            if (hint) hint.textContent = `يوجد تحديث — النسخة ${update.version}`;
+            showApkUpdateSheet(update);
+          } else if (hint) {
+            hint.textContent = "لا يوجد محتوى أحدث من نسخة التطبيق المثبَّتة.";
+          }
+        })
+        .catch(() => {
+          forceRefreshBtn.disabled = false;
+          if (hint) hint.textContent = "تعذّر المسح — تحقق من الاتصال";
+        });
+    });
+  } else if (forceRefreshBtn) {
+    forceRefreshBtn.classList.add("hidden");
+    if ($("forceRefreshHint")) $("forceRefreshHint").classList.add("hidden");
+  }
+
   // «تحديث الآن» داخل النافذة
   $("ausInstallBtn").addEventListener("click", () => {
     const pending = _apkUpdate || AppUpdates.getPending();
