@@ -82,20 +82,26 @@ function renderSurahList(list) {
     .join("");
 }
 
-$("surahSearch").addEventListener("input", (e) => {
-  const raw = e.target.value.trim();
-  if (!raw) return renderSurahList(surahs);
-
+/** يفلتر قائمة السور بنص بحث حر (اسم أو رقم). */
+function filterSurahs(raw) {
   const query = normalizeArabic(raw);
   const digits = toLatinDigits(raw);
+  return surahs.filter((s) => {
+    if (/^\d+$/.test(digits) && s.n === Number(digits)) return true;
+    return surahSearchKeys(s).some((key) => key && key.includes(query));
+  });
+}
 
-  renderSurahList(
-    surahs.filter((s) => {
-      if (/^\d+$/.test(digits) && s.n === Number(digits)) return true;
-      return surahSearchKeys(s).some((key) => key && key.includes(query));
-    })
-  );
-});
+function handleSurahSearchInput(e) {
+  const raw = e.target.value.trim();
+  renderSurahList(raw ? filterSurahs(raw) : surahs);
+}
+// compositionupdate إلى جانب input: بعض لوحات مفاتيح أندرويد (النص التنبؤي)
+// تُبقي الحرف المكتوب في "منطقة تركيب" مؤقتة ولا تُطلق input فعلياً إلا عند
+// كتابة مسافة أو حذف حرف — فيظل البحث بلا نتيجة حتى تلك اللحظة. compositionupdate
+// يصل مع كل حرف حتى أثناء التركيب فيبقي الفلترة حيّة من أول حرف.
+$("surahSearch").addEventListener("input", handleSurahSearchInput);
+$("surahSearch").addEventListener("compositionupdate", handleSurahSearchInput);
 
 async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   currentSurah = number;
@@ -911,13 +917,9 @@ function pickSurah(number) {
 }
 
 $("closeSurahPicker").addEventListener("click", closeSurahPicker);
-$("surahPickerSearch").addEventListener("input", (e) => {
+function handleSurahPickerSearchInput(e) {
   const raw = e.target.value.trim();
-  if (!raw) { renderSurahPickerList(surahs); return; }
-  const query = normalizeArabic(raw);
-  const digits = toLatinDigits(raw);
-  renderSurahPickerList(surahs.filter(s => {
-    if (/^\d+$/.test(digits) && s.n === Number(digits)) return true;
-    return surahSearchKeys(s).some(k => k && k.includes(query));
-  }));
-});
+  renderSurahPickerList(raw ? filterSurahs(raw) : surahs);
+}
+$("surahPickerSearch").addEventListener("input", handleSurahPickerSearchInput);
+$("surahPickerSearch").addEventListener("compositionupdate", handleSurahPickerSearchInput);
