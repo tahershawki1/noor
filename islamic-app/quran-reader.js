@@ -92,16 +92,35 @@ function filterSurahs(raw) {
   });
 }
 
+/**
+ * بعض لوحات مفاتيح أندرويد (تنبؤ النص) لا تُطلق أحداث input/compositionupdate
+ * فعلياً مع كل حرف — النص يظهر في الحقل بصرياً لكن الحدث لا يصل حتى مسافة أو
+ * حذف حرف. لا حل موثوق عبر الأحداث وحدها، فنراقب el.value مباشرة كل ١٢٠ms
+ * أثناء التركيز على الحقل — هذا يعمل دائماً بصرف النظر عن أي حدث يُطلَق.
+ */
+function watchSearchInput(el, onChange) {
+  let lastValue = el.value;
+  let timer = null;
+  const poll = () => {
+    if (el.value !== lastValue) {
+      lastValue = el.value;
+      onChange(el.value);
+    }
+  };
+  el.addEventListener("focus", () => { if (!timer) timer = setInterval(poll, 120); });
+  el.addEventListener("blur", () => { clearInterval(timer); timer = null; });
+}
+
 function handleSurahSearchInput(e) {
   const raw = e.target.value.trim();
   renderSurahList(raw ? filterSurahs(raw) : surahs);
 }
-// compositionupdate إلى جانب input: بعض لوحات مفاتيح أندرويد (النص التنبؤي)
-// تُبقي الحرف المكتوب في "منطقة تركيب" مؤقتة ولا تُطلق input فعلياً إلا عند
-// كتابة مسافة أو حذف حرف — فيظل البحث بلا نتيجة حتى تلك اللحظة. compositionupdate
-// يصل مع كل حرف حتى أثناء التركيب فيبقي الفلترة حيّة من أول حرف.
 $("surahSearch").addEventListener("input", handleSurahSearchInput);
 $("surahSearch").addEventListener("compositionupdate", handleSurahSearchInput);
+watchSearchInput($("surahSearch"), (value) => {
+  const raw = value.trim();
+  renderSurahList(raw ? filterSurahs(raw) : surahs);
+});
 
 async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   currentSurah = number;
@@ -923,3 +942,7 @@ function handleSurahPickerSearchInput(e) {
 }
 $("surahPickerSearch").addEventListener("input", handleSurahPickerSearchInput);
 $("surahPickerSearch").addEventListener("compositionupdate", handleSurahPickerSearchInput);
+watchSearchInput($("surahPickerSearch"), (value) => {
+  const raw = value.trim();
+  renderSurahPickerList(raw ? filterSurahs(raw) : surahs);
+});
