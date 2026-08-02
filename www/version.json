@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-02T10:30:01.905Z",
+  "generatedAt": "2026-08-02T10:35:02.832Z",
   "app": {
-    "version": "1.8.2",
-    "versionCode": 10802,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.8.2/noor-1.8.2.apk",
-    "sizeBytes": 11014386,
-    "sha256": "fa68acc5a566f676fc644f10bc18b3eff0ef1b5bbe496b097357d87f396b63f2",
+    "version": "1.10.0",
+    "versionCode": 11000,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.10.0/noor-1.10.0.apk",
+    "sizeBytes": 11692914,
+    "sha256": "9407ecdc70aeb9e522105b65cf139534c7e7cb58c79da3a0b5b50d1ff41cddf5",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "إصلاح زر الرجوع: كان يغلق التطبيق بالكامل بدل الرجوع داخل الأقسام (Cordova backbutton event كان لا يصل في Capacitor أصلاً). سهم رجوع ظاهر في قائمة السور.",
+    "notes": "أذان يعمل والتطبيق مغلق: إشعار بصوت الأذان الكامل عند دخول الوقت (منبّه نظام دقيق) + تنبيه مسبق. إصلاح الاسترجاع التلقائي للنسخة الاحتياطية بعد إعادة التثبيت، وإصلاح تقدم الختمة، وصوت الأذان يعمل دون إنترنت بعد أول تشغيل، وإصلاحات أخرى.",
     "mandatory": false
   },
   "web": {
-    "version": "1.9.0.2",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.9.0.2/noor-web-1.9.0.2.zip",
-    "checksum": "8cf60fc22f8af7e5ef48d49c612d60d5598c87a923253fa894418678d94f239f",
+    "version": "1.10.0",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.10.0/noor-web-1.10.0.zip",
+    "checksum": "a2d4a2615415601a62b21f12ba8515f094de88a26027bb600344cb50a45ef128",
     "contentHash": "556db926e173a73f90fcafba87eda811b23dc88f6a7ba9a798b8df0cbcd4a27d"
   }
 }
