@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-02T08:23:28.158Z",
+  "generatedAt": "2026-08-02T08:27:09.356Z",
   "app": {
-    "version": "1.6.9",
-    "versionCode": 10609,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.6.9/noor-1.6.9.apk",
-    "sizeBytes": 0,
-    "sha256": "",
+    "version": "1.8.2",
+    "versionCode": 10802,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.8.2/noor-1.8.2.apk",
+    "sizeBytes": 11014386,
+    "sha256": "fa68acc5a566f676fc644f10bc18b3eff0ef1b5bbe496b097357d87f396b63f2",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "تحديث 1.6.9",
+    "notes": "إصلاح زر الرجوع: كان يغلق التطبيق بالكامل بدل الرجوع داخل الأقسام (Cordova backbutton event كان لا يصل في Capacitor أصلاً). سهم رجوع ظاهر في قائمة السور.",
     "mandatory": false
   },
   "web": {
-    "version": "1.8.1.11",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.8.1.11/noor-web-1.8.1.11.zip",
-    "checksum": "7f5e7a8aa942d0b4cd6964cd81395c082cad39a774b5a21088870bda70519e4a",
+    "version": "1.8.2",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.8.2/noor-web-1.8.2.zip",
+    "checksum": "02855d29262c408d688450501286da4b335830d7ed70cdbdd6ddd5edc31f69ec",
     "contentHash": "63463b4b5f82f0b6a24cca45442ee39512d33b199b8e02f94009ad8191f3ae1b"
   }
 }
