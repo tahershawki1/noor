@@ -1,6 +1,6 @@
 {
   "name": "eslamic-app",
-  "version": "1.12.1",
+  "version": "1.12.2",
   "description": "نور — تطبيق إسلامي: غلاف أندرويد أصلي (Capacitor) بتحديثات ويب مباشرة",
   "main": "index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "test:update-flow": "node tests/update-flow.mjs",
     "test:backup": "node tests/backup-flow.mjs",
     "data:quran": "node scripts/build-quran-data.mjs",
+    "data:quran-text": "node scripts/build-quran-text.mjs",
     "data:tafsir": "node scripts/build-tafsir-data.mjs",
     "data:cities": "node scripts/build-cities-data.mjs",
     "data:fonts": "node scripts/build-fonts.mjs",

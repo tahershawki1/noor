@@ -122,7 +122,7 @@ const badge = await page.locator('#headerJuzHizb').textContent();
 check('شارة الجزء/الحزب/الصفحة', /جزء.*حزب.*صفحة/.test(badge), `(${badge})`);
 
 // النص المعروض يطابق ملف البيانات حرفاً بحرف (آية الكرسي نموذجاً)
-const expected255 = JSON.parse(await (await fetch(BASE + '/data/quran-text.json')).text())[1][254];
+const expected255 = JSON.parse(await (await fetch(BASE + '/data/quran-text/2.json')).text())[254];
 const ayah255 = (await page.locator('#ayah-255').textContent()).replace(/[﴾﴿٠-٩]/g, '').trim();
 check('نص آية الكرسي يطابق المصدر', ayah255 === expected255.trim(), `\n     معروض: ${ayah255.slice(0, 50)}\n     مصدر:  ${expected255.slice(0, 50)}`);
 

@@ -143,7 +143,7 @@ async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
 
   try {
     await QuranData.loadMeta();
-    await QuranData.loadText();
+    await QuranData.loadSurahText(number);
     const surah = QuranData.getSurah(number);
     if (!surah) throw new Error("سورة غير موجودة: " + number);
     renderSurah(surah);

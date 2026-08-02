@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * يولّد بيانات القرآن المحلية التي يعمل بها التطبيق دون إنترنت.
+ * يولّد البيانات الوصفية للمصحف التي يعمل بها التطبيق دون إنترنت.
  *
- * المخرجات (تُحفظ في islamic-app/data/ وتُرفع للريبو):
+ * المخرج (يُحفظ في islamic-app/data/ ويُرفع للريبو):
  *   quran-meta.json  ~60KB  أسماء السور، بدايات الصفحات والأجزاء والأرباع، السجدات
- *   quran-text.json  ~1.6MB نص المصحف كاملاً برسم حفص العثماني
+ *
+ * نص المصحف نفسه (islamic-app/data/quran-text/<رقم السورة>.json — ملف مستقل
+ * لكل سورة) يُولَّد من مصدر منفصل عبر scripts/build-quran-text.mjs، وليس هنا.
  *
  * المصادر (حزم تُثبَّت عند الحاجة فقط — ليست ضمن اعتماديات المشروع حتى لا
  * تُبطئ `npm ci` في الـ CI، والملفات المولّدة مرفوعة في الريبو أصلاً):
@@ -12,7 +14,7 @@
  *   npm i --no-save quran-db quran-meta
  *   node scripts/build-quran-data.mjs
  *
- * quran-db   → نص المصحف (6236 آية برسم حفص)
+ * quran-db   → عدد آيات كل سورة والاسم العربي/الإنجليزي ومكية/مدنية
  * quran-meta → حدود الصفحات (604) والأجزاء (30) وأرباع الأحزاب (240)
  */
 
@@ -31,13 +33,11 @@ const TOTAL_RUB = 240;
 
 async function loadSources() {
   try {
-    const [text, surahData, meta] = await Promise.all([
-      import('quran-db/utils/quran_text.js'),
+    const [surahData, meta] = await Promise.all([
       import('quran-db/utils/surah_data.js'),
       import('quran-meta'),
     ]);
     return {
-      text: text.default,
       surahData: surahData.default,
       hafs: meta.createHafs(),
     };
@@ -55,18 +55,9 @@ function assert(condition, message) {
   }
 }
 
-const { text, surahData, hafs } = await loadSources();
+const { surahData, hafs } = await loadSources();
 
-assert(text.length === TOTAL_AYAHS, `عدد الآيات ${text.length} بدل ${TOTAL_AYAHS}`);
 assert(surahData.length === TOTAL_SURAHS, `عدد السور ${surahData.length} بدل ${TOTAL_SURAHS}`);
-
-// ---------------------------------------------------------------------------
-// نص المصحف: مصفوفة من 114 مصفوفة، كل واحدة نصوص آيات السورة بالترتيب
-// ---------------------------------------------------------------------------
-const quranText = Array.from({ length: TOTAL_SURAHS }, () => []);
-for (const verse of text) {
-  quranText[verse.surah_number - 1][verse.verse_number - 1] = verse.content;
-}
 
 // ---------------------------------------------------------------------------
 // بيانات السور — الاسم العربي، عدد الآيات، مكية/مدنية، ورقم أول آية عالمياً
@@ -82,10 +73,6 @@ for (let n = 1; n <= TOTAL_SURAHS; n++) {
   assert(
     db.aya === metaSurah.ayahCount,
     `تعارض في عدد آيات السورة ${n}: quran-db=${db.aya} vs quran-meta=${metaSurah.ayahCount}`
-  );
-  assert(
-    quranText[n - 1].length === db.aya,
-    `نص السورة ${n} ناقص: ${quranText[n - 1].length} من ${db.aya}`
   );
   assert(
     metaSurah.firstAyahId === runningAyahId,
@@ -147,12 +134,9 @@ const sajdah = {
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const metaFile = path.join(OUT_DIR, 'quran-meta.json');
-const textFile = path.join(OUT_DIR, 'quran-text.json');
 
 fs.writeFileSync(metaFile, JSON.stringify({ surahs, pageStarts, juzStarts, rubStarts, sajdah }));
-fs.writeFileSync(textFile, JSON.stringify(quranText));
 
 const kb = (file) => Math.round(fs.statSync(file).size / 1024);
 console.log(`✓ ${path.relative(ROOT, metaFile)}  ${kb(metaFile)} KB`);
-console.log(`✓ ${path.relative(ROOT, textFile)}  ${kb(textFile)} KB`);
 console.log(`  ${TOTAL_SURAHS} سورة • ${TOTAL_AYAHS} آية • ${TOTAL_PAGES} صفحة • ${TOTAL_JUZ} جزء • ${TOTAL_RUB} ربع`);

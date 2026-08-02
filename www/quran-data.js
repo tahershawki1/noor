@@ -4,15 +4,16 @@
  *
  * كل ما يعرضه قسم القرآن يأتي من ملفات مرفقة مع التطبيق، لا من أي API:
  *
- *   data/quran-meta.json      14KB   أسماء السور وحدود الصفحات والأجزاء والأرباع
- *   data/quran-text.json      1.3MB  نص المصحف كاملاً برسم حفص العثماني
- *   data/tafsir-muyassar.json 2.7MB  تفسير الميسر لكل آية
+ *   data/quran-meta.json        14KB   أسماء السور وحدود الصفحات والأجزاء والأرباع
+ *   data/quran-text/<رقم>.json  ~11KB  نص سورة واحدة برسم عثماني (114 ملفاً)
+ *   data/tafsir-muyassar.json   2.7MB  تفسير الميسر لكل آية
  *
- * تُولَّد هذه الملفات بـ scripts/build-quran-data.mjs و scripts/build-tafsir-data.mjs.
+ * تُولَّد الملفات الوصفية بـ scripts/build-quran-data.mjs، ونص المصحف بـ
+ * scripts/build-quran-text.mjs، والتفسير بـ scripts/build-tafsir-data.mjs.
  *
- * التحميل كسول: قائمة السور تحتاج الملف الصغير فقط، ونص المصحف لا يُقرأ إلا
- * عند فتح أول سورة، والتفسير لا يُقرأ إلا عند طلبه. وكل ملف يُقرأ مرة واحدة
- * ويبقى في الذاكرة.
+ * التحميل كسول: قائمة السور تحتاج الملف الصغير فقط، ونص أي سورة لا يُقرأ إلا
+ * عند فتحها هي بالذات (لا نص كل المصحف دفعة واحدة)، والتفسير لا يُقرأ إلا
+ * عند طلبه. وكل ملف يُقرأ مرة واحدة ويبقى في الذاكرة.
  *
  * حدود الصفحات والأجزاء والأرباع مخزّنة كأرقام "الآية العالمية" (1..6236) التي
  * تبدأ عندها كل وحدة، فنجدها ببحث ثنائي بدل تخزين قيمة لكل آية على حدة.
@@ -23,8 +24,8 @@
 
   var DATA_PATH = 'data/';
 
-  var cache = { meta: null, text: null, tafsir: null };
-  var pending = { meta: null, text: null, tafsir: null };
+  var cache = { meta: null, tafsir: null };
+  var pending = { meta: null, tafsir: null };
 
   function loadJson(name) {
     if (cache[name]) {
@@ -35,7 +36,6 @@
     }
     var files = {
       meta: 'quran-meta.json',
-      text: 'quran-text.json',
       tafsir: 'tafsir-muyassar.json',
     };
     pending[name] = fetch(DATA_PATH + files[name])
@@ -55,6 +55,37 @@
         throw error;
       });
     return pending[name];
+  }
+
+  // نص السور: ملف مستقل لكل سورة (data/quran-text/<رقم>.json)، يُحمَّل عند
+  // فتح السورة بالذات فقط لا نص المصحف كله دفعة واحدة.
+  var surahTextCache = {};
+  var surahTextPending = {};
+
+  function loadSurahText(number) {
+    if (surahTextCache[number]) {
+      return Promise.resolve(surahTextCache[number]);
+    }
+    if (surahTextPending[number]) {
+      return surahTextPending[number];
+    }
+    surahTextPending[number] = fetch(DATA_PATH + 'quran-text/' + number + '.json')
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error('HTTP ' + response.status + ' — quran-text/' + number + '.json');
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        surahTextCache[number] = data;
+        surahTextPending[number] = null;
+        return data;
+      })
+      .catch(function (error) {
+        surahTextPending[number] = null;
+        throw error;
+      });
+    return surahTextPending[number];
   }
 
   /** فهرس آخر عنصر في المصفوفة التصاعدية لا يتجاوز القيمة — بحث ثنائي. */
@@ -80,9 +111,9 @@
       return loadJson('meta');
     },
 
-    /** يحمّل نص المصحف كاملاً (مرة واحدة). */
-    loadText: function () {
-      return loadJson('text');
+    /** يحمّل نص سورة واحدة (مرة واحدة لكل سورة). */
+    loadSurahText: function (number) {
+      return loadSurahText(number);
     },
 
     loadTafsir: function () {
@@ -142,7 +173,7 @@
      */
     getSurah: function (number) {
       var meta = this.getSurahMeta(number);
-      var texts = cache.text ? cache.text[number - 1] : null;
+      var texts = surahTextCache[number];
       if (!meta || !texts) {
         return null;
       }
@@ -168,10 +199,11 @@
 
     /**
      * كل آيات صفحة مصحف واحدة، بترتيبها — قد تمتد الصفحة عبر أكثر من سورة.
-     * [{ surah, surahName, ayahNumberInSurah, text }]
+     * [{ surah, surahName, ayahNumberInSurah }] — بلا نص الآية (استعمالها الحالي
+     * تشغيل صوتي بالترقيم فقط)، فلا حاجة لتحميل نص أي سورة لبناء هذه القائمة.
      */
     getAyahsOnPage: function (pageNumber) {
-      if (!cache.meta || !cache.text) return [];
+      if (!cache.meta) return [];
       var firstId = this.firstAyahOfPage(pageNumber);
       var lastId = pageNumber < cache.meta.pageStarts.length
         ? this.firstAyahOfPage(pageNumber + 1) - 1
@@ -184,14 +216,11 @@
         var from = Math.max(firstId, surahFirst);
         var to = Math.min(lastId, surahLast);
         if (from > to) continue;
-        var texts = cache.text[s];
         for (var id = from; id <= to; id++) {
-          var ayahNumber = id - surahFirst + 1;
           result.push({
             surah: s + 1,
             surahName: surahs[s].name,
-            ayahNumberInSurah: ayahNumber,
-            text: texts[ayahNumber - 1],
+            ayahNumberInSurah: id - surahFirst + 1,
           });
         }
       }

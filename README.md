@@ -21,7 +21,7 @@
 
 | المورد | الحجم | كان قبلاً |
 |---|---|---|
-| `data/quran-text.json` | 1.3 م.ب | api.alquran.cloud |
+| `data/quran-text/*.json` | 1.3 م.ب (114 ملفاً) | api.alquran.cloud |
 | `data/tafsir-muyassar.json` | 2.7 م.ب | api.alquran.cloud |
 | `data/quran-meta.json` | 14 ك.ب | api.alquran.cloud |
 | `data/cities.json` | 169 ك.ب | api.aladhan.com |
