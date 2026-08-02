@@ -478,3 +478,5 @@ renderAdhkarCategories();
 initAdhanPage();
 renderAdiyah();
 navigateTo("home");
+// تحديث الودجت عند كل فتح للتطبيق حتى يعرض العدّاد الصحيح
+if (typeof PrayerWidget !== "undefined") PrayerWidget.refresh();
