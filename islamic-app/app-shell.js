@@ -76,6 +76,9 @@ function navigateTo(tab, options = {}) {
   });
 
   if (tab === "home") setHeaderMode("brand");
+  // قائمة السور تحديداً تحمل سهم رجوع صريح للرئيسية (وليست عبر قائمة القراءة
+  // الغامرة نفسها — enterReaderHeaderMode تتولى ذلك عند فتح سورة بالفعل)
+  else if (tab === "quran") setHeaderMode("back", SECTION_TITLES[tab]);
   else if (TAB_SECTIONS.includes(tab)) setHeaderMode("title", SECTION_TITLES[tab]);
   else setHeaderMode("back", SECTION_TITLES[tab] || "");
 

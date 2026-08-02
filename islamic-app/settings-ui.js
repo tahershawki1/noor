@@ -43,9 +43,9 @@ document.addEventListener("backbutton", (e) => {
     navigateBack();
     return;
   }
-  // خروج من التطبيق عبر Capacitor
-  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.App) {
-    window.Capacitor.Plugins.App.exitApp();
+  // خروج من التطبيق — عبر AppExitPlugin المحلي (المشروع لا يعتمد @capacitor/app)
+  if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.AppExit) {
+    window.Capacitor.Plugins.AppExit.exit();
   }
 }, false);
 
