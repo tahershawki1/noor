@@ -1,8 +1,9 @@
 # Dependencies
 node_modules/
 
-# ملفات صوت القرآن (222MB) — التطبيق يشغّلها من everyayah.com مباشرة
-islamic-app/audio/
+# نسخة أوفلاين من صوت القرآن (opus 10kbps، islamic-app/audio/) تُنشر عبر
+# GitHub Pages للتنزيل الاختياري — مستبعدة من www/ (ومن ثم الـ APK وحزمة
+# التحديث الحي) في scripts/sync-web.js لأن البث الافتراضي من everyayah.com
 www/audio/
 
 # APK المفكوك (مرجع محلي فقط)

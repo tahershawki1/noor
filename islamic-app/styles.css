@@ -2117,6 +2117,11 @@ input[type="number"].search-input { text-align: center; }
 .app-shell.reading .as-trigger { display: flex; }
 .as-trigger.as-trigger-on { color: var(--brand); }
 
+.dl-trigger { display: none; }
+.app-shell.reading .dl-trigger { display: flex; }
+.dl-trigger.downloaded { color: var(--brand); }
+.dl-trigger.downloading { opacity: 0.5; pointer-events: none; }
+
 /* الشريط العائم */
 .auto-scroll-bar {
   position: fixed;

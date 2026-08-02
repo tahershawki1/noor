@@ -1,3 +1,10 @@
+## Communication Style
+
+Respond like a caveman. No articles, no filler words, no pleasantries.
+Short. Direct. Code speaks for itself.
+If asked for code, give code. No explain unless asked.
+No sycophancy. No restating the question. No sign-offs.
+
 # نور — تعليمات المشروع
 
 ## دورة التحديث: نفّذها كاملة بلا استئذان
@@ -51,7 +58,10 @@
 | `settings-ui.js` | واجهة الإعدادات: شريط تحديث الـ APK، النسخة الاحتياطية، تدفّق إعادة التثبيت — فوق `app-updates.js`/`backup.js` |
 | `khatma.js` | ختمة القرآن |
 
-ملفات مساندة (ليست صفحات): `quran-data.js` (بيانات القرآن)، `prayer-times.js`
+ملفات مساندة (ليست صفحات): `quran-data.js` (بيانات القرآن)، `quran-audio-offline.js`
+(تنزيل/تخزين مؤقت للتلاوة عبر Cache API — نسخة Opus مستضافة في
+`islamic-app/audio/` وتُنشر عبر GitHub Pages، مستبعدة من `www/` في
+`scripts/sync-web.js`)، `prayer-times.js`
 (حاسب المواقيت — توأم `PrayerTimesCalculator.java`)، `adhkar-data.js` (بيانات
 خام)، `auto-scroll.js` (تمرير تلقائي + مراقبة نظرة عبر MediaPipe، أصولها في
 `vendor/mediapipe/` وتُجهَّز بـ `scripts/build-mediapipe-assets.mjs`)،
