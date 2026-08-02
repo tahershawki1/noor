@@ -6,7 +6,7 @@
  * المخرجات: islamic-app/fonts/*.woff2 + islamic-app/fonts/fonts.css
  *
  * الاستعمال (مرة واحدة — الناتج مرفوع في الريبو):
- *   npm i --no-save @fontsource/amiri-quran @fontsource/amiri \
+ *   npm i --no-save @fontsource/amiri \
  *     @fontsource/scheherazade-new @fontsource/lateef \
  *     @fontsource-variable/cairo @fontsource-variable/reem-kufi \
  *     @fontsource-variable/noto-naskh-arabic
@@ -26,7 +26,6 @@ const MODULES = path.join(ROOT, 'node_modules');
 
 /** family: اسم العائلة كما يُستعمل في CSS. weight: قيمة أو مدى للخط المتغيّر. */
 const FONTS = [
-  { family: 'Amiri Quran', pkg: '@fontsource/amiri-quran', file: 'amiri-quran-arabic-400-normal.woff2', weight: '400' },
   { family: 'Amiri', pkg: '@fontsource/amiri', file: 'amiri-arabic-400-normal.woff2', weight: '400' },
   { family: 'Amiri', pkg: '@fontsource/amiri', file: 'amiri-arabic-700-normal.woff2', weight: '700' },
   { family: 'Scheherazade New', pkg: '@fontsource/scheherazade-new', file: 'scheherazade-new-arabic-400-normal.woff2', weight: '400' },

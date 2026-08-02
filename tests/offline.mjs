@@ -192,8 +192,8 @@ check('البحث بالمدينة يعمل أوفلاين', /مكة/.test(Strin
 
 // ---------- 7) الخطوط المحلية ----------
 console.log('\n[7] الخطوط');
-const fontLoaded = await page.evaluate(() => document.fonts.check('16px "Amiri Quran"'));
-check('خط Amiri Quran محمّل محلياً', fontLoaded);
+const fontLoaded = await page.evaluate(() => document.fonts.check('16px "Scheherazade New"'));
+check('خط Scheherazade New محمّل محلياً', fontLoaded);
 
 // ---------- النتيجة ----------
 console.log('\n[8] الشبكة الخارجية');
