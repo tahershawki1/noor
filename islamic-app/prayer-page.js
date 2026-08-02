@@ -42,6 +42,7 @@ function getTuneOffsets() {
 function saveTuneOffsets(obj) { localStorage.setItem("prayerTune", JSON.stringify(obj)); }
 
 function addMinutesToTime(hhmm, offsetMin) {
+  if (!hhmm || hhmm === '--:--') return '--:--';
   const [h, m] = hhmm.split(":").map(Number);
   let total = h * 60 + m + (offsetMin || 0);
   total = ((total % 1440) + 1440) % 1440;
@@ -82,8 +83,14 @@ $("refreshPrayer").addEventListener("click", () => retryPrayerFetch(true));
 function retryPrayerFetch(showFeedback) {
   const source = localStorage.getItem("prayerSource");
   if (source === "coords") {
-    const c = JSON.parse(localStorage.getItem("prayerCoords"));
-    fetchPrayerTimesByCoords(c.lat, c.lng).then(() => showFeedback && showToast("تم تحديث المواقيت ✓"));
+    try {
+      const c = JSON.parse(localStorage.getItem("prayerCoords"));
+      if (!c) throw new Error();
+      fetchPrayerTimesByCoords(c.lat, c.lng).then(() => showFeedback && showToast("تم تحديث المواقيت ✓"));
+    } catch (_) {
+      localStorage.removeItem("prayerCoords");
+      if (showFeedback) showToast("حدد موقعك أولاً");
+    }
   } else if (source === "city") {
     fetchPrayerTimesByCity().then(() => showFeedback && showToast("تم تحديث المواقيت ✓"));
   } else if (showFeedback) {
@@ -244,10 +251,13 @@ function renderHomePrayerWidget(timings, nextName) {
 
 function renderPrayerRowsAndCountdown(timings, tune) {
   const now = new Date();
-  const todaysTimes = PRAYER_ORDER_MAIN.map((p) => {
-    const [h, m] = timings[p].split(":").map(Number);
-    return { name: p, time: new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m) };
-  });
+  // تُصفَّى الأوقات الغائبة (null أو '--:--') — تحدث في خطوط العرض العالية (فجر/عشاء صيفاً)
+  const todaysTimes = PRAYER_ORDER_MAIN
+    .filter((p) => timings[p] && timings[p] !== '--:--')
+    .map((p) => {
+      const [h, m] = timings[p].split(":").map(Number);
+      return { name: p, time: new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m) };
+    });
 
   let next = todaysTimes.find((t) => t.time > now);
   let prev;
@@ -255,18 +265,25 @@ function renderPrayerRowsAndCountdown(timings, tune) {
     const idx = todaysTimes.indexOf(next);
     prev = idx > 0 ? todaysTimes[idx - 1] : null;
   } else {
-    const [h, m] = timings.Fajr.split(":").map(Number);
-    next = { name: "Fajr", time: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, h, m) };
-    prev = todaysTimes[todaysTimes.length - 1];
+    // لا صلاة قادمة اليوم — نأخذ أول صلاة متاحة غداً (قد يغيب الفجر في القطبين)
+    const firstAvailable = PRAYER_ORDER_MAIN.find((p) => timings[p] && timings[p] !== '--:--');
+    if (firstAvailable) {
+      const [h, m] = timings[firstAvailable].split(":").map(Number);
+      next = { name: firstAvailable, time: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, h, m) };
+    }
+    prev = todaysTimes.length > 0 ? todaysTimes[todaysTimes.length - 1] : null;
   }
   if (!prev) {
-    const [h, m] = timings.Isha.split(":").map(Number);
-    prev = { name: "Isha", time: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, h, m) };
+    const ishaTime = timings.Isha;
+    if (ishaTime && ishaTime !== '--:--') {
+      const [h, m] = ishaTime.split(":").map(Number);
+      prev = { name: "Isha", time: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, h, m) };
+    }
   }
 
   $("prayerTimesList").innerHTML = PRAYER_ORDER_ALL.map((p) => {
     const info = PRAYER_NAMES[p];
-    const isNext = next.name === p;
+    const isNext = next && next.name === p;
     const offset = tune[p] || 0;
     const tuneBadge = offset !== 0 ? `<span class="prayer-tune-badge">${offset > 0 ? "+" : ""}${offset}د</span>` : "";
     return `
@@ -276,13 +293,19 @@ function renderPrayerRowsAndCountdown(timings, tune) {
       </div>`;
   }).join("");
 
+  if (!next) {
+    $("nextPrayerCard").classList.add("hidden");
+    clearInterval(countdownTimer);
+    return;
+  }
+
   $("nextPrayerCard").classList.remove("hidden");
   $("nextPrayerName").textContent = PRAYER_NAMES[next.name].ar;
 
   renderHomePrayerWidget(timings, next.name);
 
   clearInterval(countdownTimer);
-  const totalSpan = next.time - prev.time;
+  const totalSpan = prev ? next.time - prev.time : 0;
 
   // جدولة التنبيه المسبق إن وُجد
   if (typeof schedulePreAlert === 'function') schedulePreAlert(next.name, next.time.getTime());
@@ -320,6 +343,7 @@ function renderPrayerRowsAndCountdown(timings, tune) {
 }
 
 function formatTime12(hhmm) {
+  if (!hhmm || hhmm === '--:--') return '—';
   const [h, m] = hhmm.split(":").map(Number);
   const period = h >= 12 ? "م" : "ص";
   const h12 = h % 12 || 12;
@@ -454,12 +478,16 @@ function ensurePrayerTimesFresh() {
   const coords = localStorage.getItem("prayerCoords");
   const city = localStorage.getItem("prayerCity");
   if (coords) {
-    const { lat, lng } = JSON.parse(coords);
-    fetchPrayerTimesByCoords(lat, lng);
+    try {
+      const { lat, lng } = JSON.parse(coords);
+      fetchPrayerTimesByCoords(lat, lng);
+    } catch (_) { localStorage.removeItem("prayerCoords"); }
   } else if (city) {
-    const c = JSON.parse(city);
-    $("cityInput").value = c.city;
-    $("countryInput").value = c.country || "";
-    fetchPrayerTimesByCity();
+    try {
+      const c = JSON.parse(city);
+      $("cityInput").value = c.city;
+      $("countryInput").value = c.country || "";
+      fetchPrayerTimesByCity();
+    } catch (_) { localStorage.removeItem("prayerCity"); }
   }
 })();

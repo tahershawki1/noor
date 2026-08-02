@@ -323,28 +323,42 @@
         return Promise.resolve({ ready: false, reason: 'NO_UPDATE' });
       }
 
-      var backup = (typeof NoorBackup !== 'undefined' && NoorBackup.isAvailable())
-        ? NoorBackup.save({ force: true })
-        : Promise.resolve({ saved: false, reason: 'UNSUPPORTED' });
-
-      return backup.then(function (result) {
-        if (!result || !result.saved) {
-          // لا نُقدِم على خطوة تمحو البيانات وقد فشل حفظها
-          emit('backupFailed', result || {});
-          return { ready: false, reason: 'BACKUP_FAILED', detail: result };
-        }
-        emit('backupReady', result);
-        return updater.downloadAndInstall({
-          url: target.url,
-          version: target.version,
-          publicDownloads: true,
-          autoInstall: false
-        }).then(function (download) {
-          return { ready: true, backup: result, destination: download && download.destination };
+      // البلاجن يرفض downloadAndInstall بدون صلاحية التثبيت حتى حين autoInstall: false
+      // لذا نطلبها أولاً — قبل بدء النسخ الاحتياطي حتى لا نُضيّع وقت المستخدم
+      return updater.canInstall().then(function (status) {
+        if (status && status.granted) { return true; }
+        return updater.requestInstallPermission().then(function (r) {
+          return !!(r && r.granted);
         });
-      }).catch(function (error) {
-        emit('downloadFailed', { message: String(error) });
-        return { ready: false, reason: String(error) };
+      }).then(function (granted) {
+        if (!granted) {
+          emit('installPermissionDenied', target);
+          return { ready: false, reason: 'PERMISSION_DENIED' };
+        }
+
+        var backup = (typeof NoorBackup !== 'undefined' && NoorBackup.isAvailable())
+          ? NoorBackup.save({ force: true })
+          : Promise.resolve({ saved: false, reason: 'UNSUPPORTED' });
+
+        return backup.then(function (result) {
+          if (!result || !result.saved) {
+            // لا نُقدِم على خطوة تمحو البيانات وقد فشل حفظها
+            emit('backupFailed', result || {});
+            return { ready: false, reason: 'BACKUP_FAILED', detail: result };
+          }
+          emit('backupReady', result);
+          return updater.downloadAndInstall({
+            url: target.url,
+            version: target.version,
+            publicDownloads: true,
+            autoInstall: false
+          }).then(function (download) {
+            return { ready: true, backup: result, destination: download && download.destination };
+          });
+        }).catch(function (error) {
+          emit('downloadFailed', { message: String(error) });
+          return { ready: false, reason: String(error) };
+        });
       });
     },
 
