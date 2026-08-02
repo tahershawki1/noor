@@ -31,6 +31,7 @@ const COUNTRY_NAMES_AR = {
 
 const PRAYER_ORDER_ALL = ["Fajr", "Sunrise", "Dhuhr", "Asr", "Maghrib", "Isha"];
 const PRAYER_ORDER_MAIN = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
+const IQAMA_OFFSETS = { Fajr: 25, Dhuhr: 20, Asr: 20, Maghrib: 5, Isha: 20 };
 let countdownTimer = null;
 let lastPrayerData = null; // { timings, hijri, locationLabel, fetchedAt } — البيانات الخام قبل تطبيق التصحيح
 
@@ -300,7 +301,6 @@ function renderPrayerRowsAndCountdown(timings, tune) {
   }
 
   $("nextPrayerCard").classList.remove("hidden");
-  $("nextPrayerName").textContent = PRAYER_NAMES[next.name].ar;
 
   renderHomePrayerWidget(timings, next.name);
 
@@ -311,32 +311,67 @@ function renderPrayerRowsAndCountdown(timings, tune) {
   if (typeof schedulePreAlert === 'function') schedulePreAlert(next.name, next.time.getTime());
 
   const updateCountdown = () => {
-    const diff = next.time - new Date();
+    const now = new Date();
+    const diff = next.time - now;
     if (diff <= 0) {
       clearInterval(countdownTimer);
       $("countdown").textContent = "حان وقت الصلاة 🕌";
       const homeCD = $("homeCountdown");
       if (homeCD) homeCD.textContent = "حان وقت الصلاة 🕌";
       $("prayerProgressFill").style.width = "100%";
-      // تشغيل الأذان تلقائياً عند دخول الوقت
       if (typeof autoPlayAdhanForPrayer === 'function') autoPlayAdhanForPrayer(next.name);
       renderPrayerRowsAndCountdown(timings, tune);
       return;
     }
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    const timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+
+    // حساب وقت الإقامة للصلاة السابقة (الحالية)
+    const iqamaOffset = prev ? IQAMA_OFFSETS[prev.name] : undefined;
+    const iqamaTime = iqamaOffset != null ? new Date(prev.time.getTime() + iqamaOffset * 60000) : null;
+    const iqamaDiff = iqamaTime ? iqamaTime - now : -1;
+
+    let timeStr, displayName, heroLabel;
+    if (iqamaDiff > 0) {
+      const h = Math.floor(iqamaDiff / 3600000);
+      const m = Math.floor((iqamaDiff % 3600000) / 60000);
+      const s = Math.floor((iqamaDiff % 60000) / 1000);
+      timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      displayName = PRAYER_NAMES[prev.name].ar;
+      heroLabel = "الإقامة بعد";
+    } else {
+      const h = Math.floor(diff / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      timeStr = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+      displayName = PRAYER_NAMES[next.name].ar;
+      heroLabel = "الصلاة القادمة";
+    }
+
     $("countdown").textContent = timeStr;
+    $("nextPrayerName").textContent = displayName;
+    const prayerLabel = $("prayerHeroLabel");
+    if (prayerLabel) prayerLabel.textContent = heroLabel;
+
     const homeCD = $("homeCountdown");
     if (homeCD) homeCD.textContent = timeStr;
-    // تحديث عداد صفحة الأذان
+    const homeNameEl = $("homeNextPrayerName");
+    if (homeNameEl) homeNameEl.textContent = displayName;
+    const homeLabel = $("homeHeroLabel");
+    if (homeLabel) homeLabel.textContent = heroLabel;
+
     if (typeof updateAdhanNextCard === 'function') {
-      updateAdhanNextCard(next.name, timeStr, timings[next.name]);
+      updateAdhanNextCard(
+        iqamaDiff > 0 ? prev.name : next.name,
+        timeStr,
+        iqamaDiff > 0 ? timings[prev.name] : timings[next.name],
+        heroLabel
+      );
     }
-    const elapsed = totalSpan - diff;
-    const pct = totalSpan > 0 ? Math.min(100, Math.max(0, (elapsed / totalSpan) * 100)) : 0;
-    $("prayerProgressFill").style.width = `${pct}%`;
+
+    if (iqamaDiff <= 0) {
+      const elapsed = totalSpan - diff;
+      const pct = totalSpan > 0 ? Math.min(100, Math.max(0, (elapsed / totalSpan) * 100)) : 0;
+      $("prayerProgressFill").style.width = `${pct}%`;
+    }
   };
   updateCountdown();
   countdownTimer = setInterval(updateCountdown, 1000);

@@ -188,7 +188,7 @@ function renderAdhanText() {
 }
 
 /* --------- تحديث بطاقة الصلاة القادمة في صفحة الأذان --------- */
-function updateAdhanNextCard(prayerName, countdown, time24) {
+function updateAdhanNextCard(prayerName, countdown, time24, heroLabel = 'الصلاة القادمة') {
   const nameEl = $('adhanNextName');
   const cdEl = $('adhanCountdown');
   const timeEl = $('adhanNextTime');
@@ -204,6 +204,8 @@ function updateAdhanNextCard(prayerName, countdown, time24) {
   nameEl.textContent = `${PRAYER_NAMES[prayerName]?.icon || ''} ${PRAYER_NAMES[prayerName]?.ar || prayerName}`;
   cdEl.textContent = countdown;
   if (timeEl && time24) timeEl.textContent = formatTime12(time24);
+  const adhanLabel = $('adhanHeroLabel');
+  if (adhanLabel) adhanLabel.textContent = heroLabel;
 
   // إظهار شارة الفجر
   const fajrBadge = $('adhanFajrBadge');

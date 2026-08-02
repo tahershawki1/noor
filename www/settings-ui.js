@@ -13,6 +13,8 @@ document.addEventListener("backbutton", (e) => {
   // أولوية الإغلاق: المودالات أولاً، ثم قارئ السورة، ثم تراجع الأقسام
   const modals = [
     "ayahDialogOverlay",
+    "apkUpdateOverlay",
+    "reinstallOverlay",
     "settingsOverlay",
     "prayerSettingsOverlay",
     "addAdhkarOverlay",
@@ -38,9 +40,9 @@ document.addEventListener("backbutton", (e) => {
     backToAdhkarCategories();
     return;
   }
-  // إذا لم نكن في الصفحة الرئيسية، ارجع للسابق
+  // جميع الصفحات ترجع للرئيسية، الرئيسية تخرج من التطبيق
   if (currentTab !== "home") {
-    navigateBack();
+    navigateTo("home");
     return;
   }
   // خروج من التطبيق — عبر AppExitPlugin المحلي (المشروع لا يعتمد @capacitor/app)
