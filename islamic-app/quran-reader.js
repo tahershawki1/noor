@@ -15,6 +15,15 @@
 let surahs = [];
 let currentSurah = null;
 let pendingAyahScroll = null;
+let _quranWakeLock = null;
+
+async function _acquireQuranWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try { _quranWakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+}
+function _releaseQuranWakeLock() {
+  if (_quranWakeLock) { _quranWakeLock.release(); _quranWakeLock = null; }
+}
 
 /**
  * تطبيع عربي شامل للبحث: يزيل التشكيل وعلامات المصحف والتطويل، ويوحّد
@@ -129,6 +138,7 @@ async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   $("surahReadView").classList.remove("hidden");
   $("ayahContainer").innerHTML = '<div class="loading">جارِ فتح السورة...</div>';
   $("ayahContainer").scrollTop = 0;
+  _acquireQuranWakeLock();
   enterReaderHeaderMode();
 
   try {
@@ -278,20 +288,13 @@ ayahContainerPinchEl.addEventListener(
   { passive: false }
 );
 
-/* --------- نافذة الإعدادات --------- */
+/* --------- صفحة الإعدادات --------- */
 function openSettings() {
   if (typeof refreshBackupStatus === "function") refreshBackupStatus();
   if (typeof refreshOfflineAudioStatus === "function") refreshOfflineAudioStatus();
-  $("settingsOverlay").classList.remove("hidden");
-}
-function closeSettingsModal() {
-  $("settingsOverlay").classList.add("hidden");
+  navigateTo("settings");
 }
 $("settingsBtn").addEventListener("click", openSettings);
-$("closeSettings").addEventListener("click", closeSettingsModal);
-$("settingsOverlay").addEventListener("click", (e) => {
-  if (e.target.id === "settingsOverlay") closeSettingsModal();
-});
 document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   // شيت تحديث الـ APK لا يُغلق إن كان التحديث إجبارياً
@@ -304,7 +307,6 @@ document.addEventListener("keydown", (e) => {
   if (!$("reinstallOverlay").classList.contains("hidden")) { $("reinstallOverlay").classList.add("hidden"); return; }
   if (!$("surahPickerOverlay").classList.contains("hidden")) { closeSurahPicker(); return; }
   if (!$("khatmaSetupOverlay").classList.contains("hidden")) { closeKhatmaSetup(); return; }
-  if (!$("settingsOverlay").classList.contains("hidden")) { closeSettingsModal(); return; }
   if (!$("prayerSettingsOverlay").classList.contains("hidden")) { closePrayerSettingsModal(); return; }
   if (!$("addAdhkarOverlay").classList.contains("hidden")) { closeAddAdhkarModal(); return; }
   if (!$("ayahDialogOverlay").classList.contains("hidden")) { closeAyahDialog(); return; }
@@ -883,6 +885,7 @@ $("ayahTafsirBtn").addEventListener("click", async () => {
 function goBackToSurahList() {
   if (typeof AutoScroll !== "undefined") AutoScroll.hide();
   stopAyahQueue();
+  _releaseQuranWakeLock();
   $("surahReadView").classList.add("hidden");
   hideKhatmaWidget();
   const shouldRestoreList = readerReturnTab === "quran";

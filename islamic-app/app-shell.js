@@ -60,6 +60,7 @@ const SECTION_TITLES = {
   bookmarks: "المحفوظات",
   adiyah: "الأدعية",
   khatma: "ختمة القرآن",
+  settings: "الإعدادات",
 };
 let currentTab = "home";
 let navHistory = [];

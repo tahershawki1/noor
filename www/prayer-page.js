@@ -318,6 +318,9 @@ function renderPrayerRowsAndCountdown(timings, tune) {
       const homeCD = $("homeCountdown");
       if (homeCD) homeCD.textContent = "حان وقت الصلاة 🕌";
       $("prayerProgressFill").style.width = "100%";
+      // إعادة الشريط العلوي للبداية (أخضر) مع بدء دورة الصلاة الجديدة
+      const topBar = $("adhanTimeBarFill");
+      if (topBar) { topBar.style.width = "0%"; topBar.style.background = "hsl(120, 75%, 42%)"; }
       // تشغيل الأذان تلقائياً عند دخول الوقت
       if (typeof autoPlayAdhanForPrayer === 'function') autoPlayAdhanForPrayer(next.name);
       renderPrayerRowsAndCountdown(timings, tune);
@@ -337,6 +340,13 @@ function renderPrayerRowsAndCountdown(timings, tune) {
     const elapsed = totalSpan - diff;
     const pct = totalSpan > 0 ? Math.min(100, Math.max(0, (elapsed / totalSpan) * 100)) : 0;
     $("prayerProgressFill").style.width = `${pct}%`;
+    // شريط الأذان العلوي: أخضر في البداية → أحمر عند دخول الوقت
+    const topBar = $("adhanTimeBarFill");
+    if (topBar) {
+      const hue = Math.round(120 * (1 - pct / 100));
+      topBar.style.width = `${pct}%`;
+      topBar.style.background = `hsl(${hue}, 75%, 42%)`;
+    }
   };
   updateCountdown();
   countdownTimer = setInterval(updateCountdown, 1000);

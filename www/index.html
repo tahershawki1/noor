@@ -57,6 +57,9 @@
 <!-- ============ هيكل التطبيق ============ -->
 <div class="app-shell" id="appShell">
 
+  <!-- شريط تقدّم الوقت حتى الأذان — 2 بكسل، ملوَّن من الأخضر إلى الأحمر كلما اقترب الأذان -->
+  <div id="adhanTimeBar"><div id="adhanTimeBarFill"></div></div>
+
   <!-- ======== شريط التطبيق العلوي ======== -->
   <header class="app-bar" id="appBar">
     <button class="ab-icon ab-back hidden" id="backBtn" aria-label="رجوع">
@@ -434,6 +437,94 @@
         </div>
       </section>
 
+      <!-- ======== صفحة الإعدادات ======== -->
+      <section id="settings" class="tab-panel">
+        <div class="settings-body">
+          <div class="field">
+            <label class="field-label" for="fontSelect">نوع خط المصحف</label>
+            <select id="fontSelect" class="select-input">
+              <option value="amiri-quran">أميري قرآن</option>
+              <option value="amiri">أميري</option>
+              <option value="scheherazade">شهرزاد</option>
+              <option value="noto-naskh">نوتو نسخ</option>
+              <option value="lateef">لطيف</option>
+              <option value="reem-kufi">ريم كوفي</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label">حجم الخط</label>
+            <div class="stepper">
+              <button id="fontSmaller" class="step-btn" aria-label="تصغير">أ−</button>
+              <span id="fontSizeLabel" class="step-value">100%</span>
+              <button id="fontBigger" class="step-btn" aria-label="تكبير">أ+</button>
+            </div>
+          </div>
+          <div class="preview-box">
+            <span class="preview-label">معاينة</span>
+            <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+          </div>
+
+          <!-- النسخة الاحتياطية — داخل تطبيق الأندرويد فقط -->
+          <div class="field hidden" id="backupField">
+            <label class="field-label">النسخة الاحتياطية</label>
+            <div class="backup-status">
+              <span class="backup-dot" id="backupDot"></span>
+              <span id="backupStatusText">لم تُحفظ نسخة بعد</span>
+            </div>
+            <div class="backup-actions">
+              <button class="btn btn-soft btn-sm" id="backupSaveBtn">احفظ الآن</button>
+              <button class="btn btn-soft btn-sm" id="backupRestoreBtn">استرجاع من ملف</button>
+              <button class="btn btn-soft btn-sm" id="backupExportBtn">تصدير إلى…</button>
+            </div>
+            <p class="field-hint">
+              تُحفظ بياناتك تلقائياً في «المستندات ← Noor» — وهو مكان يبقى حتى لو حذفت
+              التطبيق، فتسترجعها بعد إعادة التثبيت.
+            </p>
+          </div>
+
+          <!-- الصوتيات المحملة للاستماع دون إنترنت -->
+          <div class="field hidden" id="offlineAudioField">
+            <label class="field-label">الصوتيات المحملة للاستماع دون إنترنت</label>
+            <div class="backup-status">
+              <span id="offlineAudioStatusText">لا توجد صوتيات محمّلة</span>
+            </div>
+            <div class="backup-actions">
+              <button class="btn btn-soft btn-sm" id="offlineAudioClearBtn" disabled>امسح كل الصوتيات المحملة</button>
+            </div>
+            <p class="field-hint">
+              نزّل أي سورة من زر التنزيل أعلى صفحة القراءة لتسمعها لاحقاً دون اتصال بالإنترنت.
+            </p>
+          </div>
+
+          <!-- إصدار واجهة الويب — مرئي دائماً في المتصفح -->
+          <div class="field" id="webVersionField">
+            <label class="field-label">إصدار واجهة الويب</label>
+            <div class="app-ver-row">
+              <span class="avr-label">الإصدار الحالي</span>
+              <span class="avr-value" id="webVersionLabelWeb">—</span>
+            </div>
+          </div>
+
+          <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
+          <div class="field hidden" id="appInfoField">
+            <label class="field-label">عن التطبيق</label>
+            <div class="app-ver-row">
+              <span class="avr-label">إصدار التطبيق (APK)</span>
+              <span class="avr-value" id="installedVersionLabel">—</span>
+            </div>
+            <div class="app-ver-row">
+              <span class="avr-label">إصدار محتوى الويب</span>
+              <span class="avr-value" id="webVersionLabel">—</span>
+            </div>
+            <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
+              <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
+              تحقق من التحديثات
+            </button>
+            <p class="field-hint" id="checkUpdatesHint"></p>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <!-- منتقي السورة — يظهر فوق قارئ القرآن عند النقر على اسم السورة -->
@@ -549,100 +640,6 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-
-  <!-- ======== الأوراق السفلية (Bottom Sheets) ======== -->
-  <div id="settingsOverlay" class="modal-overlay hidden">
-    <div class="modal-panel">
-      <div class="sheet-grab"></div>
-      <div class="modal-header">
-        <h3>الإعدادات</h3>
-        <button id="closeSettings" class="ab-icon sm" aria-label="إغلاق"><svg class="ic"><use href="#i-close"></use></svg></button>
-      </div>
-      <div class="modal-body">
-        <div class="field">
-          <label class="field-label" for="fontSelect">نوع خط المصحف</label>
-          <select id="fontSelect" class="select-input">
-            <option value="scheherazade">شهرزاد</option>
-            <option value="amiri">أميري</option>
-            <option value="noto-naskh">نوتو نسخ</option>
-            <option value="lateef">لطيف</option>
-            <option value="reem-kufi">ريم كوفي</option>
-          </select>
-        </div>
-        <div class="field">
-          <label class="field-label">حجم الخط</label>
-          <div class="stepper">
-            <button id="fontSmaller" class="step-btn" aria-label="تصغير">أ−</button>
-            <span id="fontSizeLabel" class="step-value">100%</span>
-            <button id="fontBigger" class="step-btn" aria-label="تكبير">أ+</button>
-          </div>
-        </div>
-        <div class="preview-box">
-          <span class="preview-label">معاينة</span>
-          <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-        </div>
-
-        <!-- النسخة الاحتياطية — داخل تطبيق الأندرويد فقط -->
-        <div class="field hidden" id="backupField">
-          <label class="field-label">النسخة الاحتياطية</label>
-          <div class="backup-status">
-            <span class="backup-dot" id="backupDot"></span>
-            <span id="backupStatusText">لم تُحفظ نسخة بعد</span>
-          </div>
-          <div class="backup-actions">
-            <button class="btn btn-soft btn-sm" id="backupSaveBtn">احفظ الآن</button>
-            <button class="btn btn-soft btn-sm" id="backupRestoreBtn">استرجاع من ملف</button>
-            <button class="btn btn-soft btn-sm" id="backupExportBtn">تصدير إلى…</button>
-          </div>
-          <p class="field-hint">
-            تُحفظ بياناتك تلقائياً في «المستندات ← Noor» — وهو مكان يبقى حتى لو حذفت
-            التطبيق، فتسترجعها بعد إعادة التثبيت.
-          </p>
-        </div>
-
-        <!-- الصوتيات المحملة للاستماع دون إنترنت -->
-        <div class="field hidden" id="offlineAudioField">
-          <label class="field-label">الصوتيات المحملة للاستماع دون إنترنت</label>
-          <div class="backup-status">
-            <span id="offlineAudioStatusText">لا توجد صوتيات محمّلة</span>
-          </div>
-          <div class="backup-actions">
-            <button class="btn btn-soft btn-sm" id="offlineAudioClearBtn" disabled>امسح كل الصوتيات المحملة</button>
-          </div>
-          <p class="field-hint">
-            نزّل أي سورة من زر التنزيل أعلى صفحة القراءة لتسمعها لاحقاً دون اتصال بالإنترنت.
-          </p>
-        </div>
-
-        <!-- إصدار واجهة الويب — مرئي دائماً في المتصفح -->
-        <div class="field" id="webVersionField">
-          <label class="field-label">إصدار واجهة الويب</label>
-          <div class="app-ver-row">
-            <span class="avr-label">الإصدار الحالي</span>
-            <span class="avr-value" id="webVersionLabelWeb">—</span>
-          </div>
-        </div>
-
-        <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
-        <div class="field hidden" id="appInfoField">
-          <label class="field-label">عن التطبيق</label>
-          <div class="app-ver-row">
-            <span class="avr-label">إصدار التطبيق (APK)</span>
-            <span class="avr-value" id="installedVersionLabel">—</span>
-          </div>
-          <div class="app-ver-row">
-            <span class="avr-label">إصدار محتوى الويب</span>
-            <span class="avr-value" id="webVersionLabel">—</span>
-          </div>
-          <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
-            <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
-            تحقق من التحديثات
-          </button>
-          <p class="field-hint" id="checkUpdatesHint"></p>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- تحديث يتطلّب حذف النسخة القديمة (اختلاف مفتاح التوقيع) -->
   <div id="reinstallOverlay" class="modal-overlay hidden">
