@@ -2178,8 +2178,45 @@ input[type="number"].search-input { text-align: center; }
 .as-toggle-btn:active { background: var(--brand-dark, var(--brand)); opacity: 0.85; }
 .as-toggle-btn .ic { width: 18px; height: 18px; }
 
-/* زر السرعة */
-.as-speed-btn { font-size: 1.3rem; width: 32px; height: 32px; }
+/* شريط السرعة — تحكّم مستمر بالسحب بدل أزرار خطوة ثابتة */
+.as-speed-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 76px;
+  height: 28px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-x;
+}
+.as-speed-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+.as-speed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.as-speed-slider::-moz-range-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+}
+.as-speed-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--brand);
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-2);
+}
 
 /* عرض السرعة */
 .as-speed-lbl {
@@ -2201,7 +2238,7 @@ input[type="number"].search-input { text-align: center; }
 .as-close-btn .ic { width: 16px; height: 16px; }
 
 /* فاصل ضوئي بين مجموعات الأزرار */
-.as-btn + .as-toggle-btn,
+.as-speed-lbl + .as-toggle-btn,
 .as-toggle-btn + .as-gaze-btn {
   margin-right: 4px;
   margin-left: 4px;

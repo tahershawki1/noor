@@ -2,17 +2,16 @@
  * التمرير التلقائي مع مراقبة النظرة — نور
  * ================================================================
  *
- * AutoScroll: يُمرّر #ayahContainer بسلاسة باستخدام requestAnimationFrame
- *   مع خمس عشرة درجة سرعة وشريط تحكم عائم أسفل الشاشة.
+ * AutoScroll: يُمرّر #ayahContainer بسلاسة باستخدام requestAnimationFrame،
+ *   بسرعة مستمرة (٠٫٥× إلى ٤×) تُضبَط بسحب شريط انزلاق حي، وشريط تحكم عائم
+ *   أسفل الشاشة. لمس/سحب المحتوى يدوياً أثناء التشغيل لا يُقاوَم — التمرير
+ *   يُزامِن نفسه مع الموضع الجديد ويكمل منه (انظر onManualScroll).
  *
  * GazeWatcher: يستخدم MediaPipe Tasks Vision (كشف وجه محلي عبر WASM، بلا
  *   اتصال إنترنت — انظر islamic-app/vendor/mediapipe/) للكشف عن وجه
  *   المستخدم أمام الكاميرا الأمامية — إن أزاح نظره يتوقف التمرير تلقائياً
  *   حتى يعود، دون أن يضيع المكان. يستبدل FaceDetector الأصلي (Shape
  *   Detection API) غير المطبَّق إطلاقاً في Android WebView.
- *
- * مستويات السرعة: ١٥ درجة خطية من ٠٫٥× إلى ٤× (بكسل/إطار عند 60fps)،
- * بفارق ٠٫٢٥ بين كل درجة والتالية.
  * ================================================================ */
 
 (function (global) {
@@ -21,13 +20,8 @@
   /* ─── الثوابت ─── */
   var SPEED_MIN = 0.5;
   var SPEED_MAX = 4;
-  var SPEED_LEVELS = 15;
-  var SPEED_STEP = (SPEED_MAX - SPEED_MIN) / (SPEED_LEVELS - 1); // 0.25
-  var SPEEDS = [];
-  for (var _i = 0; _i < SPEED_LEVELS; _i++) {
-    SPEEDS.push(Math.round((SPEED_MIN + _i * SPEED_STEP) * 100) / 100);
-  }
-  var DEFAULT_IDX = 2;   // 1×
+  var SPEED_DEFAULT = 1;
+  var SPEED_NUDGE = 0.25;  // مقدار التغيير عند استخدام faster()/slower()
   var GAZE_POLL_MS = 700;
 
   /* رقم عربي بدل اللاتيني، بنفس أسلوب toArabicNum في app.js — نسخة محلية
@@ -35,18 +29,23 @@
   function toArabicDigits(str) {
     return String(str).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; });
   }
-  function speedLabel(idx) {
-    return '×' + toArabicDigits(SPEEDS[idx]);
+  function speedLabel(value) {
+    // بدون كسر عشري لو القيمة صحيحة (١×)، وإلا رقم عشري واحد (١٫٥×)
+    var rounded = Math.round(value * 10) / 10;
+    var text = (rounded % 1 === 0) ? String(rounded) : rounded.toFixed(1);
+    return '×' + toArabicDigits(text);
   }
 
   /* ─── الحالة ─── */
   var running = false;
-  var speedIdx = DEFAULT_IDX;
+  var speed = SPEED_DEFAULT;
   var rafId = null;
   var lastTs = null;
-  var scrollAccPx = null; // مُراكِم كسري لموضع التمرير — منفصل عن scrollTop
-                           // لأن المتصفح يقرّب scrollTop لأقرب بكسل صحيح،
-                           // فتُفقَد أي زيادة أقل من ١px في كل إطار بدونه.
+  var scrollAccPx = null;    // مُراكِم كسري لموضع التمرير — منفصل عن scrollTop
+                              // لأن المتصفح يقرّب scrollTop لأقرب بكسل صحيح،
+                              // فتُفقَد أي زيادة أقل من ١px في كل إطار بدونه.
+  var lastSetScrollTop = null; // آخر قيمة ضبطناها نحن — لتمييز تمرير المستخدم
+                                // اليدوي (سحب/لمس) عن تمريرنا الذاتي في tick().
 
   /* ─── حالة مراقبة النظرة ─── */
   var gazeEnabled = false;
@@ -74,8 +73,9 @@
     var el = getEl();
     if (el) {
       if (scrollAccPx === null) scrollAccPx = el.scrollTop;
-      scrollAccPx += SPEEDS[speedIdx] * (dt / 16.667);
+      scrollAccPx += speed * (dt / 16.667);
       el.scrollTop = Math.round(scrollAccPx);
+      lastSetScrollTop = el.scrollTop; // حتى يميّز مستمع scroll هذا التغيير عن تمرير المستخدم
       // وصل للنهاية — أوقف
       if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
         _pause();
@@ -84,6 +84,19 @@
       }
     }
     rafId = requestAnimationFrame(tick);
+  }
+
+  /* المستخدم لمس/سحب المحتوى أثناء التمرير — بدل تجاهله (وبالتالي "قفزه"
+     رجّيعاً كل إطار) نُزامِن المُراكِم مع موضعه الجديد فيكمل التمرير من هناك،
+     فيقدر المستخدم يسحب لأعلى/أسفل بحرّية دون أن يقاوم التمرير التلقائي حركته. */
+  function onManualScroll() {
+    if (!running) return;
+    var el = getEl();
+    if (!el) return;
+    if (Math.abs(el.scrollTop - lastSetScrollTop) > 1) {
+      scrollAccPx = el.scrollTop;
+      lastSetScrollTop = el.scrollTop;
+    }
   }
 
   function _play() {
@@ -109,13 +122,13 @@
     if (running) _pause(); else _play();
   }
 
-  function faster() {
-    if (speedIdx < SPEEDS.length - 1) { speedIdx++; syncSpeed(); }
+  function setSpeed(value) {
+    speed = Math.min(SPEED_MAX, Math.max(SPEED_MIN, Math.round(value * 10) / 10));
+    syncSpeed();
   }
 
-  function slower() {
-    if (speedIdx > 0) { speedIdx--; syncSpeed(); }
-  }
+  function faster() { setSpeed(speed + SPEED_NUDGE); }
+  function slower() { setSpeed(speed - SPEED_NUDGE); }
 
   /* ─── مزامنة الواجهة ─── */
   function syncUI() {
@@ -129,7 +142,9 @@
 
   function syncSpeed() {
     var lbl = document.getElementById('asSpeedLabel');
-    if (lbl) lbl.textContent = speedLabel(speedIdx);
+    if (lbl) lbl.textContent = speedLabel(speed);
+    var slider = document.getElementById('asSpeedSlider');
+    if (slider && Math.abs(parseFloat(slider.value) - speed) > 0.01) slider.value = speed;
   }
 
   /* ─── إظهار / إخفاء الشريط ─── */
@@ -274,15 +289,20 @@
 
     // أزرار الشريط
     var toggleBtn = document.getElementById('asToggle');
-    var fasterBtn = document.getElementById('asFaster');
-    var slowerBtn = document.getElementById('asSlower');
+    var speedSlider = document.getElementById('asSpeedSlider');
     var closeBtn  = document.getElementById('asClose');
     var gazeBtn   = document.getElementById('asGaze');
 
     if (toggleBtn) toggleBtn.addEventListener('click', toggle);
-    if (fasterBtn) fasterBtn.addEventListener('click', faster);
-    if (slowerBtn) slowerBtn.addEventListener('click', slower);
+    // 'input' يُطلَق باستمرار أثناء السحب — تحكّم حي بلا خطوات ثابتة
+    if (speedSlider) speedSlider.addEventListener('input', function (e) {
+      setSpeed(parseFloat(e.target.value));
+    });
     if (closeBtn)  closeBtn.addEventListener('click', hideBar);
+
+    // تمرير المستخدم اليدوي (سحب/لمس/عجلة) أثناء التشغيل يُزامَن بدل أن يُقاوَم
+    var container = getEl();
+    if (container) container.addEventListener('scroll', onManualScroll, { passive: true });
 
     // زر النظرة — إخفاؤه فقط إن لم يكن getUserMedia متاحاً
     if (gazeBtn) {

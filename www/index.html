@@ -904,9 +904,8 @@
 
   <!-- شريط التمرير التلقائي العائم -->
   <div id="autoScrollBar" class="auto-scroll-bar hidden">
-    <button class="as-btn as-speed-btn" id="asSlower" aria-label="أبطأ">−</button>
+    <input type="range" class="as-speed-slider" id="asSpeedSlider" min="0.5" max="4" step="0.1" value="1" aria-label="سرعة التمرير" />
     <span class="as-speed-lbl" id="asSpeedLabel">1×</span>
-    <button class="as-btn as-speed-btn" id="asFaster" aria-label="أسرع">+</button>
     <button class="as-btn as-toggle-btn" id="asToggle" aria-label="تشغيل">
       <svg class="ic"><use href="#i-pause"></use></svg>
     </button>
