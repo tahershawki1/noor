@@ -95,7 +95,7 @@ $("surahSearch").addEventListener("input", (e) => {
   );
 });
 
-async function openSurah(number, ayahToHighlight = null) {
+async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   currentSurah = number;
   pendingAyahScroll = ayahToHighlight;
   $("surahListView").classList.add("hidden");
@@ -110,6 +110,9 @@ async function openSurah(number, ayahToHighlight = null) {
     const surah = QuranData.getSurah(number);
     if (!surah) throw new Error("سورة غير موجودة: " + number);
     renderSurah(surah);
+    // التنقّل التلقائي للسورة السابقة (بالتمرير الزائد عند بداية السورة)
+    // يفتحها عند نهايتها، استمراراً طبيعياً للقراءة العكسية
+    if (landAtEnd) $("ayahContainer").scrollTop = $("ayahContainer").scrollHeight;
   } catch (e) {
     $("ayahContainer").innerHTML = `<div class="error-msg">تعذر قراءة نص السورة من بيانات التطبيق.<br><br><button class="btn btn-soft" onclick="openSurah(${number})">إعادة المحاولة</button></div>`;
   }
@@ -482,6 +485,90 @@ $("ayahContainer").addEventListener(
   { passive: true }
 );
 
+/* --------- تنقّل بين السور بالتمرير: شدّ إضافي بعد الحافة --------- */
+// الوصول لنهاية السورة والاستمرار في التمرير لأسفل ← السورة التالية (من أولها)
+// الوصول لبداية السورة والاستمرار في التمرير لأعلى ← السورة السابقة (من آخرها)
+const SURAH_OVERSCROLL_PX = 140;
+let surahOverscrollAccum = 0;
+let surahOverscrollDir = 0; // 1 = أسفل (تالية)، -1 = أعلى (سابقة)
+let surahNavigating = false;
+
+function isAtContainerBottom() {
+  const el = $("ayahContainer");
+  return el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
+}
+function isAtContainerTop() {
+  return $("ayahContainer").scrollTop <= 2;
+}
+function resetSurahOverscroll() {
+  surahOverscrollAccum = 0;
+  surahOverscrollDir = 0;
+}
+
+async function goToAdjacentSurah(direction) {
+  if (surahNavigating || !currentSurah) return;
+  const target = currentSurah + direction;
+  if (target < 1 || target > 114) return;
+  surahNavigating = true;
+  resetSurahOverscroll();
+  await openSurah(target, null, direction < 0);
+  surahNavigating = false;
+}
+
+$("ayahContainer").addEventListener(
+  "wheel",
+  (e) => {
+    if (surahNavigating) return;
+    if (e.deltaY > 0 && isAtContainerBottom()) {
+      if (surahOverscrollDir !== 1) { surahOverscrollDir = 1; surahOverscrollAccum = 0; }
+      surahOverscrollAccum += e.deltaY;
+      if (surahOverscrollAccum > SURAH_OVERSCROLL_PX) goToAdjacentSurah(1);
+    } else if (e.deltaY < 0 && isAtContainerTop()) {
+      if (surahOverscrollDir !== -1) { surahOverscrollDir = -1; surahOverscrollAccum = 0; }
+      surahOverscrollAccum += -e.deltaY;
+      if (surahOverscrollAccum > SURAH_OVERSCROLL_PX) goToAdjacentSurah(-1);
+    } else {
+      resetSurahOverscroll();
+    }
+  },
+  { passive: true }
+);
+
+let surahTouchStartY = null;
+$("ayahContainer").addEventListener(
+  "touchstart",
+  (e) => {
+    if (e.touches.length !== 1) return;
+    surahTouchStartY = e.touches[0].clientY;
+    resetSurahOverscroll();
+  },
+  { passive: true }
+);
+$("ayahContainer").addEventListener(
+  "touchmove",
+  (e) => {
+    if (surahNavigating || surahTouchStartY === null || e.touches.length !== 1) return;
+    const y = e.touches[0].clientY;
+    const delta = surahTouchStartY - y; // موجب = سحب الإصبع لأعلى (نية تمرير لأسفل)
+    if (delta > 0 && isAtContainerBottom()) {
+      if (surahOverscrollDir !== 1) { surahOverscrollDir = 1; surahOverscrollAccum = 0; surahTouchStartY = y; return; }
+      surahOverscrollAccum = delta;
+      if (surahOverscrollAccum > SURAH_OVERSCROLL_PX) goToAdjacentSurah(1);
+    } else if (delta < 0 && isAtContainerTop()) {
+      if (surahOverscrollDir !== -1) { surahOverscrollDir = -1; surahOverscrollAccum = 0; surahTouchStartY = y; return; }
+      surahOverscrollAccum = -delta;
+      if (surahOverscrollAccum > SURAH_OVERSCROLL_PX) goToAdjacentSurah(-1);
+    } else {
+      resetSurahOverscroll();
+    }
+  },
+  { passive: true }
+);
+$("ayahContainer").addEventListener("touchend", () => {
+  surahTouchStartY = null;
+  resetSurahOverscroll();
+});
+
 /* --------- ضغطة قصيرة = معلومات سريعة، ضغطة طويلة = قائمة الإجراءات --------- */
 const LONG_PRESS_MS = 550;
 const MOVE_CANCEL_PX = 12;
@@ -760,11 +847,21 @@ function goBackToSurahList() {
   stopAyahQueue();
   $("surahReadView").classList.add("hidden");
   hideKhatmaWidget();
-  if (readerReturnTab === "quran") {
+  const shouldRestoreList = readerReturnTab === "quran";
+  // exitReaderHeaderMode() يستدعي navigateTo() داخلياً، الذي يصفّر
+  // mainContent.scrollTop دائماً — فلا بد أن يسبق أي تمرير نضبطه نحن، وإلا
+  // يُلغى فوراً بعده.
+  exitReaderHeaderMode();
+  if (shouldRestoreList) {
+    // نص بحث قديم قد يخفي السورة المفتوحة عن القائمة — نعيد القائمة كاملة
+    // حتى نضمن وجود بطاقتها لنمرّر إليها.
+    $("surahSearch").value = "";
+    renderSurahList(surahs);
     $("surahListView").classList.remove("hidden");
     renderResumeCard();
+    const card = document.querySelector(`.surah-card[onclick="openSurah(${currentSurah})"]`);
+    if (card) card.scrollIntoView({ block: "center" });
   }
-  exitReaderHeaderMode();
 }
 
 /* ============================================================

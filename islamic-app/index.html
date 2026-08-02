@@ -466,8 +466,9 @@
         </div>
       </div>
       <div class="kwidget-stats">
-        <div class="kwidget-stat"><strong id="kwidgetRemaining">604</strong> صفحة متبقية</div>
-        <div class="kwidget-pct" id="kwidgetPercent">0%</div>
+        <span class="kwidget-stat"><strong id="kwidgetRemaining">604</strong> صفحة متبقية</span>
+        <span class="kwidget-dot">•</span>
+        <span class="kwidget-pct" id="kwidgetPercent">0%</span>
         <span class="kwidget-badge kstatus-ontrack" id="kwidgetBadge">في الموعد</span>
       </div>
     </div>
@@ -921,8 +922,9 @@
 
   <!-- شريط التمرير التلقائي العائم -->
   <div id="autoScrollBar" class="auto-scroll-bar hidden">
-    <input type="range" class="as-speed-slider" id="asSpeedSlider" min="0.5" max="4" step="0.1" value="1" aria-label="سرعة التمرير" />
-    <span class="as-speed-lbl" id="asSpeedLabel">1×</span>
+    <button class="as-btn as-speed-btn" id="asSlower" aria-label="أبطأ">−</button>
+    <span class="as-speed-lbl" id="asSpeedLabel">0.3×</span>
+    <button class="as-btn as-speed-btn" id="asFaster" aria-label="أسرع">+</button>
     <button class="as-btn as-toggle-btn" id="asToggle" aria-label="تشغيل">
       <svg class="ic"><use href="#i-pause"></use></svg>
     </button>

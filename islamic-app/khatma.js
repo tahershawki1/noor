@@ -183,6 +183,7 @@ function openKhatmaReader(khatmaId) {
 function hideKhatmaWidget() {
   if (!$("khatmaWidget")) return;
   $("khatmaWidget").classList.add("hidden");
+  document.documentElement.style.setProperty("--khatma-bar-h", "0px");
   activeKhatmaId = null;
 }
 
@@ -207,6 +208,11 @@ function updateKhatmaWidget() {
   badge.className = `kwidget-badge kstatus-${status}`;
   badge.textContent = KSTATUS_LABEL[status];
   $("khatmaWidget").classList.remove("hidden");
+  // نقيس ارتفاعه الفعلي بعد الرسم (بدل رقم ثابت مخمَّن) لنحجز له مساحة
+  // مطابقة أسفل ayah-container فلا يغطّي آخر آيات معروضة.
+  requestAnimationFrame(() => {
+    document.documentElement.style.setProperty("--khatma-bar-h", `${$("khatmaWidget").offsetHeight}px`);
+  });
 }
 
 function updateKhatmaPageProgress(currentPage) {

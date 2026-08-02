@@ -3,8 +3,8 @@
  * ================================================================
  *
  * AutoScroll: يُمرّر #ayahContainer بسلاسة باستخدام requestAnimationFrame،
- *   بسرعة مستمرة (٠٫٥× إلى ٤×) تُضبَط بسحب شريط انزلاق حي، وشريط تحكم عائم
- *   أسفل الشاشة. لمس/سحب المحتوى يدوياً أثناء التشغيل لا يُقاوَم — التمرير
+ *   بسرعة تُضبَط بزرَّي +/- (٠٫٠٥ إلى ١٫٥، بخطوة ٠٫٠٥)، وشريط تحكم عائم أسفل
+ *   الشاشة. لمس/سحب المحتوى يدوياً أثناء التشغيل لا يُقاوَم — التمرير
  *   يُزامِن نفسه مع الموضع الجديد ويكمل منه (انظر onManualScroll).
  *
  * GazeWatcher: يستخدم MediaPipe Tasks Vision (كشف وجه محلي عبر WASM، بلا
@@ -18,10 +18,10 @@
   'use strict';
 
   /* ─── الثوابت ─── */
-  var SPEED_MIN = 0.5;
-  var SPEED_MAX = 4;
-  var SPEED_DEFAULT = 1;
-  var SPEED_NUDGE = 0.25;  // مقدار التغيير عند استخدام faster()/slower()
+  var SPEED_MIN = 0.05;
+  var SPEED_MAX = 1.5;
+  var SPEED_STEP = 0.05;
+  var SPEED_DEFAULT = 0.3;
   var GAZE_POLL_MS = 700;
 
   /* رقم عربي بدل اللاتيني، بنفس أسلوب toArabicNum في app.js — نسخة محلية
@@ -30,9 +30,9 @@
     return String(str).replace(/\d/g, function (d) { return '٠١٢٣٤٥٦٧٨٩'[d]; });
   }
   function speedLabel(value) {
-    // بدون كسر عشري لو القيمة صحيحة (١×)، وإلا رقم عشري واحد (١٫٥×)
-    var rounded = Math.round(value * 10) / 10;
-    var text = (rounded % 1 === 0) ? String(rounded) : rounded.toFixed(1);
+    var rounded = Math.round(value * 100) / 100;
+    // parseFloat يُسقط الأصفار الزائدة: "0.30" ← 0.3 ← "0.3"، "1.00" ← 1 ← "1"
+    var text = String(parseFloat(rounded.toFixed(2)));
     return '×' + toArabicDigits(text);
   }
 
@@ -123,12 +123,13 @@
   }
 
   function setSpeed(value) {
-    speed = Math.min(SPEED_MAX, Math.max(SPEED_MIN, Math.round(value * 10) / 10));
+    var stepped = Math.round(value / SPEED_STEP) * SPEED_STEP;
+    speed = Math.min(SPEED_MAX, Math.max(SPEED_MIN, Math.round(stepped * 100) / 100));
     syncSpeed();
   }
 
-  function faster() { setSpeed(speed + SPEED_NUDGE); }
-  function slower() { setSpeed(speed - SPEED_NUDGE); }
+  function faster() { setSpeed(speed + SPEED_STEP); }
+  function slower() { setSpeed(speed - SPEED_STEP); }
 
   /* ─── مزامنة الواجهة ─── */
   function syncUI() {
@@ -143,8 +144,6 @@
   function syncSpeed() {
     var lbl = document.getElementById('asSpeedLabel');
     if (lbl) lbl.textContent = speedLabel(speed);
-    var slider = document.getElementById('asSpeedSlider');
-    if (slider && Math.abs(parseFloat(slider.value) - speed) > 0.01) slider.value = speed;
   }
 
   /* ─── إظهار / إخفاء الشريط ─── */
@@ -289,15 +288,14 @@
 
     // أزرار الشريط
     var toggleBtn = document.getElementById('asToggle');
-    var speedSlider = document.getElementById('asSpeedSlider');
+    var fasterBtn = document.getElementById('asFaster');
+    var slowerBtn = document.getElementById('asSlower');
     var closeBtn  = document.getElementById('asClose');
     var gazeBtn   = document.getElementById('asGaze');
 
     if (toggleBtn) toggleBtn.addEventListener('click', toggle);
-    // 'input' يُطلَق باستمرار أثناء السحب — تحكّم حي بلا خطوات ثابتة
-    if (speedSlider) speedSlider.addEventListener('input', function (e) {
-      setSpeed(parseFloat(e.target.value));
-    });
+    if (fasterBtn) fasterBtn.addEventListener('click', faster);
+    if (slowerBtn) slowerBtn.addEventListener('click', slower);
     if (closeBtn)  closeBtn.addEventListener('click', hideBar);
 
     // تمرير المستخدم اليدوي (سحب/لمس/عجلة) أثناء التشغيل يُزامَن بدل أن يُقاوَم
