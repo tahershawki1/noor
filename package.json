@@ -4,7 +4,7 @@
   "description": "نور — تطبيق إسلامي: غلاف أندرويد أصلي (Capacitor) بتحديثات ويب مباشرة",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node tests/offline.mjs && node tests/backup-flow.mjs && node tests/update-flow.mjs && node tests/prayer-calc-parity.mjs",
     "test:offline": "node tests/offline.mjs",
     "test:prayer-calc": "node tests/prayer-calc-parity.mjs",
     "test:update-flow": "node tests/update-flow.mjs",

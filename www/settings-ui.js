@@ -213,6 +213,28 @@ function initAppUpdates() {
 initAppUpdates();
 
 /* ============================================================================
+ * إصدار واجهة الويب — يظهر دائماً في المتصفح، مخفي داخل التطبيق الأصلي
+ * ========================================================================== */
+(function initWebVersionDisplay() {
+  const field = $("webVersionField");
+  if (!field) return;
+  // داخل التطبيق الأصلي، appInfoField يعرض الإصدار بالفعل
+  if (typeof AppUpdates !== "undefined" && AppUpdates.isAvailable()) {
+    field.classList.add("hidden");
+    return;
+  }
+  fetch("version.json", { cache: "no-store" })
+    .then(r => r.json())
+    .then(manifest => {
+      const label = $("webVersionLabelWeb");
+      if (label && manifest && manifest.web && manifest.web.version) {
+        label.textContent = manifest.web.version;
+      }
+    })
+    .catch(() => {});
+})();
+
+/* ============================================================================
  * النسخة الاحتياطية
  * ============================================================================
  * تُحفظ تلقائياً (backup.js يتكفّل بذلك)، وهذا القسم للتحكّم اليدوي وعرض الحالة.
@@ -339,3 +361,42 @@ function initReinstallFlow() {
 
 initBackup();
 initReinstallFlow();
+
+/* ============================================================================
+ * الصوتيات المحملة للاستماع دون إنترنت
+ * ============================================================================
+ * التنزيل نفسه فعليّ من زر أعلى صفحة قراءة السورة (quran-reader.js) — هذا
+ * القسم لعرض حجم ما تجمّع ومسحه. انظر quran-audio-offline.js.
+ * ========================================================================== */
+
+function formatAudioSize(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} كيلوبايت`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} ميجابايت`;
+}
+
+async function refreshOfflineAudioStatus() {
+  const field = $("offlineAudioField");
+  if (!field || typeof QuranAudioOffline === "undefined") return;
+  field.classList.remove("hidden");
+
+  const { count, bytes } = await QuranAudioOffline.getOfflineAudioStats();
+  $("offlineAudioStatusText").textContent =
+    count > 0 ? `${count} آية محمّلة (${formatAudioSize(bytes)})` : "لا توجد صوتيات محمّلة";
+  $("offlineAudioClearBtn").disabled = count === 0;
+}
+
+function initOfflineAudio() {
+  if (typeof QuranAudioOffline === "undefined") return;
+
+  $("offlineAudioClearBtn").addEventListener("click", async () => {
+    await QuranAudioOffline.clearOfflineAudio();
+    showToast("تم مسح كل الصوتيات المحملة");
+    refreshOfflineAudioStatus();
+    if (typeof currentSurah === "number" && currentSurah && !$("surahReadView").classList.contains("hidden")) {
+      const surah = QuranData.getSurah(currentSurah);
+      if (surah) updateDownloadSurahBtn(surah.number, surah.ayahs.length);
+    }
+  });
+}
+
+initOfflineAudio();

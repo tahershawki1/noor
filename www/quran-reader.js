@@ -248,6 +248,7 @@ ayahContainerPinchEl.addEventListener(
 /* --------- نافذة الإعدادات --------- */
 function openSettings() {
   if (typeof refreshBackupStatus === "function") refreshBackupStatus();
+  if (typeof refreshOfflineAudioStatus === "function") refreshOfflineAudioStatus();
   $("settingsOverlay").classList.remove("hidden");
 }
 function closeSettingsModal() {
@@ -329,7 +330,59 @@ function renderSurah(surah) {
     }
     pendingAyahScroll = null;
   }
+
+  updateDownloadSurahBtn(surah.number, surah.ayahs.length);
 }
+
+/* --------- تنزيل السورة للاستماع دون إنترنت (QuranAudioOffline) --------- */
+async function updateDownloadSurahBtn(surahNumber, ayahCount) {
+  const btn = $("downloadSurahBtn");
+  if (typeof QuranAudioOffline === "undefined") {
+    btn.classList.add("hidden");
+    return;
+  }
+  btn.classList.remove("hidden", "downloading", "downloaded");
+  btn.dataset.surah = surahNumber;
+  btn.dataset.ayahCount = ayahCount;
+  const cached = await QuranAudioOffline.isSurahFullyCached(surahNumber, ayahCount);
+  btn.classList.toggle("downloaded", cached);
+  btn.innerHTML = cached ? icon("check") : icon("download");
+  const label = cached ? "السورة محمّلة للاستماع دون إنترنت" : "تنزيل السورة للاستماع دون إنترنت";
+  btn.setAttribute("aria-label", label);
+  btn.title = label;
+}
+
+$("downloadSurahBtn").addEventListener("click", async () => {
+  const btn = $("downloadSurahBtn");
+  if (btn.classList.contains("downloaded") || btn.classList.contains("downloading")) {
+    if (btn.classList.contains("downloaded")) showToast("السورة محمّلة بالفعل للاستماع دون إنترنت");
+    return;
+  }
+  const surahNumber = Number(btn.dataset.surah);
+  const ayahCount = Number(btn.dataset.ayahCount);
+  if (!surahNumber || !ayahCount) return;
+
+  btn.classList.add("downloading");
+  showToast("جارِ تنزيل السورة للاستماع دون إنترنت...");
+  try {
+    const { failed } = await QuranAudioOffline.downloadSurah(surahNumber, ayahCount, (done, total) => {
+      btn.setAttribute("aria-label", `جارِ التنزيل… ${done}/${total}`);
+    });
+    btn.classList.remove("downloading");
+    if (failed > 0) {
+      showToast(`تم التنزيل مع تعذّر ${failed} آية — تحقق من الاتصال وأعد المحاولة`);
+      updateDownloadSurahBtn(surahNumber, ayahCount);
+    } else {
+      btn.classList.add("downloaded");
+      btn.innerHTML = icon("check");
+      btn.setAttribute("aria-label", "السورة محمّلة للاستماع دون إنترنت");
+      showToast("تم تنزيل السورة للاستماع دون إنترنت");
+    }
+  } catch (e) {
+    btn.classList.remove("downloading");
+    showToast("تعذّر تنزيل السورة — تحقق من الاتصال بالإنترنت");
+  }
+});
 
 /* --------- متابعة القراءة — يُحفظ آخر موضع تلقائياً أثناء التصفح --------- */
 const LAST_READ_KEY = "quranLastRead";
@@ -515,9 +568,15 @@ function closeAyahDialog() {
   resetAyahListenBtn();
 }
 
+let currentAyahObjectUrl = null;
+
 function resetAyahListenBtn() {
   $("ayahListenBtn").innerHTML = `${icon("volume")} استماع إلى الآية`;
   $("ayahListenBtn").classList.remove("playing");
+  if (currentAyahObjectUrl) {
+    URL.revokeObjectURL(currentAyahObjectUrl);
+    currentAyahObjectUrl = null;
+  }
 }
 
 $("closeAyahDialog").addEventListener("click", closeAyahDialog);
@@ -525,7 +584,7 @@ $("ayahDialogOverlay").addEventListener("click", (e) => {
   if (e.target.id === "ayahDialogOverlay") closeAyahDialog();
 });
 
-$("ayahListenBtn").addEventListener("click", () => {
+$("ayahListenBtn").addEventListener("click", async () => {
   const audio = $("ayahAudioPlayer");
   if (!audio.paused) {
     audio.pause();
@@ -534,22 +593,35 @@ $("ayahListenBtn").addEventListener("click", () => {
   }
   const { surah, ayah } = currentDialogAyah;
 
-  // النص والتفسير يعملان دون إنترنت، أما التلاوة الصوتية فتُبَثّ من الشبكة
-  // (ملفات التلاوة كاملةً تتجاوز 200 ميجابايت، فلا تُرفق داخل التطبيق)
+  const playFrom = (src) => {
+    audio.src = src;
+    return audio.play().then(() => {
+      $("ayahListenBtn").innerHTML = `${icon("pause")} إيقاف الاستماع`;
+      $("ayahListenBtn").classList.add("playing");
+    });
+  };
+
+  // النص والتفسير يعملان دون إنترنت. التلاوة الافتراضية تُبَثّ من الشبكة
+  // (ملفات التلاوة كاملةً تتجاوز 200 ميجابايت، فلا تُرفق داخل التطبيق)، لكن
+  // لو المستخدم نزّل السورة مسبقاً للاستماع أوفلاين (QuranAudioOffline) نستخدمها.
   if (navigator.onLine === false) {
-    showToast("التلاوة الصوتية تحتاج اتصالاً بالإنترنت");
+    const localUrl =
+      typeof QuranAudioOffline !== "undefined"
+        ? await QuranAudioOffline.getCachedAyahObjectUrl(surah, ayah)
+        : null;
+    if (localUrl) {
+      currentAyahObjectUrl = localUrl;
+      playFrom(localUrl).catch(() => showToast("تعذر تشغيل التلاوة المحمّلة"));
+      return;
+    }
+    showToast("التلاوة الصوتية تحتاج اتصالاً بالإنترنت، أو نزّل السورة من زر التنزيل");
     return;
   }
 
   const fileName = `${String(surah).padStart(3, "0")}${String(ayah).padStart(3, "0")}.mp3`;
-  audio.src = `https://everyayah.com/data/Alafasy_128kbps/${fileName}`;
-  audio
-    .play()
-    .then(() => {
-      $("ayahListenBtn").innerHTML = `${icon("pause")} إيقاف الاستماع`;
-      $("ayahListenBtn").classList.add("playing");
-    })
-    .catch(() => showToast("تعذر تشغيل التلاوة — تحقق من الاتصال بالإنترنت"));
+  playFrom(`https://everyayah.com/data/Alafasy_128kbps/${fileName}`).catch(() =>
+    showToast("تعذر تشغيل التلاوة — تحقق من الاتصال بالإنترنت")
+  );
 });
 $("ayahAudioPlayer").addEventListener("ended", resetAyahListenBtn);
 

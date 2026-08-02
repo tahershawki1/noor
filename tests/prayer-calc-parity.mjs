@@ -142,7 +142,8 @@ public class Parity {
     { cwd: work, encoding: 'utf8' });
 
   fs.rmSync(work, { recursive: true, force: true });
-  return output.trim().split('\n');
+  // نزيل \r لأن Windows يُعيد أسطراً بـ CRLF فتفشل المقارنة كذباً رغم تطابق الأرقام
+  return output.trim().split('\n').map(line => line.replace(/\r$/, ''));
 }
 
 // ---------------------------------------------------------------------------

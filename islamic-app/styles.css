@@ -771,7 +771,7 @@ input[type="number"].search-input { text-align: center; }
   font-size: var(--quran-font-size);
   line-height: 2.7;
   color: var(--text);
-  text-align: right;
+  text-align: center;
 }
 .ayah-span {
   cursor: pointer;

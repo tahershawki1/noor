@@ -39,11 +39,31 @@ function copyRecursive(source, target) {
   }
 }
 
+/**
+ * يحذف من TARGET كل ملف أو مجلد غير موجود في SOURCE.
+ * يمنع تراكم ملفات قديمة (كـ ZIPs قديمة) لا تُحذف بالنسخ البسيط.
+ */
+function removeStale(source, target) {
+  if (!fs.existsSync(target)) return;
+  const targetEntries = fs.readdirSync(target, { withFileTypes: true });
+  for (const entry of targetEntries) {
+    const counterpart = path.join(source, entry.name);
+    if (!fs.existsSync(counterpart)) {
+      const full = path.join(target, entry.name);
+      fs.rmSync(full, { recursive: true, force: true });
+      console.log('  🗑 ' + path.relative(ROOT, full));
+    } else if (entry.isDirectory()) {
+      removeStale(counterpart, path.join(target, entry.name));
+    }
+  }
+}
+
 if (!fs.existsSync(SOURCE)) {
   console.error('لم يُعثر على مجلد المصدر: ' + SOURCE);
   process.exit(1);
 }
 
 console.log('نسخ islamic-app/ → www/');
+removeStale(SOURCE, TARGET);
 copyRecursive(SOURCE, TARGET);
 console.log('تم. شغّل الآن: npx cap sync android');

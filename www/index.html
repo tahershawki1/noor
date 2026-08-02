@@ -78,6 +78,9 @@
     </div>
 
     <div class="ab-actions">
+      <button class="ab-icon dl-trigger" id="downloadSurahBtn" aria-label="تنزيل السورة للاستماع دون إنترنت" title="تنزيل السورة للاستماع دون إنترنت">
+        <svg class="ic"><use href="#i-download"></use></svg>
+      </button>
       <button class="ab-icon as-trigger" id="autoScrollTrigger" aria-label="التمرير التلقائي" title="التمرير التلقائي">
         <svg class="ic"><use href="#i-autoscroll"></use></svg>
       </button>
@@ -595,6 +598,29 @@
           </p>
         </div>
 
+        <!-- الصوتيات المحملة للاستماع دون إنترنت -->
+        <div class="field hidden" id="offlineAudioField">
+          <label class="field-label">الصوتيات المحملة للاستماع دون إنترنت</label>
+          <div class="backup-status">
+            <span id="offlineAudioStatusText">لا توجد صوتيات محمّلة</span>
+          </div>
+          <div class="backup-actions">
+            <button class="btn btn-soft btn-sm" id="offlineAudioClearBtn" disabled>امسح كل الصوتيات المحملة</button>
+          </div>
+          <p class="field-hint">
+            نزّل أي سورة من زر التنزيل أعلى صفحة القراءة لتسمعها لاحقاً دون اتصال بالإنترنت.
+          </p>
+        </div>
+
+        <!-- إصدار واجهة الويب — مرئي دائماً في المتصفح -->
+        <div class="field" id="webVersionField">
+          <label class="field-label">إصدار واجهة الويب</label>
+          <div class="app-ver-row">
+            <span class="avr-label">الإصدار الحالي</span>
+            <span class="avr-value" id="webVersionLabelWeb">—</span>
+          </div>
+        </div>
+
         <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
         <div class="field hidden" id="appInfoField">
           <label class="field-label">عن التطبيق</label>
@@ -903,6 +929,7 @@
 <script src="app-updates.js"></script>
 
 <script src="quran-data.js"></script>
+<script src="quran-audio-offline.js"></script>
 <script src="prayer-times.js"></script>
 <script src="adhkar-data.js"></script>
 <script src="auto-scroll.js"></script>

@@ -213,6 +213,28 @@ function initAppUpdates() {
 initAppUpdates();
 
 /* ============================================================================
+ * إصدار واجهة الويب — يظهر دائماً في المتصفح، مخفي داخل التطبيق الأصلي
+ * ========================================================================== */
+(function initWebVersionDisplay() {
+  const field = $("webVersionField");
+  if (!field) return;
+  // داخل التطبيق الأصلي، appInfoField يعرض الإصدار بالفعل
+  if (typeof AppUpdates !== "undefined" && AppUpdates.isAvailable()) {
+    field.classList.add("hidden");
+    return;
+  }
+  fetch("version.json", { cache: "no-store" })
+    .then(r => r.json())
+    .then(manifest => {
+      const label = $("webVersionLabelWeb");
+      if (label && manifest && manifest.web && manifest.web.version) {
+        label.textContent = manifest.web.version;
+      }
+    })
+    .catch(() => {});
+})();
+
+/* ============================================================================
  * النسخة الاحتياطية
  * ============================================================================
  * تُحفظ تلقائياً (backup.js يتكفّل بذلك)، وهذا القسم للتحكّم اليدوي وعرض الحالة.
