@@ -482,7 +482,7 @@ $("ayahContainer").addEventListener(
   { passive: true }
 );
 
-/* --------- الحفظ بالضغط المطول (Long Press) --------- */
+/* --------- ضغطة قصيرة = معلومات سريعة، ضغطة طويلة = قائمة الإجراءات --------- */
 const LONG_PRESS_MS = 550;
 const MOVE_CANCEL_PX = 12;
 let pressTimer = null;
@@ -508,7 +508,8 @@ ayahContainerEl.addEventListener("pointerdown", (e) => {
   span.classList.add("pressing");
   pressTimer = setTimeout(() => {
     span.classList.remove("pressing");
-    handleAyahLongPress(span);
+    if (navigator.vibrate) navigator.vibrate(35);
+    openAyahDialog(span);
     pressTimer = null;
     pressSpan = null;
   }, LONG_PRESS_MS);
@@ -522,8 +523,8 @@ ayahContainerEl.addEventListener("pointermove", (e) => {
 });
 
 ayahContainerEl.addEventListener("pointerup", () => {
-  // إذا انتهت الضغطة قبل اكتمال المؤقّت (ولم تُلغَ بالسحب) فهي ضغطة قصيرة عادية
-  if (pressTimer && pressSpan) openAyahDialog(pressSpan);
+  // انتهت الضغطة قبل اكتمال مؤقّت الضغط الطويل (ولم تُلغَ بالسحب) = ضغطة قصيرة عادية
+  if (pressTimer && pressSpan) showAyahQuickInfo(pressSpan);
   clearPress();
 });
 ["pointercancel", "pointerleave"].forEach((evt) =>
@@ -534,13 +535,24 @@ ayahContainerEl.addEventListener("contextmenu", (e) => {
   if (e.target.closest(".ayah-span")) e.preventDefault();
 });
 
-function handleAyahLongPress(span) {
+/** ضغطة قصيرة: توست سفلي بموضع الآية — السورة/رقمها من إجمالي آيات السورة/الجزء/الحزب. */
+function showAyahQuickInfo(span) {
   const ayahNum = parseInt(span.dataset.ayah, 10);
-  toggleBookmark(currentSurah, ayahNum, currentSurahName, span);
-  if (navigator.vibrate) navigator.vibrate(35);
+  const meta = QuranData.getSurahMeta(currentSurah);
+  const total = meta ? meta.ayahs : "";
+  const juz = parseInt(span.dataset.juz, 10);
+  const globalQuarter = parseInt(span.dataset.hizbQuarter, 10);
+  const hizb = Math.ceil(globalQuarter / 4);
+  // موضع الآية داخل الحزب: البداية بلا كسر، وإلا ربع/نصف/ثلاثة أرباع كرمز صغير مضغوط
+  const quarterInHizb = ((globalQuarter - 1) % 4) + 1;
+  const fraction = ["", " ¼", " ½", " ¾"][quarterInHizb - 1];
+  const text =
+    `سورة ${currentSurahName} — آية ${toArabicNum(ayahNum)} من ${toArabicNum(total)} ` +
+    `• الجزء ${toArabicNum(juz)} • الحزب ${toArabicNum(hizb)}${fraction}`;
+  showToast(text, { wide: true, duration: 3800 });
 }
 
-/* --------- نافذة خيارات الآية: استماع + تفسير --------- */
+/* --------- قائمة إجراءات الآية (ضغطة طويلة) --------- */
 let currentDialogAyah = null;
 
 function openAyahDialog(span) {
@@ -549,7 +561,6 @@ function openAyahDialog(span) {
   $("ayahDialogTitle").textContent = `${currentSurahName} — الآية ${toArabicNum(ayahNum)}`;
   $("ayahTafsirBox").classList.add("hidden");
   $("ayahTafsirBox").innerHTML = "";
-  resetAyahListenBtn();
   updateFavoriteBtnLabel();
   $("ayahDialogOverlay").classList.remove("hidden");
 }
@@ -557,26 +568,13 @@ function openAyahDialog(span) {
 function updateFavoriteBtnLabel() {
   const isSaved = currentDialogAyah.span.classList.contains("bookmarked");
   $("ayahFavoriteBtn").innerHTML = isSaved
-    ? `${icon("check")} محفوظة — إزالة`
-    : `${icon("bookmark")} إضافة إلى المحفوظات`;
+    ? `${icon("check")} علامة موضوعة — إزالة`
+    : `${icon("bookmark")} علامة توقف القراءة`;
   $("ayahFavoriteBtn").classList.toggle("favorited", isSaved);
 }
 
 function closeAyahDialog() {
   $("ayahDialogOverlay").classList.add("hidden");
-  $("ayahAudioPlayer").pause();
-  resetAyahListenBtn();
-}
-
-let currentAyahObjectUrl = null;
-
-function resetAyahListenBtn() {
-  $("ayahListenBtn").innerHTML = `${icon("volume")} استماع إلى الآية`;
-  $("ayahListenBtn").classList.remove("playing");
-  if (currentAyahObjectUrl) {
-    URL.revokeObjectURL(currentAyahObjectUrl);
-    currentAyahObjectUrl = null;
-  }
 }
 
 $("closeAyahDialog").addEventListener("click", closeAyahDialog);
@@ -584,46 +582,155 @@ $("ayahDialogOverlay").addEventListener("click", (e) => {
   if (e.target.id === "ayahDialogOverlay") closeAyahDialog();
 });
 
-$("ayahListenBtn").addEventListener("click", async () => {
-  const audio = $("ayahAudioPlayer");
-  if (!audio.paused) {
-    audio.pause();
-    resetAyahListenBtn();
-    return;
+/* --------- مشغّل تلاوة متسلسل — يخدم الأزرار الثلاثة: آية / سورة / صفحة --------- */
+let playQueue = [];
+let playIndex = -1;
+let playLabel = "";
+let playHighlightSpan = null;
+let lastAyahObjectUrl = null; // آخر blob URL أُنشئ لآية مخزَّنة محلياً — يُحرَّر عند تبديله
+
+function releaseLastAyahObjectUrl() {
+  if (lastAyahObjectUrl) {
+    URL.revokeObjectURL(lastAyahObjectUrl);
+    lastAyahObjectUrl = null;
   }
-  const { surah, ayah } = currentDialogAyah;
+}
 
-  const playFrom = (src) => {
-    audio.src = src;
-    return audio.play().then(() => {
-      $("ayahListenBtn").innerHTML = `${icon("pause")} إيقاف الاستماع`;
-      $("ayahListenBtn").classList.add("playing");
-    });
-  };
-
-  // النص والتفسير يعملان دون إنترنت. التلاوة الافتراضية تُبَثّ من الشبكة
-  // (ملفات التلاوة كاملةً تتجاوز 200 ميجابايت، فلا تُرفق داخل التطبيق)، لكن
-  // لو المستخدم نزّل السورة مسبقاً للاستماع أوفلاين (QuranAudioOffline) نستخدمها.
-  if (navigator.onLine === false) {
-    const localUrl =
-      typeof QuranAudioOffline !== "undefined"
-        ? await QuranAudioOffline.getCachedAyahObjectUrl(surah, ayah)
-        : null;
-    if (localUrl) {
-      currentAyahObjectUrl = localUrl;
-      playFrom(localUrl).catch(() => showToast("تعذر تشغيل التلاوة المحمّلة"));
-      return;
-    }
-    showToast("التلاوة الصوتية تحتاج اتصالاً بالإنترنت، أو نزّل السورة من زر التنزيل");
-    return;
+/** يفضّل النسخة المحلية المُنزَّلة (QuranAudioOffline) إن وُجدت، ثم يبثّ أونلاين. */
+function resolveAyahAudioUrl(surah, ayah) {
+  const streamUrl = () =>
+    `https://everyayah.com/data/Alafasy_128kbps/${String(surah).padStart(3, "0")}${String(ayah).padStart(3, "0")}.mp3`;
+  if (typeof QuranAudioOffline === "undefined") {
+    return Promise.resolve(navigator.onLine === false ? null : streamUrl());
   }
-
-  const fileName = `${String(surah).padStart(3, "0")}${String(ayah).padStart(3, "0")}.mp3`;
-  playFrom(`https://everyayah.com/data/Alafasy_128kbps/${fileName}`).catch(() =>
-    showToast("تعذر تشغيل التلاوة — تحقق من الاتصال بالإنترنت")
+  return QuranAudioOffline.getCachedAyahObjectUrl(surah, ayah).then(
+    (cached) => cached || (navigator.onLine === false ? null : streamUrl())
   );
+}
+
+function highlightPlayingAyah(item) {
+  if (playHighlightSpan) playHighlightSpan.classList.remove("highlighted");
+  playHighlightSpan = null;
+  if (item.surah !== currentSurah) return; // آية من سورة مجاورة غير معروضة حالياً (تشغيل صفحة يمتد بين سورتين)
+  const span = $(`ayah-${item.ayahNumberInSurah}`);
+  if (!span) return;
+  span.classList.add("highlighted");
+  span.scrollIntoView({ behavior: "smooth", block: "center" });
+  playHighlightSpan = span;
+}
+
+function updateQueuePlayerBar() {
+  $("qpLabel").textContent =
+    playQueue.length > 1
+      ? `${playLabel} — ${toArabicNum(playIndex + 1)}/${toArabicNum(playQueue.length)}`
+      : playLabel;
+}
+
+function showQueuePlayerBar() {
+  $("queuePlayerBar").classList.remove("hidden");
+  const use = $("qpToggle").querySelector("use");
+  if (use) use.setAttribute("href", "#i-pause");
+}
+
+function stopAyahQueue() {
+  const wasPlaying = playQueue.length > 0;
+  playQueue = [];
+  playIndex = -1;
+  $("ayahAudioPlayer").pause();
+  releaseLastAyahObjectUrl();
+  if (playHighlightSpan) {
+    playHighlightSpan.classList.remove("highlighted");
+    playHighlightSpan = null;
+  }
+  if (wasPlaying) $("queuePlayerBar").classList.add("hidden");
+}
+
+async function playQueueStep() {
+  if (playIndex < 0 || playIndex >= playQueue.length) {
+    stopAyahQueue();
+    return;
+  }
+  const item = playQueue[playIndex];
+  const stepQueueRef = playQueue; // للتأكد إن التشغيل لم يُوقَف أثناء انتظار resolveAyahAudioUrl
+  updateQueuePlayerBar();
+  highlightPlayingAyah(item);
+  const url = await resolveAyahAudioUrl(item.surah, item.ayahNumberInSurah);
+  if (stepQueueRef !== playQueue) return; // أُوقِفت القائمة أثناء الانتظار
+  if (!url) {
+    showToast("تعذّر تشغيل بعض الآيات — تحقق من الاتصال بالإنترنت");
+    playIndex++;
+    playQueueStep();
+    return;
+  }
+  releaseLastAyahObjectUrl();
+  if (url.startsWith("blob:")) lastAyahObjectUrl = url;
+  const audio = $("ayahAudioPlayer");
+  audio.src = url;
+  audio.play().catch(() => {
+    playIndex++;
+    playQueueStep();
+  });
+}
+
+function startAyahQueue(queue, label) {
+  stopAyahQueue();
+  if (!queue.length) {
+    showToast("تعذّر تجهيز قائمة التشغيل");
+    return;
+  }
+  if (typeof AutoScroll !== "undefined") AutoScroll.hide();
+  playQueue = queue;
+  playIndex = 0;
+  playLabel = label;
+  showQueuePlayerBar();
+  playQueueStep();
+}
+
+$("ayahAudioPlayer").addEventListener("ended", () => {
+  if (!playQueue.length) return;
+  playIndex++;
+  playQueueStep();
 });
-$("ayahAudioPlayer").addEventListener("ended", resetAyahListenBtn);
+
+$("qpToggle").addEventListener("click", () => {
+  const audio = $("ayahAudioPlayer");
+  const use = $("qpToggle").querySelector("use");
+  if (audio.paused) {
+    audio.play();
+    if (use) use.setAttribute("href", "#i-pause");
+  } else {
+    audio.pause();
+    if (use) use.setAttribute("href", "#i-play");
+  }
+});
+$("qpClose").addEventListener("click", stopAyahQueue);
+
+$("ayahListenBtn").addEventListener("click", () => {
+  const { surah, ayah } = currentDialogAyah;
+  closeAyahDialog();
+  startAyahQueue([{ surah, ayahNumberInSurah: ayah }], `آية ${toArabicNum(ayah)}`);
+});
+
+$("ayahListenSurahBtn").addEventListener("click", () => {
+  const { surah } = currentDialogAyah;
+  closeAyahDialog();
+  const meta = QuranData.getSurahMeta(surah);
+  if (!meta) return;
+  const queue = [];
+  for (let i = 1; i <= meta.ayahs; i++) queue.push({ surah, ayahNumberInSurah: i });
+  startAyahQueue(queue, meta.name);
+});
+
+$("ayahListenPageBtn").addEventListener("click", () => {
+  const { span } = currentDialogAyah;
+  const page = parseInt(span.dataset.page, 10);
+  closeAyahDialog();
+  const queue = QuranData.getAyahsOnPage(page).map((a) => ({
+    surah: a.surah,
+    ayahNumberInSurah: a.ayahNumberInSurah,
+  }));
+  startAyahQueue(queue, `صفحة ${toArabicNum(page)}`);
+});
 
 $("ayahFavoriteBtn").addEventListener("click", () => {
   const { surah, ayah, span } = currentDialogAyah;
@@ -650,6 +757,7 @@ $("ayahTafsirBtn").addEventListener("click", async () => {
 
 function goBackToSurahList() {
   if (typeof AutoScroll !== "undefined") AutoScroll.hide();
+  stopAyahQueue();
   $("surahReadView").classList.add("hidden");
   hideKhatmaWidget();
   if (readerReturnTab === "quran") {

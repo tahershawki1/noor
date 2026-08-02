@@ -166,6 +166,38 @@
       return { number: number, name: meta.name, type: meta.type, ayahs: ayahs };
     },
 
+    /**
+     * كل آيات صفحة مصحف واحدة، بترتيبها — قد تمتد الصفحة عبر أكثر من سورة.
+     * [{ surah, surahName, ayahNumberInSurah, text }]
+     */
+    getAyahsOnPage: function (pageNumber) {
+      if (!cache.meta || !cache.text) return [];
+      var firstId = this.firstAyahOfPage(pageNumber);
+      var lastId = pageNumber < cache.meta.pageStarts.length
+        ? this.firstAyahOfPage(pageNumber + 1) - 1
+        : 6236; // آخر آية عالمياً في المصحف كله
+      var surahs = cache.meta.surahs;
+      var result = [];
+      for (var s = 0; s < surahs.length; s++) {
+        var surahFirst = surahs[s].first;
+        var surahLast = (s + 1 < surahs.length ? surahs[s + 1].first : surahFirst + surahs[s].ayahs) - 1;
+        var from = Math.max(firstId, surahFirst);
+        var to = Math.min(lastId, surahLast);
+        if (from > to) continue;
+        var texts = cache.text[s];
+        for (var id = from; id <= to; id++) {
+          var ayahNumber = id - surahFirst + 1;
+          result.push({
+            surah: s + 1,
+            surahName: surahs[s].name,
+            ayahNumberInSurah: ayahNumber,
+            text: texts[ayahNumber - 1],
+          });
+        }
+      }
+      return result;
+    },
+
     /** تفسير الميسر لآية — يتطلب loadTafsir() مسبقاً. */
     getTafsir: function (surahNumber, ayahNumber) {
       if (!cache.tafsir) {

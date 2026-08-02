@@ -847,16 +847,33 @@
           <button id="ayahListenBtn" class="btn btn-primary btn-block">
             <svg class="ic"><use href="#i-volume"></use></svg> استماع إلى الآية
           </button>
-          <button id="ayahTafsirBtn" class="btn btn-soft btn-block">
-            <svg class="ic"><use href="#i-book-text"></use></svg> تفسير الآية
+          <button id="ayahListenSurahBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-volume"></use></svg> استماع إلى السورة
+          </button>
+          <button id="ayahListenPageBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-volume"></use></svg> استماع إلى الصفحة كاملة
           </button>
           <button id="ayahFavoriteBtn" class="btn btn-soft btn-block">
-            <svg class="ic"><use href="#i-bookmark"></use></svg> إضافة إلى المحفوظات
+            <svg class="ic"><use href="#i-bookmark"></use></svg> علامة توقف القراءة
+          </button>
+          <button id="ayahTafsirBtn" class="btn btn-soft btn-block">
+            <svg class="ic"><use href="#i-book-text"></use></svg> تفسير الآية
           </button>
         </div>
         <div id="ayahTafsirBox" class="tafsir-box hidden"></div>
       </div>
     </div>
+  </div>
+
+  <!-- شريط تشغيل التلاوة المتسلسل (آية/سورة/صفحة) -->
+  <div id="queuePlayerBar" class="auto-scroll-bar queue-player-bar hidden">
+    <button class="as-btn as-toggle-btn" id="qpToggle" aria-label="إيقاف مؤقت">
+      <svg class="ic"><use href="#i-pause"></use></svg>
+    </button>
+    <span class="qp-label" id="qpLabel"></span>
+    <button class="as-btn as-close-btn" id="qpClose" aria-label="إيقاف التشغيل">
+      <svg class="ic"><use href="#i-close"></use></svg>
+    </button>
   </div>
 
 

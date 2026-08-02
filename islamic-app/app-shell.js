@@ -105,12 +105,13 @@ $("backBtn").addEventListener("click", () => {
   navigateBack();
 });
 
-function showToast(msg) {
+function showToast(msg, opts) {
   const t = $("toast");
   t.textContent = msg;
+  t.classList.toggle("toast-wide", !!(opts && opts.wide));
   t.classList.remove("hidden");
   clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.add("hidden"), 2200);
+  t._timer = setTimeout(() => t.classList.add("hidden"), (opts && opts.duration) || 2200);
 }
 
 /* ---------------- التاريخ الهجري ---------------- */

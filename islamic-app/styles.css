@@ -1388,6 +1388,15 @@ input[type="number"].search-input { text-align: center; }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
+/* توست معلومات الآية (سورة/جزء/حزب) — نص أطول فلا يُقصّ بالنقاط */
+.toast.toast-wide {
+  white-space: normal;
+  max-width: 92%;
+  text-align: center;
+  line-height: 1.6;
+  padding: 12px 20px;
+}
+
 /* ---------------- 19. أوضاع خاصة ---------------- */
 /* وضع القراءة — إخفاء شريط التنقل لتجربة غامرة */
 .app-shell.reading .tab-bar {
@@ -2143,6 +2152,11 @@ input[type="number"].search-input { text-align: center; }
   animation: asBarIn 0.25s var(--ease);
 }
 .auto-scroll-bar.hidden { display: none; }
+
+/* شريط تشغيل التلاوة المتسلسل (آية/سورة/صفحة) — نفس هيئة شريط التمرير
+   التلقائي، فوقه بمسافة حتى لا يتداخلا لو ظهرا معاً. */
+.queue-player-bar { bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); }
+.qp-label { font-size: 0.78rem; font-weight: 600; padding: 0 4px; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 @keyframes asBarIn {
   from { opacity: 0; transform: translateX(-50%) translateY(12px); }
