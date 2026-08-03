@@ -12,6 +12,17 @@
     android:layoutDirection="rtl"
     android:background="@drawable/widget_bg_hero">
 
+    <!-- شريط التقدّم الرفيع أعلى الودجت — مقابل #adhanTimeBar في التطبيق -->
+    <ProgressBar
+        android:id="@+id/widget_progress_top"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:layout_gravity="top"
+        android:max="100"
+        android:progress="0"
+        android:progressDrawable="@drawable/widget_progress_top" />
+
     <Chronometer
         android:id="@+id/widget_countdown"
         android:layout_width="wrap_content"

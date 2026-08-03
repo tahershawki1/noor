@@ -107,6 +107,7 @@ public final class PrayerWidgetRenderer {
         views.setViewVisibility(R.id.widget_empty, View.VISIBLE);
         views.setViewVisibility(R.id.widget_countdown, View.GONE);
         views.setViewVisibility(R.id.widget_countdown_done, View.GONE);
+        views.setViewVisibility(R.id.widget_progress_top, View.GONE);
         if (large) {
             views.setViewVisibility(R.id.widget_content, View.GONE);
         }
@@ -129,7 +130,9 @@ public final class PrayerWidgetRenderer {
         views.setTextViewText(R.id.widget_prayer_name, PRAYER_AR[nextIndex]);
 
         bindCountdown(views, snapshot, now);
-        views.setProgressBar(R.id.widget_progress, 100, snapshot.progressPercent(now), false);
+        int pct = snapshot.progressPercent(now);
+        views.setProgressBar(R.id.widget_progress, 100, pct, false);
+        views.setProgressBar(R.id.widget_progress_top, 100, pct, false);
 
         // شريط أوقات اليوم الستة — نفس ترتيب ‎.prayer-strip في التطبيق
         for (int i = 0; i < PrayerTimesCalculator.ALL.length; i++) {
@@ -179,6 +182,7 @@ public final class PrayerWidgetRenderer {
     ) {
         views.setViewVisibility(R.id.widget_empty, View.GONE);
         bindCountdown(views, snapshot, now);
+        views.setProgressBar(R.id.widget_progress_top, 100, snapshot.progressPercent(now), false);
 
         // العدّاد وحده هو كل محتوى هذا الودجت، فيأخذ أكبر خط يتّسع له الإطار:
         // محكوم بالارتفاع من جهة، وبعرض ثماني خانات (0:00:00) من جهة أخرى.
