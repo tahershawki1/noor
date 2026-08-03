@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    شريط التقدّم الرفيع أعلى الودجت — يُطابق #adhanTimeBar في التطبيق.
+    التعبئة تدرّج من الأخضر (يسار) إلى الأحمر (يمين): كلّما امتدّ الشريط
+    يميناً كلّما اقترب وقت الصلاة، وهو ما يُعبّر عنه لون الحافة المتقدّمة.
+    الخلفية شفافة تماماً حتى لا يظهر مسار فارغ.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@android:id/background">
+        <shape android:shape="rectangle">
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+    <item android:id="@android:id/progress">
+        <clip android:clipOrientation="horizontal" android:gravity="left">
+            <shape android:shape="rectangle">
+                <gradient
+                    android:angle="0"
+                    android:startColor="#FF34C77B"
+                    android:endColor="#FFE53E3E"
+                    android:type="linear" />
+            </shape>
+        </clip>
+    </item>
+</layer-list>
