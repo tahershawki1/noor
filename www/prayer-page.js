@@ -281,15 +281,25 @@ function renderPrayerRowsAndCountdown(timings, tune) {
     }
   }
 
+  const todayKey = NoorStats.todayKey();
   $("prayerTimesList").innerHTML = PRAYER_ORDER_ALL.map((p) => {
     const info = PRAYER_NAMES[p];
     const isNext = next && next.name === p;
     const offset = tune[p] || 0;
     const tuneBadge = offset !== 0 ? `<span class="prayer-tune-badge">${offset > 0 ? "+" : ""}${offset}د</span>` : "";
+
+    // زر "صلّيتها" لصلوات الفرض فقط (لا الشروق)، ومُفعَّل فقط بعد دخول وقتها فعلاً
+    const isMain = PRAYER_ORDER_MAIN.includes(p);
+    const passed = isMain && todaysTimes.find((t) => t.name === p && t.time <= now);
+    const marked = isMain && NoorStats.isPrayerMarked(todayKey, p);
+    const markBtn = isMain
+      ? `<button class="prayer-mark-btn ${marked ? "done" : ""}" ${passed ? "" : "disabled"} onclick="togglePrayerMark(this, '${p}')" aria-label="صلّيتها">${icon("check")}</button>`
+      : "";
+
     return `
       <div class="prayer-row ${isNext ? "current" : ""}">
         <span class="prayer-name">${isNext ? '<span class="current-badge">التالية</span>' : ""}${info.icon} ${info.ar}</span>
-        <span class="prayer-time-wrap">${tuneBadge}<span class="prayer-time">${formatTime12(timings[p])}</span></span>
+        <span class="prayer-time-wrap">${tuneBadge}<span class="prayer-time">${formatTime12(timings[p])}</span>${markBtn}</span>
       </div>`;
   }).join("");
 
@@ -358,6 +368,13 @@ function formatTime12(hhmm) {
   const period = h >= 12 ? "م" : "ص";
   const h12 = h % 12 || 12;
   return `${h12}:${String(m).padStart(2, "0")} ${period}`;
+}
+
+/** يبدّل تحديد "صلّيتها" مباشرةً على الزر دون إعادة رسم القائمة كاملة. */
+function togglePrayerMark(btn, prayerName) {
+  const nowMarked = NoorStats.togglePrayer(NoorStats.todayKey(), prayerName);
+  btn.classList.toggle("done", nowMarked);
+  if (navigator.vibrate) navigator.vibrate(15);
 }
 
 /* --------- إعدادات الحساب والتصحيح --------- */

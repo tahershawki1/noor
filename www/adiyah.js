@@ -102,5 +102,6 @@ function renderAdiyah() {
       <div class="dua-title">${dua.icon} ${dua.title}</div>
       <div class="dua-text" dir="rtl">${dua.text}</div>
       <div class="dua-source">📚 ${dua.source}</div>
+      <button class="chip-btn ghost dua-read-btn" onclick="NoorStats.record('adiyah')">${icon("check")} قرأتها</button>
     </div>`).join("");
 }

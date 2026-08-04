@@ -158,6 +158,10 @@
             <span class="qt-icon tone-gold"><svg class="ic"><use href="#i-khatma"></use></svg></span>
             <span class="qt-name" style="font-size:0.82rem;">ختمة القرآن الكريم</span>
           </button>
+          <button class="quick-tile" onclick="navigateTo('dashboard')" style="grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; gap: 12px; padding: 14px 16px;">
+            <span class="qt-icon tone-jade"><svg class="ic"><use href="#i-star"></use></svg></span>
+            <span class="qt-name" style="font-size:0.82rem;">لوحة الإحصائيات</span>
+          </button>
         </div>
       </section>
 
@@ -254,6 +258,24 @@
           </div>
           <div id="khatmaList" class="khatma-list"></div>
         </div>
+      </section>
+
+      <!-- ======== قسم لوحة الإحصائيات ======== -->
+      <section id="dashboard" class="tab-panel">
+        <p class="page-note">تتبّع عبادتك اليومية — كل الأرقام محسوبة من استخدامك الفعلي، وتبقى على جهازك فقط</p>
+
+        <div class="dash-stat-grid" id="dashboardStatGrid"></div>
+
+        <div class="card dash-streak-card" id="dashboardStreak"></div>
+
+        <div class="sec-head"><h2>نشاط آخر ٧ أيام</h2></div>
+        <div class="card dash-chart-card" id="dashboardWeeklyChart"></div>
+
+        <div class="sec-head"><h2>تقرير أسبوعي</h2></div>
+        <div class="card dash-report-card" id="dashboardWeeklyReport"></div>
+
+        <div class="sec-head"><h2>تقرير شهري</h2></div>
+        <div class="card dash-report-card" id="dashboardMonthlyReport"></div>
       </section>
 
       <!-- ======== قسم الأدعية ======== -->
@@ -956,6 +978,7 @@
 <script src="prayer-times.js"></script>
 <script src="adhkar-data.js"></script>
 <script src="auto-scroll.js"></script>
+<script src="stats.js"></script>
 
 <!-- صفحات التطبيق — ملف مستقل لكل صفحة (كان app.js واحداً يجمعها كلها).
      الترتيب مهم: app-shell.js أولاً (يعرّف $/icon/navigateTo التي تعتمد
@@ -969,6 +992,7 @@
 <script src="adhan-page.js"></script>
 <script src="settings-ui.js"></script>
 <script src="khatma.js"></script>
+<script src="dashboard.js"></script>
 
 <!-- تنظيف: أزيل sw.js نهائياً (كان يتعارض مع live-updates.js/app-updates.js).
      الأجهزة التي سبق أن سجّلته يبقى تسجيله فعّالاً عندها حتى لو توقفنا عن

@@ -57,6 +57,7 @@ No sycophancy. No restating the question. No sign-offs.
 | `adhan-page.js` | صفحة الأذان + إقلاع التطبيق (`loadSurahList()`... `navigateTo("home")` في آخره) |
 | `settings-ui.js` | واجهة الإعدادات: شريط تحديث الـ APK، النسخة الاحتياطية، تدفّق إعادة التثبيت — فوق `app-updates.js`/`backup.js` |
 | `khatma.js` | ختمة القرآن |
+| `dashboard.js` | لوحة الإحصائيات — طبقة عرض فقط فوق `stats.js` |
 
 ملفات مساندة (ليست صفحات): `quran-data.js` (بيانات القرآن)، `quran-audio-offline.js`
 (تنزيل/تخزين مؤقت للتلاوة عبر Cache API — نسخة Opus مستضافة في
@@ -67,7 +68,9 @@ No sycophancy. No restating the question. No sign-offs.
 `vendor/mediapipe/` وتُجهَّز بـ `scripts/build-mediapipe-assets.mjs`)،
 `live-updates.js`/`app-updates.js` (التحديث الذاتي)، `backup.js` (منطق
 النسخة الاحتياطية)، `floating-widget.js`/`prayer-widget.js` (SDK الزر
-العائم/الودجت).
+العائم/الودجت)، `stats.js` (سجل الإحصائيات المحلي: مجاميع كلية + سجل يومي
+مُقلَّم — يسجّل فيه `adhkar.js`/`quran-reader.js`/`adiyah.js`/`prayer-page.js`
+أحداثاً حقيقية، يقرأ منه `dashboard.js` فقط).
 
 ## الاختبارات قبل الدفع
 

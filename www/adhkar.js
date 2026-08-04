@@ -139,6 +139,7 @@ function tickDhikr(btn) {
   if (remaining <= 0) return;
   remaining -= 1;
   btn.dataset.remaining = remaining;
+  NoorStats.record("dhikr");
   if (remaining === 0) {
     btn.textContent = "✓ تم";
     btn.classList.add("done");
@@ -212,6 +213,7 @@ $("tasbeehBtn").addEventListener("click", () => {
   tasbeehCount += 1;
   $("tasbeehCount").textContent = tasbeehCount;
   localStorage.setItem("tasbeehCount", tasbeehCount);
+  NoorStats.record("tasbeeh");
   if (navigator.vibrate) navigator.vibrate(15);
 });
 $("tasbeehReset").addEventListener("click", () => {

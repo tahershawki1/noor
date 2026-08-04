@@ -132,6 +132,10 @@ watchSearchInput($("surahSearch"), (value) => {
 });
 
 async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
+  // يُحسب دخولاً جديداً لوضع القراءة فقط لو كنا خارجه فعلاً — يمنع تضخيم
+  // العدّاد عند الانتقال بين السور المتجاورة أثناء نفس جلسة القراءة
+  // (goToAdjacentSurah يستدعي openSurah أيضاً وقارئ السورة يبقى ظاهراً).
+  const enteringReader = $("surahReadView").classList.contains("hidden");
   currentSurah = number;
   pendingAyahScroll = ayahToHighlight;
   $("surahListView").classList.add("hidden");
@@ -140,6 +144,7 @@ async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   $("ayahContainer").scrollTop = 0;
   _acquireQuranWakeLock();
   enterReaderHeaderMode();
+  if (enteringReader) NoorStats.record("quranSessions");
 
   try {
     await QuranData.loadMeta();
@@ -487,6 +492,7 @@ function updateReaderProgress() {
   if (currentSurah) {
     saveLastRead(currentSurah, parseInt(current.dataset.ayah, 10), currentSurahName);
   }
+  NoorStats.recordQuranPage(page);
   // ملاحظة: activeKhatmaId/updateKhatmaPageProgress معرَّفان في khatma.js
   // (يُحمَّل بعد هذا الملف) — آمن لأن الاستدعاء الفعلي يحدث وقت التمرير
   // بعد اكتمال تحميل كل السكربتات، لا وقت تحميل هذا الملف نفسه.

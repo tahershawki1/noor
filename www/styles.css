@@ -1087,6 +1087,23 @@ input[type="number"].search-input { text-align: center; }
   border-radius: var(--r-pill);
 }
 
+/* زر "صلّيتها" — يُفعَّل فقط بعد دخول وقت الصلاة، يغذّي لوحة الإحصائيات */
+.prayer-mark-btn {
+  display: grid;
+  place-items: center;
+  width: 30px; height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: transform 0.12s, background 0.2s, color 0.2s, border-color 0.2s;
+}
+.prayer-mark-btn .ic { width: 15px; height: 15px; }
+.prayer-mark-btn:active { transform: scale(0.9); }
+.prayer-mark-btn:disabled { opacity: 0.3; }
+.prayer-mark-btn.done { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+
 .loc-card { padding: 16px; }
 .city-form { display: grid; gap: 8px; }
 
@@ -1166,6 +1183,7 @@ input[type="number"].search-input { text-align: center; }
   border-top: 1px solid var(--border);
   padding-top: 10px;
 }
+.dua-read-btn { margin-top: 12px; width: 100%; justify-content: center; }
 
 /* ---------------- 16. صفحة الأذان ---------------- */
 .player-card { padding: 18px; }
@@ -2345,3 +2363,62 @@ input[type="number"].search-input { text-align: center; }
   pointer-events: none;
 }
 .as-gaze-hint.hidden { display: none; }
+
+/* ---------------- 27. لوحة الإحصائيات ---------------- */
+.tone-jade { background: linear-gradient(140deg, #2FD199, #0D7A5A); box-shadow: 0 6px 16px -8px rgba(47, 209, 153, 0.7); }
+
+.dash-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.dash-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 16px 8px;
+  box-shadow: var(--shadow-1);
+}
+.dash-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  color: #fff;
+}
+.dash-stat-icon .ic { width: 18px; height: 18px; stroke-width: 1.8; }
+.dash-stat-value { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dash-stat-label { font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.3; }
+
+.dash-streak-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+.dash-streak-current { display: flex; align-items: baseline; gap: 8px; }
+.dash-streak-num { font-size: 2rem; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+.dash-streak-label { font-size: 0.8rem; color: var(--text-2); font-weight: 700; }
+.dash-streak-best { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+
+.dash-chart-card { padding: 14px 10px 6px; }
+.dash-chart-svg { width: 100%; height: auto; overflow: visible; display: block; }
+.dash-bar { fill: var(--brand); }
+.dash-chart-label { font-size: 8px; fill: var(--muted); font-family: var(--font-ui); }
+
+.dash-report-card { padding: 2px 18px; }
+.dash-report-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+.dash-report-row:not(:last-child) { border-bottom: 1px solid var(--border); }
+.dash-report-row strong { color: var(--text); font-variant-numeric: tabular-nums; }

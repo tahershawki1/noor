@@ -60,6 +60,7 @@ const SECTION_TITLES = {
   bookmarks: "المحفوظات",
   adiyah: "الأدعية",
   khatma: "ختمة القرآن",
+  dashboard: "لوحة الإحصائيات",
   settings: "الإعدادات",
 };
 let currentTab = "home";
@@ -95,6 +96,7 @@ function navigateTo(tab, options = {}) {
   if (tab === "adiyah") renderAdiyah();
   if (tab === "prayer") ensurePrayerTimesFresh();
   if (tab === "khatma") renderKhatmaSection();
+  if (tab === "dashboard") renderDashboard();
 
   document.querySelectorAll(".nav-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);
