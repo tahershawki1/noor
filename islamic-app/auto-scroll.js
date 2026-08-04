@@ -150,6 +150,15 @@
   }
 
   /* ─── إظهار / إخفاء الشريط ─── */
+  // الشريط عائم (position: fixed) فوق ayahContainer — بدون حجز مساحة له
+  // كان يغطّي آخر سطر معروض من السورة عند الوصول لنهايتها. نقيس ارتفاعه
+  // الفعلي (بنفس أسلوب khatma.js مع --khatma-bar-h) ونحجزه كـ padding سفلي.
+  function reserveBarSpace() {
+    var bar = document.getElementById('autoScrollBar');
+    var h = (bar && !bar.classList.contains('hidden')) ? bar.offsetHeight : 0;
+    document.documentElement.style.setProperty('--as-bar-h', h ? (h + 14) + 'px' : '0px');
+  }
+
   function showBar() {
     var bar = document.getElementById('autoScrollBar');
     if (!bar) return;
@@ -160,6 +169,7 @@
     syncUI();
     syncSpeed();
     _play();
+    requestAnimationFrame(reserveBarSpace);
   }
 
   function hideBar() {
@@ -172,6 +182,7 @@
     // إعادة ضبط زر النظرة
     var gazeBtn = document.getElementById('asGaze');
     if (gazeBtn) gazeBtn.classList.remove('as-gaze-on');
+    reserveBarSpace();
   }
 
   /* ─── مراقبة النظرة بالكاميرا (MediaPipe Face Detector) ─── */

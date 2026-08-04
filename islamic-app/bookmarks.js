@@ -75,7 +75,11 @@ function renderBookmarks() {
 }
 
 function goToBookmark(surahNum, ayahNum) {
-  document.querySelector('.nav-btn[data-tab="quran"]').click();
+  // navigateTo("quran") مباشرة، لا نقر زر التنقل — النقر يمرّ options.resume،
+  // فيُطلق resumeReading() بالتوازي مع openSurah هنا، وكلاهما async يكتب
+  // نفس الحالة العامة (currentSurah وHTML الحاوية)، فأيّهما ينتهي أخيراً
+  // "يفوز" ويهبط القارئ في مكان مختلف عن الآية المطلوبة.
+  navigateTo("quran");
   openSurah(surahNum, ayahNum);
 }
 
