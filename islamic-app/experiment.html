@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>تجربة — مصحف نور</title>
+<link rel="stylesheet" href="experiment.css">
+</head>
+<body>
+
+<header class="exp-topbar">
+  <h1>تجربة قراءة المصحف</h1>
+  <div class="mode-switch" role="tablist">
+    <button id="modeScroll" class="mode-btn is-active" type="button" role="tab" aria-selected="true">مصحف متصل</button>
+    <button id="modePages" class="mode-btn" type="button" role="tab" aria-selected="false">تقليب صفحات</button>
+  </div>
+</header>
+
+<main id="scrollView" class="mushaf-scroll">
+  <div class="loading">جارٍ تحميل المصحف…</div>
+</main>
+
+<main id="pagesView" class="mushaf-pages" hidden>
+  <div class="page-frame">
+    <div id="pageContent" class="page-content">
+      <div class="loading">جارٍ تحميل الصفحة…</div>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button id="nextPage" class="nav-btn" type="button" aria-label="الصفحة التالية">التالية ‹</button>
+    <div class="page-indicator">صفحة <span id="pageNum">١</span> / <span id="pageTotal">٦٠٤</span></div>
+    <button id="prevPage" class="nav-btn" type="button" aria-label="الصفحة السابقة">› السابقة</button>
+  </div>
+</main>
+
+<script src="experiment.js"></script>
+</body>
+</html>

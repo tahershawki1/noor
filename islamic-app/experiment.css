@@ -1,0 +1,248 @@
+@font-face {
+  font-family: 'UthmanicHafs';
+  src: url('mushaf-data/fonts/UthmanicHafs.otf') format('opentype');
+  font-display: swap;
+}
+
+:root {
+  --paper: #faf4e3;
+  --paper-edge: #f0e6c8;
+  --ink: #2c2013;
+  --ink-soft: #5c4a30;
+  --gold: #b08d3e;
+  --gold-soft: #e4cf95;
+  --gold-light: #fbf3d9;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #ece2c6;
+  color: var(--ink);
+  font-family: 'Tahoma', 'Segoe UI', sans-serif;
+}
+
+.exp-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-wrap: wrap;
+  padding: .7rem 1rem;
+  background: #2c2013;
+  color: #f3e6c2;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+}
+
+.exp-topbar h1 {
+  font-size: 1rem;
+  margin: 0;
+  font-weight: 600;
+}
+
+.mode-switch {
+  display: flex;
+  gap: .4rem;
+  background: rgba(255,255,255,.08);
+  padding: .25rem;
+  border-radius: .6rem;
+}
+
+.mode-btn {
+  border: none;
+  background: transparent;
+  color: #e9dcb8;
+  padding: .4rem .9rem;
+  border-radius: .45rem;
+  font-size: .85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mode-btn.is-active {
+  background: var(--gold);
+  color: #2c2013;
+  font-weight: 700;
+}
+
+/* ===== شكل ١: مصحف متصل ===== */
+
+.mushaf-scroll {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+  background: var(--paper);
+  min-height: calc(100vh - 3.2rem);
+}
+
+.loading {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 3rem 0;
+}
+
+.surah-block {
+  margin-bottom: 1.5rem;
+}
+
+.surah-banner {
+  position: relative;
+  margin: 2.4rem auto .6rem;
+  max-width: 94%;
+  border: 2px solid var(--gold);
+  border-radius: .6rem;
+  background: linear-gradient(180deg, var(--gold-light), var(--gold-soft));
+  padding: .6rem 1rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+
+.surah-banner::before,
+.surah-banner::after {
+  content: '';
+  position: absolute;
+  width: .5rem;
+  height: .5rem;
+  background: var(--gold);
+  transform: rotate(45deg);
+  top: -.27rem;
+}
+
+.surah-banner::before { right: .6rem; }
+.surah-banner::after { left: .6rem; }
+
+.surah-name-uth {
+  font-family: 'UthmanicHafs', serif;
+  font-size: 1.7rem;
+  color: #5c4013;
+  line-height: 1.4;
+}
+
+.surah-meta {
+  font-size: .75rem;
+  color: var(--ink-soft);
+  margin-top: .15rem;
+}
+
+.bismillah {
+  text-align: center;
+  font-family: 'UthmanicHafs', serif;
+  font-size: 1.55rem;
+  margin: .3em 0 1em;
+  color: var(--ink);
+}
+
+.ayat-flow {
+  font-family: 'UthmanicHafs', serif;
+  font-size: 1.55rem;
+  line-height: 2.5;
+  text-align: justify;
+  text-justify: inter-word;
+  margin: 0;
+  color: var(--ink);
+}
+
+/* شارة رقم الآية */
+.ayah-end {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55em;
+  height: 1.55em;
+  margin: 0 .12em;
+  border-radius: 50%;
+  vertical-align: -.05em;
+  font-family: 'Tahoma', 'Segoe UI', sans-serif;
+  font-size: .48rem;
+  font-weight: 700;
+  color: #5c4013;
+  background: radial-gradient(circle at 50% 42%, #fffaf0, #f1e2b8 70%, var(--gold-soft));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.6), 0 0 0 1px rgba(176,141,62,.5);
+}
+
+.ayah-end::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(var(--gold) 0deg 7deg, transparent 7deg 20deg);
+  opacity: .5;
+  z-index: -1;
+}
+
+/* ===== شكل ٢: تقليب صفحات ===== */
+
+.mushaf-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.25rem 1rem 2rem;
+  min-height: calc(100vh - 3.2rem);
+  background: #ece2c6;
+}
+
+.page-frame {
+  width: min(94vw, 34rem);
+  aspect-ratio: 3 / 4.3;
+  background: var(--paper);
+  border: 3px double var(--gold);
+  border-radius: .5rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.25);
+  padding: 1.1rem 1.2rem;
+  overflow-y: auto;
+}
+
+.page-content .surah-banner {
+  margin-top: .4rem;
+}
+
+.page-content .ayat-flow,
+.page-content .bismillah {
+  font-size: 1.35rem;
+  line-height: 2.35;
+}
+
+.page-nav {
+  width: min(94vw, 34rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+  gap: .6rem;
+}
+
+.nav-btn {
+  flex: 0 0 auto;
+  border: 1px solid var(--gold);
+  background: var(--gold-light);
+  color: #5c4013;
+  padding: .55rem 1.1rem;
+  border-radius: .5rem;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-btn:disabled {
+  opacity: .4;
+  cursor: default;
+}
+
+.page-indicator {
+  font-size: .85rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .exp-topbar h1 { display: none; }
+  .ayat-flow, .bismillah { font-size: 1.3rem; }
+  .page-content .ayat-flow, .page-content .bismillah { font-size: 1.1rem; }
+}
