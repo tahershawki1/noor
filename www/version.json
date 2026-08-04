@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-04T15:52:41.275Z",
+  "generatedAt": "2026-08-04T17:09:13.193Z",
   "app": {
-    "version": "1.10.0",
-    "versionCode": 11000,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.10.0/noor-1.10.0.apk",
-    "sizeBytes": 11692914,
-    "sha256": "9407ecdc70aeb9e522105b65cf139534c7e7cb58c79da3a0b5b50d1ff41cddf5",
+    "version": "1.13.2",
+    "versionCode": 11302,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.13.2/noor-1.13.2.apk",
+    "sizeBytes": 12672258,
+    "sha256": "f956b2ea6e2f2070de28104d5f8fbb03bd9a6a175960db84b203e02cc2492283",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "أذان يعمل والتطبيق مغلق: إشعار بصوت الأذان الكامل عند دخول الوقت (منبّه نظام دقيق) + تنبيه مسبق. إصلاح الاسترجاع التلقائي للنسخة الاحتياطية بعد إعادة التثبيت، وإصلاح تقدم الختمة، وصوت الأذان يعمل دون إنترنت بعد أول تشغيل، وإصلاحات أخرى.",
+    "notes": "إصلاح 7 مشاكل في التمرير التلقائي، الختمة، والإشارات المرجعية أثناء القراءة",
     "mandatory": false
   },
   "web": {
-    "version": "1.13.1.13",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.13.1.13/noor-web-1.13.1.13.zip",
-    "checksum": "8330d1c1c272c30aa19dbb09989a443bb39228555f8d4d8d04e27e0783de34b0",
+    "version": "1.13.2",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.13.2/noor-web-1.13.2.zip",
+    "checksum": "66ba9aaf1cf114fd11aef27bcff2c84f69c02923d35ac89dc2acb64b1a86f7eb",
     "contentHash": "bd33ce32890b1fa65d6abab68531b4d39f6508139b46c9644878e435041c3395"
   }
 }
