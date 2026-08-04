@@ -190,29 +190,14 @@ function toArabicNum(n) {
   return String(n).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
 }
 
-/* --------- إعدادات خط القرآن --------- */
-// خط "أميري قرآن" حُذف من القائمة: نسخة الخط المتاحة تنقصها رمز التنوين
-// (U+065E) ومواضع الألف الخنجرية فوق العين مكسورة في OpenType الخاص بها،
-// فيظهر التشكيل مشوَّهاً في كلمات شائعة جداً مثل "الرحمن" و"العالمين".
-const QURAN_FONT_DEFAULT = "scheherazade";
-const QURAN_FONTS = {
-  "amiri": '"Amiri", serif',
-  "scheherazade": '"Scheherazade New", serif',
-  "noto-naskh": '"Noto Naskh Arabic", serif',
-  "lateef": '"Lateef", serif',
-  "reem-kufi": '"Reem Kufi", sans-serif',
-};
+/* --------- حجم خط القرآن --------- */
+// خط المصحف نفسه ثابت (UthmanicHafs، معرَّف في --font-quran بـ styles.css)
+// زي التطبيق القديم — مفيش اختيار حر بين خطوط عامة، عشان كانت بتشوّه
+// التشكيل في كلمات زي "الرحمن" و"العالمين" (خصوصاً مع "ريم كوفي" و"أميري").
 const QURAN_FONT_SIZE_MIN = 1.2;
 const QURAN_FONT_SIZE_MAX = 2.6;
 const QURAN_FONT_SIZE_STEP = 0.15;
 const QURAN_FONT_SIZE_BASE = 1.75;
-
-function applyQuranFont(key) {
-  const resolvedKey = key in QURAN_FONTS ? key : QURAN_FONT_DEFAULT;
-  document.documentElement.style.setProperty("--font-quran", QURAN_FONTS[resolvedKey]);
-  localStorage.setItem("quranFont", resolvedKey);
-  $("fontSelect").value = resolvedKey;
-}
 
 function applyQuranFontSize(size) {
   const clamped = Math.min(QURAN_FONT_SIZE_MAX, Math.max(QURAN_FONT_SIZE_MIN, size));
@@ -223,10 +208,8 @@ function applyQuranFontSize(size) {
 }
 
 let quranFontSize = parseFloat(localStorage.getItem("quranFontSize")) || QURAN_FONT_SIZE_BASE;
-applyQuranFont(localStorage.getItem("quranFont") || QURAN_FONT_DEFAULT);
 quranFontSize = applyQuranFontSize(quranFontSize);
 
-$("fontSelect").addEventListener("change", (e) => applyQuranFont(e.target.value));
 $("fontBigger").addEventListener("click", () => {
   quranFontSize = applyQuranFontSize(quranFontSize + QURAN_FONT_SIZE_STEP);
 });
