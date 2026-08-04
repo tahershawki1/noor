@@ -787,6 +787,7 @@ input[type="number"].search-input { text-align: center; }
   transition: transform 0.14s var(--ease), background 0.18s, border-color 0.18s;
 }
 .surah-card:active { transform: scale(0.985); background: var(--surface-2); }
+.surah-card.current-surah { border-color: var(--brand); background: var(--brand-soft); }
 
 .surah-number {
   position: relative;
@@ -819,9 +820,11 @@ input[type="number"].search-input { text-align: center; }
   position: absolute;
   inset: 0;
   background: var(--bg);
-  /* --khatma-bar-h يضبطه khatma.js بارتفاع الشريط الفعلي وقت ظهوره، حتى لا
-     يغطّي آخر آيات معروضة */
-  padding: 22px 20px calc(22px + var(--khatma-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
+  /* --khatma-bar-h و --as-bar-h يضبطهما khatma.js/auto-scroll.js بارتفاع
+     الشريط الفعلي وقت ظهوره، حتى لا يغطّي آخر آيات معروضة. زائد سطر فاضٍ
+     بنفس line-height نص المصحف (٢٫٧) حتى لا تنتهي الآية الأخيرة عند حافة
+     الشاشة تماماً. */
+  padding: 22px 20px calc(22px + (var(--quran-font-size, 1.75rem) * 2.7) + var(--khatma-bar-h, 0px) + var(--as-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
@@ -855,6 +858,12 @@ input[type="number"].search-input { text-align: center; }
   line-height: 2.7;
   color: var(--text);
   text-align: center;
+  /* بدونها، الضغط المطوَّل بين الآيات (على المسافة الفاصلة، لا على أي
+     ayah-span) يُظهر مؤشر تحديد النص الأصلي للمتصفح رغم أنه يفتح قائمة
+     إجراءات مخصَّصة بدل التحديد. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 .ayah-span {
   cursor: pointer;

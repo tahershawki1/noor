@@ -77,10 +77,14 @@ function renderSurahList(list) {
     $("surahList").innerHTML = `<div class="empty-state"><p>لا توجد سورة بهذا الاسم</p></div>`;
     return;
   }
+  // نعلّم على آخر سورة كنا نقرأ فيها (متابعة القراءة) حتى يعرف المستخدم
+  // فوراً من القائمة أي سورة يكمل فيها، لا فقط من بطاقة "متابعة القراءة" أعلاها
+  const last = getLastRead();
+  const highlightNum = currentSurah || (last && last.surah);
   $("surahList").innerHTML = list
     .map(
       (s) => `
-      <div class="surah-card" onclick="openSurah(${s.n})">
+      <div class="surah-card${s.n === highlightNum ? " current-surah" : ""}" onclick="openSurah(${s.n})">
         <div class="surah-number"><span>${s.n}</span></div>
         <div class="surah-card-info">
           <div class="surah-card-name">${s.name}</div>
@@ -498,6 +502,7 @@ function updateReaderProgress() {
   // بعد اكتمال تحميل كل السكربتات، لا وقت تحميل هذا الملف نفسه.
   if (activeKhatmaId !== null) {
     updateKhatmaPageProgress(page);
+    updateKhatmaLastPosition(currentSurah, parseInt(current.dataset.ayah, 10));
   }
 }
 
@@ -540,7 +545,13 @@ async function goToAdjacentSurah(direction) {
   if (target < 1 || target > 114) return;
   surahNavigating = true;
   resetSurahOverscroll();
+  const el = $("ayahContainer");
+  // يوقف أي تمرير قصوري (fling) لا يزال جارياً من لفتة السحب التي أطلقت
+  // الانتقال — بدونه يكمل المتصفح التمرير داخل محتوى السورة الجديدة فيبتلع
+  // أول آياتها أو يزحزح موضع الهبوط بعد الانتقال العكسي.
+  el.style.overflowY = "hidden";
   await openSurah(target, null, direction < 0);
+  setTimeout(() => { el.style.overflowY = ""; }, 120);
   surahNavigating = false;
 }
 
@@ -907,6 +918,10 @@ function openSurahPicker() {
   $("surahPickerSearch").value = "";
   $("surahPickerOverlay").classList.remove("hidden");
   setTimeout(() => $("surahPickerSearch").focus(), 150);
+  // نمرّر لبطاقة السورة المفتوحة حالياً ونعلّم عليها، ليعرف القارئ فوراً
+  // أين هو ضمن قائمة كل السور بدل البحث عنها يدوياً
+  const current = $("surahPickerList").querySelector(".surah-card.current-surah");
+  if (current) current.scrollIntoView({ block: "center" });
 }
 
 function closeSurahPicker() {
@@ -915,7 +930,7 @@ function closeSurahPicker() {
 
 function renderSurahPickerList(list) {
   $("surahPickerList").innerHTML = list.map(s =>
-    `<div class="surah-card" onclick="pickSurah(${s.n})">
+    `<div class="surah-card${s.n === currentSurah ? " current-surah" : ""}" onclick="pickSurah(${s.n})">
       <div class="surah-number"><span>${s.n}</span></div>
       <div class="surah-card-info">
         <div class="surah-card-name">${s.name}</div>

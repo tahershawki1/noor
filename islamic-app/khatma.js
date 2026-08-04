@@ -171,6 +171,14 @@ function openKhatmaReader(khatmaId) {
   navigatingBack = true;
   navigateTo("quran");
   QuranData.loadMeta().then(() => {
+    // lastSurah/lastAyah هو الموضع الدقيق الذي توقّفنا عنده فعلياً (يُحدَّث في
+    // updateReaderProgress أثناء القراءة) — أدقّ من pagesRead التي تعطي فقط
+    // أول آية في الصفحة، لا الآية التي وصلنا إليها فعلاً داخلها.
+    if (khatma.lastSurah) {
+      openSurah(khatma.lastSurah, khatma.lastAyah || 1);
+      return;
+    }
+    // ختمة قديمة من قبل تسجيل lastSurah/lastAyah — نرجع لحساب أول آية بالصفحة
     const startPage = Math.max(1, khatma.pagesRead);
     const surahNumber = getSurahForPage(startPage);
     const surahMeta = QuranData.getSurahMeta(surahNumber);
@@ -233,4 +241,16 @@ function updateKhatmaPageProgress(currentPage) {
     saveKhatmas(khatmas);
     updateKhatmaWidget();
   }
+}
+
+/** يسجّل الآية الدقيقة الظاهرة الآن — بلا قيد اتجاه، فهي موضع "آخر ما وصلنا
+ *  إليه" للعودة إليه بالضبط، لا مقياس تقدّم كـ pagesRead. */
+function updateKhatmaLastPosition(surahNumber, ayahNumber) {
+  if (activeKhatmaId === null) return;
+  const khatmas = getKhatmas();
+  const idx = khatmas.findIndex(k => k.id === activeKhatmaId);
+  if (idx === -1) return;
+  khatmas[idx].lastSurah = surahNumber;
+  khatmas[idx].lastAyah = ayahNumber;
+  saveKhatmas(khatmas);
 }
