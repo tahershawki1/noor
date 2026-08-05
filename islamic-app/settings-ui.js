@@ -264,6 +264,14 @@ function initAppUpdates() {
   setTimeout(() => {
     AppUpdates.check().then(showApkUpdateSheet).catch(() => {});
   }, 2500);
+
+  // فحص دوري كل ٣ دقائق طوال بقاء التطبيق مفتوحاً — force:true يتجاوز فاصل
+  // الست ساعات الافتراضي (المصمَّم أصلاً لفتحة تطبيق عادية واحدة، لا لجلسة
+  // طويلة) حتى يلتقط تحديثات الويب الصامتة بسرعة دون انتظار إعادة فتح التطبيق.
+  const UPDATE_POLL_MS = 3 * 60 * 1000;
+  setInterval(() => {
+    AppUpdates.check({ force: true }).then(showApkUpdateSheet).catch(() => {});
+  }, UPDATE_POLL_MS);
 }
 
 initAppUpdates();
