@@ -15,6 +15,7 @@
 let surahs = [];
 let currentSurah = null;
 let pendingAyahScroll = null;
+let suppressPositionSave = false;
 let _quranWakeLock = null;
 
 async function _acquireQuranWakeLock() {
@@ -142,6 +143,9 @@ async function openSurah(number, ayahToHighlight = null, landAtEnd = false) {
   const enteringReader = $("surahReadView").classList.contains("hidden");
   currentSurah = number;
   pendingAyahScroll = ayahToHighlight;
+  // نُعطّل حفظ الموضع (متابعة القراءة/الختمة) لحين استقرار التمرير على
+  // الآية المطلوبة — انظر التعليق عند إعادة التفعيل في renderSurah
+  suppressPositionSave = !!ayahToHighlight;
   $("surahListView").classList.add("hidden");
   $("surahReadView").classList.remove("hidden");
   $("ayahContainer").innerHTML = '<div class="loading">جارِ فتح السورة...</div>';
@@ -362,6 +366,14 @@ function renderSurah(surah) {
       el.classList.add("highlighted");
       setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
       setTimeout(() => el.classList.remove("highlighted"), 2500);
+      // scrollIntoView("center") يزيح الآية الهدف عن أعلى الصندوق، فيلتقط
+      // updateReaderProgress (المستمع على حدث scroll) آيةً أخرى فوقها
+      // ويحفظها خطأً كموضع توقّف جديد — يسبب انزياح الموضع المحفوظ (متابعة
+      // القراءة/الختمة) في كل دخول وخروج دون أي تمرير يدوي فعلي. نعيد تفعيل
+      // الحفظ فقط بعد اكتمال التمرير السلس.
+      setTimeout(() => { suppressPositionSave = false; }, 700);
+    } else {
+      suppressPositionSave = false;
     }
     pendingAyahScroll = null;
   }
@@ -493,7 +505,7 @@ function updateReaderProgress() {
     `جزء ${toArabicNum(juz)} • حزب ${toArabicNum(hizb)} • صفحة ${toArabicNum(page)}`;
   $("headerJuzHizb").classList.remove("hidden");
 
-  if (currentSurah) {
+  if (currentSurah && !suppressPositionSave) {
     saveLastRead(currentSurah, parseInt(current.dataset.ayah, 10), currentSurahName);
   }
   NoorStats.recordQuranPage(page);
@@ -502,7 +514,7 @@ function updateReaderProgress() {
   // بعد اكتمال تحميل كل السكربتات، لا وقت تحميل هذا الملف نفسه.
   if (activeKhatmaId !== null) {
     updateKhatmaPageProgress(page);
-    updateKhatmaLastPosition(currentSurah, parseInt(current.dataset.ayah, 10));
+    if (!suppressPositionSave) updateKhatmaLastPosition(currentSurah, parseInt(current.dataset.ayah, 10));
   }
 }
 
