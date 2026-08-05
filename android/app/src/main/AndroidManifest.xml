@@ -97,6 +97,16 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
     <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
 
+    <!--
+        enableOnBackInvokedCallback="false": نبقى على مسار onBackPressed()
+        الكلاسيكي (المعطَّل بلا هذا). targetSdk=36 يجعل «الرجوع التنبّئي
+        Predictive Back» افتراضياً مفعَّلاً، فيتولّى النظام نفسه إنهاء
+        النشاط مباشرةً (يُغلق التطبيق) بدل استدعاء MainActivity.onBackPressed()
+        — وهو المسار الوحيد الذي يُرسل حدث 'backbutton' للويب (انظر
+        settings-ui.js) ليقرر هو الرجوع داخل التطبيق أولاً. المشروع لا
+        يعتمد @capacitor/app (لا OnBackPressedCallback مسجَّل)، فبلا هذا
+        السطر كان زر/إيماءة الرجوع يُغلق التطبيق من أي صفحة مباشرة.
+    -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -105,7 +115,8 @@
         android:supportsRtl="true"
         android:hardwareAccelerated="true"
         android:largeHeap="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:enableOnBackInvokedCallback="false">
 
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
