@@ -638,6 +638,16 @@ function clearPress() {
 
 const ayahContainerEl = $("ayahContainer");
 
+// user-select:none وحدها لا تكفي على أندرويد: أصبعك يبقى ملامساً الشاشة
+// طوال الـ٥٥٠ مللي ثانية، وكاشف الضغط الطويل في نظام أندرويد (منفصل تماماً
+// عن CSS) يستمر يراقب هذه اللمسة، فيُطلق قائمة تحديد النص الأصلية للنظام
+// على أي نص يستقر تحت الإصبع لحظتها — حتى لو كان عنوان مربع الحوار الذي
+// فتحناه للتو. preventDefault هنا عند بداية اللمسة يوقف تعرّف أندرويد على
+// هذه اللفتة كـ"لمسة مطوَّلة" من الأساس، بصرف النظر عمّا يظهر تحتها لاحقاً.
+ayahContainerEl.addEventListener("touchstart", (e) => {
+  if (e.target.closest(".ayah-span") && e.cancelable) e.preventDefault();
+}, { passive: false });
+
 ayahContainerEl.addEventListener("pointerdown", (e) => {
   const span = e.target.closest(".ayah-span");
   if (!span) return;
@@ -648,6 +658,8 @@ ayahContainerEl.addEventListener("pointerdown", (e) => {
   pressTimer = setTimeout(() => {
     span.classList.remove("pressing");
     if (navigator.vibrate) navigator.vibrate(35);
+    // احتياط إضافي: نمسح أي تحديد نص التقطه النظام قبل أن يستقر مربع الحوار
+    if (window.getSelection) window.getSelection().removeAllRanges();
     openAyahDialog(span);
     pressTimer = null;
     pressSpan = null;
