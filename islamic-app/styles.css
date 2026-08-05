@@ -526,11 +526,17 @@ span.m3-ripple {
 
 .tab-panel { display: none; }
 /* انتقال قصير مقصود: الأطول منه كان يتراكب مع تموّج اللمسة التي أطلقت
-   الانتقال أصلاً، فتبدو الحركتان متداخلتين. */
+   الانتقال أصلاً، فتبدو الحركتان متداخلتين.
+
+   ⚠️ بلا transform عمداً. أي عنصر أب فيه transform يصير هو المرجع الذي
+   يُحسب عليه `position: fixed` بدل الشاشة — وزر الإجراء العائم يعيش داخل
+   قسمه، فكان يتعلّق أعلى الصفحة طوال مدة الحركة ثم ينطّ إلى مكانه أسفلها
+   بمجرد انتهائها. نفس القاعدة تسري على أي عنصر ثابت يُضاف داخل قسم لاحقاً،
+   فالحركة هنا شفافية فقط (opacity لا تُنشئ مرجع تموضع). */
 .tab-panel.active { display: block; animation: m3PageIn var(--m3-dur-medium) var(--m3-ease-decelerate); }
 @keyframes m3PageIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: none; }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 /* ============================================================
