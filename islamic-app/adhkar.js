@@ -97,7 +97,7 @@ function renderAdhkarItemsList() {
         <div class="dhikr-footer">
           <span class="dhikr-repeat">التكرار: ${arabicCountLabel(item.repeat, "مرة واحدة", "مرتان", "مرات", "مرة")}</span>
           <button class="dhikr-counter-btn" data-remaining="${item.repeat}" onclick="tickDhikr(this)">
-            ${item.repeat}
+            ${toArabicNum(item.repeat)}
           </button>
         </div>
         ${item.isCustom ? `<span class="custom-adhkar-tag">✍️ مخصص</span>` : ""}
@@ -144,7 +144,7 @@ function tickDhikr(btn) {
     btn.textContent = "✓ تم";
     btn.classList.add("done");
   } else {
-    btn.textContent = remaining;
+    btn.textContent = toArabicNum(remaining);
   }
 }
 
@@ -205,20 +205,20 @@ $("saveNewAdhkarBtn").addEventListener("click", () => {
 
 /* --------- السبحة الإلكترونية --------- */
 let tasbeehCount = parseInt(localStorage.getItem("tasbeehCount") || "0", 10);
-$("tasbeehCount").textContent = tasbeehCount;
+$("tasbeehCount").textContent = toArabicNum(tasbeehCount);
 $("tasbeehBtn").textContent = localStorage.getItem("tasbeehPhrase") || "سبحان الله";
 $("tasbeehPhrase").value = localStorage.getItem("tasbeehPhrase") || "سبحان الله";
 
 $("tasbeehBtn").addEventListener("click", () => {
   tasbeehCount += 1;
-  $("tasbeehCount").textContent = tasbeehCount;
+  $("tasbeehCount").textContent = toArabicNum(tasbeehCount);
   localStorage.setItem("tasbeehCount", tasbeehCount);
   NoorStats.record("tasbeeh");
   if (navigator.vibrate) navigator.vibrate(15);
 });
 $("tasbeehReset").addEventListener("click", () => {
   tasbeehCount = 0;
-  $("tasbeehCount").textContent = 0;
+  $("tasbeehCount").textContent = toArabicNum(0);
   localStorage.setItem("tasbeehCount", 0);
 });
 $("tasbeehPhrase").addEventListener("change", (e) => {

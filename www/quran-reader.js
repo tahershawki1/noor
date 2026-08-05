@@ -89,7 +89,7 @@ function renderSurahList(list) {
         <div class="surah-number"><span>${s.n}</span></div>
         <div class="surah-card-info">
           <div class="surah-card-name">${s.name}</div>
-          <div class="surah-card-meta">${s.type} • ${s.ayahs} آية</div>
+          <div class="surah-card-meta">${s.type} • ${toArabicNum(s.ayahs)} آية</div>
         </div>
       </div>`
     )
