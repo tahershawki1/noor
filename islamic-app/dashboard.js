@@ -14,11 +14,17 @@ const DASH_STAT_CARDS = [
 ];
 
 function renderDashboardStats() {
+  // بطاقات الشبكة تعرض نشاط اليوم الحالي فقط — تُقرأ من السجل اليومي
+  // (يوم اليوم فيه صفر افتراضياً حتى يبدأ نشاط جديد فيه) لا من المجاميع
+  // الكلية totals، التي كانت تتراكم للأبد بلا تصفير عند منتصف الليل.
+  // الأمس ثابت بالفعل تحت مفتاحه الخاص في noorStatsDaily، يقرأه تقرير
+  // الأسبوع/الشهر أدناه دون أي تغيير.
+  const today = NoorStats.getDailyRange(1)[0];
   const totals = NoorStats.getTotals();
   $("dashboardStatGrid").innerHTML = DASH_STAT_CARDS.map((c) => `
     <div class="dash-stat-card">
       <span class="dash-stat-icon tone-${c.tone}">${icon(c.icon)}</span>
-      <span class="dash-stat-value">${toArabicNum(totals[c.key] || 0)}</span>
+      <span class="dash-stat-value">${toArabicNum(today[c.key] || 0)}</span>
       <span class="dash-stat-label">${c.label}</span>
     </div>`).join("");
 
