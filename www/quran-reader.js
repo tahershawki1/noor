@@ -627,10 +627,13 @@ const MOVE_CANCEL_PX = 12;
 let pressTimer = null;
 let pressSpan = null;
 let pressStart = null;
+let pressSelectionGuard = null;
 
 function clearPress() {
   if (pressTimer) clearTimeout(pressTimer);
   pressTimer = null;
+  if (pressSelectionGuard) clearInterval(pressSelectionGuard);
+  pressSelectionGuard = null;
   if (pressSpan) pressSpan.classList.remove("pressing");
   pressSpan = null;
   pressStart = null;
@@ -638,16 +641,12 @@ function clearPress() {
 
 const ayahContainerEl = $("ayahContainer");
 
-// user-select:none وحدها لا تكفي على أندرويد: أصبعك يبقى ملامساً الشاشة
-// طوال الـ٥٥٠ مللي ثانية، وكاشف الضغط الطويل في نظام أندرويد (منفصل تماماً
-// عن CSS) يستمر يراقب هذه اللمسة، فيُطلق قائمة تحديد النص الأصلية للنظام
-// على أي نص يستقر تحت الإصبع لحظتها — حتى لو كان عنوان مربع الحوار الذي
-// فتحناه للتو. preventDefault هنا عند بداية اللمسة يوقف تعرّف أندرويد على
-// هذه اللفتة كـ"لمسة مطوَّلة" من الأساس، بصرف النظر عمّا يظهر تحتها لاحقاً.
-ayahContainerEl.addEventListener("touchstart", (e) => {
-  if (e.target.closest(".ayah-span") && e.cancelable) e.preventDefault();
-}, { passive: false });
-
+/* جرَّبنا preventDefault على touchstart لمنع قائمة تحديد النص الأصلية
+ * لأندرويد أثناء الضغط المطوَّل — كسر التمرير العادي بالكامل (touch-action:
+ * pan-y لا يكفي لتعويضه في هذا الـ WebView)، فرجعنا عنه فوراً. البديل هنا
+ * لا يلمس أي سلوك لمس افتراضي إطلاقاً: طوال مدة الانتظار قبل فتح قائمة
+ * الإجراءات، نمسح أي تحديد نص يحاول أندرويد تكوينه كل ١٠٠ مللي ثانية —
+ * يمنع ثبات قائمة التحديد الأصلية دون التأثير على التمرير أو السحب إطلاقاً. */
 ayahContainerEl.addEventListener("pointerdown", (e) => {
   const span = e.target.closest(".ayah-span");
   if (!span) return;
@@ -655,10 +654,14 @@ ayahContainerEl.addEventListener("pointerdown", (e) => {
   pressSpan = span;
   pressStart = { x: e.clientX, y: e.clientY };
   span.classList.add("pressing");
+  if (window.getSelection) {
+    pressSelectionGuard = setInterval(() => window.getSelection().removeAllRanges(), 100);
+  }
   pressTimer = setTimeout(() => {
     span.classList.remove("pressing");
+    if (pressSelectionGuard) clearInterval(pressSelectionGuard);
+    pressSelectionGuard = null;
     if (navigator.vibrate) navigator.vibrate(35);
-    // احتياط إضافي: نمسح أي تحديد نص التقطه النظام قبل أن يستقر مربع الحوار
     if (window.getSelection) window.getSelection().removeAllRanges();
     openAyahDialog(span);
     pressTimer = null;
