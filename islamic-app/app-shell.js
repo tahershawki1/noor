@@ -39,8 +39,10 @@ function applyTheme(theme) {
   localStorage.setItem("theme", theme);
   $("themeToggle").innerHTML = icon(theme === "light" ? "moon" : "sun");
   $("themeToggle").setAttribute("aria-label", theme === "light" ? "الوضع الليلي" : "الوضع النهاري");
+  // نفس قيمة --m3-surface في styles.css — شريط حالة أندرويد يتلوّن بلون
+  // سطح التطبيق فيبدو امتداداً له لا شريطاً منفصلاً فوقه.
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", theme === "light" ? "#F3F6F4" : "#0A100D");
+  if (meta) meta.setAttribute("content", theme === "light" ? "#F5FBF6" : "#0B140F");
 }
 applyTheme(localStorage.getItem("theme") || "dark");
 $("themeToggle").addEventListener("click", () => {
@@ -134,6 +136,27 @@ $("backBtn").addEventListener("click", () => {
   if (!$("adhkarListView").classList.contains("hidden")) return backToAdhkarCategories();
   navigateBack();
 });
+
+/* ---------------- ارتفاع الشريط العلوي عند التمرير ----------------
+   سلوك Material القياسي: الشريط يبدأ بنفس لون سطح الصفحة، وحين يمرّ
+   المحتوى تحته ينتقل إلى سطح أعلى فيظهر الفصل بينهما دون خط حدّ. */
+(function trackAppBarElevation() {
+  const content = $("mainContent");
+  const shell = $("appShell");
+  if (!content || !shell) return;
+  let raf = null;
+  content.addEventListener(
+    "scroll",
+    () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = null;
+        shell.classList.toggle("scrolled", content.scrollTop > 4);
+      });
+    },
+    { passive: true }
+  );
+})();
 
 function showToast(msg, opts) {
   const t = $("toast");

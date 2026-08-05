@@ -1,109 +1,245 @@
 /* ============================================================
-   نور — نظام تصميم تطبيق هاتف
+   نور — نظام تصميم Material 3 (Material You)
+   ============================================================
+   الواجهة كلها مبنية على رموز Material 3 القياسية:
+   • مخطط ألوان نغمي (tonal) بأدوار كاملة: primary / secondary /
+     tertiary / surface-container-* / outline …
+   • سلّم الأشكال (4 / 8 / 12 / 16 / 28)
+   • سلّم الخطوط (display / headline / title / body / label)
+   • الارتفاع (elevation) بخمس درجات + طبقات الحالة (state layers)
+   • حركة Material المؤكَّدة (emphasized easing)
+
+   الرموز القديمة (--brand, --surface, --r-md …) باقية كمرادفات أسفل
+   القسم الأول، فكل الأنماط والملفات التي تستعملها تظل تعمل دون تعديل.
    ============================================================ */
 
-/* ---------------- 1. الرموز التصميمية ---------------- */
+/* ============================================================
+   ١) رموز التصميم — Design tokens
+   ============================================================ */
 :root {
-  /* الألوان — الوضع الليلي (الافتراضي) */
-  --bg:            #0A100D;
-  --bg-2:          #0F1714;
-  --surface:       #141D19;
-  --surface-2:     #1B2721;
-  --surface-3:     #23322B;
-  --border:        rgba(255, 255, 255, 0.07);
-  --border-strong: rgba(255, 255, 255, 0.13);
+  color-scheme: dark;
 
-  --brand:         #34C77B;
-  --brand-deep:    #128455;
-  --brand-soft:    rgba(52, 199, 123, 0.14);
-  --gold:          #E6BE7B;
-  --gold-soft:     #F0D6A6;
-  --gold-tint:     rgba(230, 190, 123, 0.12);
+  /* ---------- ١-أ) الألوان: مخطط Material 3 الداكن (الافتراضي) ---------- */
+  --m3-primary:                  #4FDBA1;
+  --m3-on-primary:               #003825;
+  --m3-primary-container:        #00563A;
+  --m3-on-primary-container:     #71F8BB;
 
-  --text:          #EAF2ED;
-  --text-2:        #B9C9C0;
-  --muted:         #7E9089;
-  --danger:        #F2726B;
-  --on-brand:      #04150D;
+  --m3-secondary:                #B4CDBA;
+  --m3-on-secondary:             #21352A;
+  --m3-secondary-container:      #374B40;
+  --m3-on-secondary-container:   #CFE9D6;
 
-  --hero-1:        #0E5C42;
-  --hero-2:        #072E24;
-  --hero-glow:     rgba(52, 199, 123, 0.35);
-  --track:         rgba(255, 255, 255, 0.10);
-  --nav-bg:        rgba(12, 19, 16, 0.86);
-  --bar-bg:        rgba(10, 16, 13, 0.88);
-  --scrim:         rgba(0, 0, 0, 0.55);
-  --outer-bg:      radial-gradient(1200px 700px at 50% -10%, #12281f, #050907 70%);
+  --m3-tertiary:                 #F3C055;
+  --m3-on-tertiary:              #3F2E00;
+  --m3-tertiary-container:       #5B4300;
+  --m3-on-tertiary-container:    #FFDF9E;
 
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.28);
-  --shadow-2: 0 6px 20px -8px rgba(0, 0, 0, 0.55);
-  --shadow-3: 0 20px 48px -18px rgba(0, 0, 0, 0.7);
+  --m3-error:                    #FFB4AB;
+  --m3-on-error:                 #690005;
+  --m3-error-container:          #93000A;
+  --m3-on-error-container:       #FFDAD6;
 
-  /* الأشكال */
-  --r-xs: 10px;
-  --r-sm: 14px;
-  --r-md: 18px;
-  --r-lg: 24px;
-  --r-xl: 30px;
-  --r-pill: 999px;
-  /* نجمة ثمانية (رُبع الحزب) — زخرفة هندسية إسلامية مُعاد استعمالها في شارة
-     رقم السورة ونسيج بطاقة الصلاة القادمة */
-  --star8: polygon(50% 0%, 58% 30.6%, 85.4% 14.6%, 69.4% 42%, 100% 50%, 69.4% 58%, 85.4% 85.4%, 58% 69.4%, 50% 100%, 42% 69.4%, 14.6% 85.4%, 30.6% 58%, 0% 50%, 30.6% 42%, 14.6% 14.6%, 42% 30.6%);
+  --m3-surface:                  #0B140F;
+  --m3-on-surface:               #DEE5DC;
+  --m3-surface-variant:          #3F4943;
+  --m3-on-surface-variant:       #BFC9C1;
 
-  /* الخطوط */
-  --font-ui: "Cairo", system-ui, -apple-system, sans-serif;
+  --m3-surface-container-lowest: #060E0A;
+  --m3-surface-container-low:    #171D19;
+  --m3-surface-container:        #1B211D;
+  --m3-surface-container-high:   #262B27;
+  --m3-surface-container-highest:#303632;
+
+  --m3-outline:                  #89938B;
+  --m3-outline-variant:          #3F4943;
+
+  --m3-inverse-surface:          #DEE5DC;
+  --m3-inverse-on-surface:       #2C322E;
+  --m3-inverse-primary:          #006C48;
+
+  --m3-scrim:                    rgba(0, 0, 0, 0.6);
+
+  /* بطاقة الصلاة القادمة — سطح primary-container موسَّع بتدرّج خفيف */
+  --hero-bg:      linear-gradient(150deg, #00593C, #003725);
+  --hero-on:      #8FEFC0;
+  --hero-strong:  #E7FFF2;
+  --hero-t8:      rgba(255, 255, 255, 0.08);
+  --hero-t12:     rgba(255, 255, 255, 0.12);
+  --hero-t16:     rgba(255, 255, 255, 0.16);
+  --hero-t24:     rgba(255, 255, 255, 0.24);
+  --hero-pattern: rgba(255, 255, 255, 0.10);
+
+  /* ---------- ١-ب) الارتفاع (Elevation) ---------- */
+  --m3-elev-0: none;
+  --m3-elev-1: 0 1px 2px rgba(0, 0, 0, 0.30), 0 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --m3-elev-2: 0 1px 2px rgba(0, 0, 0, 0.30), 0 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --m3-elev-3: 0 4px 8px 3px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.30);
+  --m3-elev-4: 0 6px 10px 4px rgba(0, 0, 0, 0.15), 0 2px 3px rgba(0, 0, 0, 0.30);
+  --m3-elev-5: 0 8px 12px 6px rgba(0, 0, 0, 0.15), 0 4px 4px rgba(0, 0, 0, 0.30);
+
+  /* ---------- ١-ج) سلّم الأشكال (Shape scale) ---------- */
+  --m3-shape-xs:   4px;
+  --m3-shape-sm:   8px;
+  --m3-shape-md:  12px;
+  --m3-shape-lg:  16px;
+  --m3-shape-xl:  28px;
+  --m3-shape-full: 999px;
+
+  /* ---------- ١-د) الحركة (Motion) ---------- */
+  --m3-ease-standard:   cubic-bezier(0.2, 0, 0, 1);
+  --m3-ease-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --m3-ease-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --m3-dur-short:  150ms;
+  --m3-dur-medium: 250ms;
+  --m3-dur-long:   400ms;
+
+  /* ---------- ١-هـ) طبقات الحالة (State layers) ---------- */
+  --m3-state-hover:   0.08;
+  --m3-state-focus:   0.10;
+  --m3-state-pressed: 0.12;
+
+  /* ---------- ١-و) الخطوط ---------- */
+  --font-ui: "Cairo", "Roboto", system-ui, -apple-system, sans-serif;
   /* خط عثماني ثابت واحد (لا يتغيّر من الإعدادات) — نفس رسم المصحف الأصلي،
-     يتفادى تشوّه التشكيل اللي كانت تسببه بعض خطوط الاختيار الحر (زي "ريم
-     كوفي" و"أميري") في كلمات زي "الرحمن" و"العالمين". */
+     يتفادى تشوّه التشكيل اللي كانت تسببه بعض خطوط الاختيار الحر. */
   --font-quran: "UthmanicHafs", "Scheherazade New", serif;
   --quran-font-size: 1.75rem;
 
-  /* القياسات */
+  /* سلّم خطوط Material 3 */
+  --type-display-s: 2.25rem;
+  --type-headline-s: 1.5rem;
+  --type-title-l: 1.375rem;
+  --type-title-m: 1rem;
+  --type-title-s: 0.875rem;
+  --type-body-l: 1rem;
+  --type-body-m: 0.875rem;
+  --type-body-s: 0.75rem;
+  --type-label-l: 0.875rem;
+  --type-label-m: 0.75rem;
+  --type-label-s: 0.6875rem;
+
+  /* ---------- ١-ز) القياسات ---------- */
   --app-w: 460px;
-  --bar-h: 60px;
-  --nav-h: 68px;
+  --bar-h: 64px;   /* Material 3 Top app bar (small) */
+  --nav-h: 80px;   /* Material 3 Navigation bar */
   --pad: 16px;
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
 
-  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  /* نجمة ثمانية (رُبع الحزب) — الزخرفة الهندسية الإسلامية الوحيدة المتبقية
+     في المكوّنات، مُستعملة في شارة رقم السورة وحدها */
+  --star8: polygon(50% 0%, 58% 30.6%, 85.4% 14.6%, 69.4% 42%, 100% 50%, 69.4% 58%, 85.4% 85.4%, 58% 69.4%, 50% 100%, 42% 69.4%, 14.6% 85.4%, 30.6% 58%, 0% 50%, 30.6% 42%, 14.6% 14.6%, 42% 30.6%);
+
+  /* ============ مرادفات الرموز القديمة (توافق خلفي) ============ */
+  --bg:            var(--m3-surface);
+  --bg-2:          var(--m3-surface-container-low);
+  --surface:       var(--m3-surface-container);
+  --surface-2:     var(--m3-surface-container-high);
+  --surface-3:     var(--m3-surface-container-highest);
+  --border:        var(--m3-outline-variant);
+  --border-strong: var(--m3-outline);
+
+  --brand:         var(--m3-primary);
+  --brand-deep:    var(--m3-primary-container);
+  --brand-soft:    var(--m3-secondary-container);
+  --gold:          var(--m3-tertiary);
+  --gold-soft:     var(--m3-on-tertiary-container);
+  --gold-tint:     rgba(243, 192, 85, 0.14);
+
+  --text:          var(--m3-on-surface);
+  --text-2:        var(--m3-on-surface-variant);
+  --muted:         var(--m3-outline);
+  --danger:        var(--m3-error);
+  --on-brand:      var(--m3-on-primary);
+
+  --hero-1:        #00593C;
+  --hero-2:        #003725;
+  --hero-glow:     rgba(79, 219, 161, 0.30);
+  --track:         var(--m3-surface-container-highest);
+  --nav-bg:        var(--m3-surface-container);
+  --bar-bg:        var(--m3-surface);
+  --scrim:         var(--m3-scrim);
+  --outer-bg:      #05100B;
+
+  --shadow-1: var(--m3-elev-1);
+  --shadow-2: var(--m3-elev-2);
+  --shadow-3: var(--m3-elev-3);
+
+  --r-xs: var(--m3-shape-sm);
+  --r-sm: var(--m3-shape-md);
+  --r-md: var(--m3-shape-lg);
+  --r-lg: var(--m3-shape-lg);
+  --r-xl: var(--m3-shape-xl);
+  --r-pill: var(--m3-shape-full);
+
+  --ease: var(--m3-ease-standard);
 }
 
-/* ---------------- الوضع النهاري ---------------- */
+/* ---------------- ٢) الوضع النهاري — مخطط Material 3 الفاتح ---------------- */
 :root[data-theme="light"] {
-  --bg:            #F3F6F4;
-  --bg-2:          #FFFFFF;
-  --surface:       #FFFFFF;
-  --surface-2:     #EEF3F0;
-  --surface-3:     #E2EAE5;
-  --border:        rgba(13, 40, 28, 0.09);
-  --border-strong: rgba(13, 40, 28, 0.16);
+  color-scheme: light;
 
-  --brand:         #12855A;
-  --brand-deep:    #0C6444;
-  --brand-soft:    rgba(18, 133, 90, 0.10);
-  --gold:          #A9762A;
-  --gold-soft:     #8A5F1E;
-  --gold-tint:     rgba(169, 118, 42, 0.10);
+  --m3-primary:                  #006C48;
+  --m3-on-primary:               #FFFFFF;
+  --m3-primary-container:        #8AF7C1;
+  --m3-on-primary-container:     #002114;
 
-  --text:          #0E1A15;
-  --text-2:        #3C4E46;
-  --muted:         #6B7D74;
-  --danger:        #C6392C;
-  --on-brand:      #FFFFFF;
+  --m3-secondary:                #4E6355;
+  --m3-on-secondary:             #FFFFFF;
+  --m3-secondary-container:      #D0E8D7;
+  --m3-on-secondary-container:   #0B1F16;
 
-  --hero-1:        #16825B;
-  --hero-2:        #0A4A34;
-  --hero-glow:     rgba(255, 255, 255, 0.32);
-  --track:         rgba(13, 40, 28, 0.10);
-  --nav-bg:        rgba(255, 255, 255, 0.88);
-  --bar-bg:        rgba(243, 246, 244, 0.88);
-  --scrim:         rgba(10, 25, 18, 0.42);
-  --outer-bg:      radial-gradient(1200px 700px at 50% -10%, #dfe9e3, #b9c8c1 75%);
+  --m3-tertiary:                 #795900;
+  --m3-on-tertiary:              #FFFFFF;
+  --m3-tertiary-container:       #FFDF9E;
+  --m3-on-tertiary-container:    #251A00;
 
-  --shadow-1: 0 1px 2px rgba(13, 40, 28, 0.06);
-  --shadow-2: 0 6px 18px -10px rgba(13, 40, 28, 0.22);
-  --shadow-3: 0 22px 48px -20px rgba(13, 40, 28, 0.3);
+  --m3-error:                    #BA1A1A;
+  --m3-on-error:                 #FFFFFF;
+  --m3-error-container:          #FFDAD6;
+  --m3-on-error-container:       #410002;
+
+  --m3-surface:                  #F5FBF6;
+  --m3-on-surface:               #171D19;
+  --m3-surface-variant:          #DBE5DC;
+  --m3-on-surface-variant:       #3F4943;
+
+  --m3-surface-container-lowest: #FFFFFF;
+  --m3-surface-container-low:    #EFF5F0;
+  --m3-surface-container:        #E9F0EA;
+  --m3-surface-container-high:   #E4EAE5;
+  --m3-surface-container-highest:#DEE4DF;
+
+  --m3-outline:                  #6F7972;
+  --m3-outline-variant:          #BFC9C1;
+
+  --m3-inverse-surface:          #2C322E;
+  --m3-inverse-on-surface:       #ECF3EC;
+  --m3-inverse-primary:          #4FDBA1;
+
+  --m3-scrim:                    rgba(0, 0, 0, 0.35);
+
+  --hero-bg:      linear-gradient(150deg, #9BFACB, #6FE6AE);
+  --hero-on:      #08432C;
+  --hero-strong:  #00281A;
+  --hero-t8:      rgba(0, 33, 20, 0.06);
+  --hero-t12:     rgba(0, 33, 20, 0.10);
+  --hero-t16:     rgba(0, 33, 20, 0.14);
+  --hero-t24:     rgba(0, 33, 20, 0.20);
+  --hero-pattern: rgba(0, 45, 28, 0.09);
+
+  --m3-elev-1: 0 1px 2px rgba(13, 40, 28, 0.12), 0 1px 3px 1px rgba(13, 40, 28, 0.08);
+  --m3-elev-2: 0 1px 2px rgba(13, 40, 28, 0.12), 0 2px 6px 2px rgba(13, 40, 28, 0.08);
+  --m3-elev-3: 0 4px 8px 3px rgba(13, 40, 28, 0.08), 0 1px 3px rgba(13, 40, 28, 0.14);
+  --m3-elev-4: 0 6px 10px 4px rgba(13, 40, 28, 0.08), 0 2px 3px rgba(13, 40, 28, 0.14);
+  --m3-elev-5: 0 8px 12px 6px rgba(13, 40, 28, 0.08), 0 4px 4px rgba(13, 40, 28, 0.14);
+
+  --gold-tint:     rgba(121, 89, 0, 0.12);
+  --hero-1:        #9BFACB;
+  --hero-2:        #6FE6AE;
+  --hero-glow:     rgba(0, 108, 72, 0.18);
+  --outer-bg:      #DDE5DE;
 }
 
 /* خط المصحف العثماني — يدوي (مش من scripts/build-fonts.mjs) لأنه مش من
@@ -114,18 +250,22 @@
   font-display: swap;
 }
 
-/* ---------------- 2. الأساسيات ---------------- */
+/* ============================================================
+   ٣) الأساسيات
+   ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-*:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+*:focus-visible {
+  outline: 3px solid var(--m3-primary);
+  outline-offset: 2px;
+}
 
 html, body { height: 100%; }
 
 body {
   font-family: var(--font-ui);
   background: var(--outer-bg);
-  background-attachment: fixed;
-  color: var(--text);
+  color: var(--m3-on-surface);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -133,14 +273,14 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
+  letter-spacing: 0;
 }
 
 button, input, select, textarea { font-family: inherit; color: inherit; }
 button { background: none; border: none; cursor: pointer; }
 
-/* تعطيل تحديد النص في الموقع بالكامل — واجهة تطبيق، لا صفحة قراءة نصوص
-   تُنسخ. الحقول القابلة للكتابة مستثناة صراحةً حتى يبقى التحديد/اللصق
-   فيها يعمل طبيعياً. */
+/* تعطيل تحديد النص في الواجهة بالكامل — واجهة تطبيق، لا صفحة نصوص تُنسخ.
+   الحقول القابلة للكتابة مستثناة صراحةً. */
 * {
   -webkit-user-select: none;
   user-select: none;
@@ -154,12 +294,13 @@ input, textarea, select {
 
 .svg-sprite { display: none; }
 
+/* أيقونات بمقاس Material القياسي (24dp) وسماكة خط موحّدة */
 .ic {
-  width: 1.25em;
-  height: 1.25em;
+  width: 24px;
+  height: 24px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.7;
+  stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
   flex-shrink: 0;
@@ -167,7 +308,30 @@ input, textarea, select {
 
 .hidden { display: none !important; }
 
-/* ---------------- 3. هيكل التطبيق ---------------- */
+/* ============================================================
+   ٤) طبقة الحالة والتموّج (State layer + Ripple)
+   ============================================================
+   كل سطح قابل للنقر في Material يغمق قليلاً عند الضغط، وتنطلق منه
+   موجة دائرية من نقطة اللمس. الموجة يزرعها ripple.js داخل أي عنصر
+   يحمل data-ripple، وطبقة الحالة تُطبَّق هنا بالـ CSS وحدها. */
+.m3-surface-tap { position: relative; overflow: hidden; }
+
+.m3-ripple {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  background: currentColor;
+  opacity: var(--m3-state-pressed);
+  pointer-events: none;
+  animation: m3RippleGrow 450ms var(--m3-ease-decelerate) forwards;
+}
+@keyframes m3RippleGrow {
+  to { transform: scale(1); opacity: 0; }
+}
+
+/* ============================================================
+   ٥) هيكل التطبيق
+   ============================================================ */
 .app-shell {
   position: relative;
   width: 100%;
@@ -176,44 +340,48 @@ input, textarea, select {
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: var(--m3-surface);
   overflow: hidden;
-  transition: background 0.3s var(--ease);
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard);
 }
 
-/* نسيج هندسي إسلامي خفيف جداً خلف كل صفحات التطبيق — يظهر فقط في فراغات
-   الصفحة بين البطاقات (الأخيرة معتمة فتغطيه)، ويتكيّف تلقائياً مع الوضع
-   الليلي/النهاري لأنه currentColor موروث من --text. */
+/* نسيج هندسي إسلامي خفيف جداً خلف كل الصفحات — هوية التطبيق الوحيدة
+   الباقية على مستوى الخلفية، ويظهر فقط في الفراغات بين البطاقات.
+
+   ملاحظة: currentColor لا يعمل داخل SVG مُستعمَل كـ background-image —
+   الصورة مستند مستقل لا يرث لون العنصر، فيسقط اللون إلى الأسود. لذلك
+   يُكتب لون الخط صراحةً هنا، ونسخة داكنة أخرى للوضع النهاري. */
 .app-shell::before {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  color: var(--text);
-  opacity: 0.12;
-  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='currentColor' stroke-width='1.3'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='%23ffffff' stroke-width='1.3'/%3E%3C/svg%3E");
   background-size: 96px 96px;
 }
-:root[data-theme="light"] .app-shell::before { opacity: 0.06; }
+:root[data-theme="light"] .app-shell::before {
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='%23002114' stroke-width='1.3'/%3E%3C/svg%3E");
+}
 
 @media (min-width: 520px) and (min-height: 640px) {
-  body { padding: 20px; }
+  body { padding: 24px; }
   .app-shell {
     height: min(100%, 920px);
-    border-radius: 34px;
-    border: 1px solid var(--border-strong);
-    box-shadow: var(--shadow-3), 0 0 0 10px rgba(0, 0, 0, 0.35);
+    border-radius: var(--m3-shape-xl);
+    box-shadow: var(--m3-elev-5);
   }
 }
 
-/* ---------------- 4. شريط تقدّم الوقت (2px أعلى الشاشة) ---------------- */
+/* ---------------- شريط تقدّم الوقت حتى الأذان (3px أعلى الشاشة) ---------------- */
 #adhanTimeBar {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 2px;
+  height: 3px;
   z-index: 50;
   background: transparent;
   pointer-events: none;
@@ -221,79 +389,119 @@ input, textarea, select {
 #adhanTimeBarFill {
   height: 100%;
   width: 0%;
-  background: #34C77B;
+  border-end-end-radius: 3px;
+  border-start-end-radius: 3px;
+  background: var(--m3-primary);
   transition: width 1s linear;
 }
 
-/* ---------------- 4. شريط التطبيق العلوي ---------------- */
+/* ============================================================
+   ٦) شريط التطبيق العلوي — M3 Top app bar (small)
+   ============================================================ */
 .app-bar {
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   height: calc(var(--bar-h) + var(--sat));
-  padding: var(--sat) 12px 0;
-  background: var(--bar-bg);
-  backdrop-filter: saturate(160%) blur(18px);
-  -webkit-backdrop-filter: saturate(160%) blur(18px);
-  border-bottom: 1px solid var(--border);
+  padding: var(--sat) 4px 0;
+  background: var(--m3-surface);
+  border-bottom: none;
   z-index: 30;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard),
+              box-shadow var(--m3-dur-short) var(--m3-ease-standard);
+}
+/* عند التمرير يرتفع الشريط لسطح أعلى — سلوك Material القياسي بدل الحد السفلي */
+.app-shell.scrolled .app-bar {
+  background: var(--m3-surface-container);
 }
 
-.ab-brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-.ab-logo {
-  width: 36px; height: 36px;
-  display: grid; place-items: center;
-  /* قبة/محراب — نصف علوي دائري كامل ونصف سفلي بزوايا خفيفة */
-  border-radius: 50% 50% 10px 10px;
-  background: linear-gradient(140deg, var(--brand), var(--brand-deep));
-  color: #fff;
-  box-shadow: 0 4px 14px -6px var(--hero-glow);
+.ab-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  padding-inline-start: 12px;
 }
-.ab-logo .ic { width: 20px; height: 20px; stroke-width: 1.9; }
+.ab-logo {
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+}
+.ab-logo .ic { width: 22px; height: 22px; stroke-width: 2; }
 .ab-brand-txt { display: flex; flex-direction: column; min-width: 0; }
 .ab-brand-txt h1 {
-  font-size: 1.12rem;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-size: var(--type-title-l);
+  font-weight: 700;
+  letter-spacing: 0;
   line-height: 1.25;
+  color: var(--m3-on-surface);
 }
 .ab-sub {
-  font-size: 0.68rem;
-  color: var(--muted);
+  font-size: var(--type-label-m);
+  color: var(--m3-on-surface-variant);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
-.ab-title { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.ab-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  padding-inline-start: 8px;
+}
 .ab-title-main {
-  font-size: 1.02rem;
-  font-weight: 800;
+  font-size: var(--type-title-l);
+  font-weight: 600;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.ab-title-sub { font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
-
-.ab-actions { display: flex; align-items: center; gap: 2px; flex: none; }
-
-.ab-icon {
-  width: 38px; height: 38px;
-  display: grid; place-items: center;
-  border-radius: 12px;
-  color: var(--text-2);
-  transition: background 0.18s, color 0.18s, transform 0.12s;
+.ab-title-sub {
+  font-size: var(--type-label-m);
+  color: var(--m3-on-surface-variant);
+  white-space: nowrap;
 }
-.ab-icon .ic { width: 21px; height: 21px; }
-.ab-icon:active { transform: scale(0.9); background: var(--surface-2); }
-.ab-icon.sm { width: 34px; height: 34px; border-radius: 10px; }
-.ab-icon.sm .ic { width: 19px; height: 19px; }
-.ab-back { color: var(--text); flex: none; }
 
-/* ---------------- 5. جسم التطبيق والتمرير ---------------- */
+.ab-actions { display: flex; align-items: center; gap: 0; flex: none; }
+
+/* زر أيقونة قياسي: أيقونة 24dp داخل دائرة طبقة الحالة. 44px بدل 48
+   لأن وضع القراءة يعرض أربعة أزرار إلى جانب زر الرجوع واسم السورة معاً،
+   و48 كانت تخنق الاسم على شاشات 360px. */
+.ab-icon {
+  position: relative;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  color: var(--m3-on-surface-variant);
+  overflow: hidden;
+  transition: color var(--m3-dur-short) var(--m3-ease-standard);
+}
+.ab-icon::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.ab-icon:active::before { opacity: var(--m3-state-pressed); }
+.ab-icon .ic { width: 24px; height: 24px; position: relative; }
+.ab-icon.sm { width: 40px; height: 40px; }
+.ab-icon.sm .ic { width: 22px; height: 22px; }
+.ab-back { color: var(--m3-on-surface); flex: none; }
+
+/* ============================================================
+   ٧) جسم التطبيق والتمرير
+   ============================================================ */
 .shell-body {
   position: relative;
   flex: 1;
@@ -312,94 +520,163 @@ input, textarea, select {
 #mainContent::-webkit-scrollbar { width: 0; display: none; }
 
 .tab-panel { display: none; }
-.tab-panel.active { display: block; animation: pageIn 0.3s var(--ease); }
-@keyframes pageIn {
-  from { opacity: 0; transform: translateY(10px) scale(0.995); }
+.tab-panel.active { display: block; animation: m3PageIn var(--m3-dur-long) var(--m3-ease-decelerate); }
+@keyframes m3PageIn {
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: none; }
 }
 
-/* ---------------- 6. شريط التنقل السفلي ---------------- */
+/* ============================================================
+   ٨) شريط التنقل السفلي — M3 Navigation bar
+   ============================================================
+   ارتفاع 80dp، ومؤشّر نشط على شكل كبسولة 64×32 خلف الأيقونة. */
 .tab-bar {
   flex: none;
   display: flex;
   align-items: stretch;
   justify-content: space-around;
   height: calc(var(--nav-h) + var(--sab));
-  padding-bottom: var(--sab);
-  background: var(--nav-bg);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-  border-top: 1px solid var(--border);
+  padding: 12px 8px var(--sab);
+  background: var(--m3-surface-container);
+  border-top: none;
   z-index: 40;
 }
 
 .nav-btn {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
-  color: var(--muted);
-  font-size: 0.63rem;
+  justify-content: flex-start;
+  gap: 4px;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-m);
   font-weight: 600;
-  padding: 6px 2px;
-  position: relative;
-  transition: color 0.2s var(--ease);
+  padding: 0 2px;
+  transition: color var(--m3-dur-medium) var(--m3-ease-standard);
   -webkit-user-select: none;
   user-select: none;
 }
 .nav-ic {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 44px; height: 28px;
-  /* قوس/محراب بدل الحبة الكاملة — نفس لمسة القبة في .ab-logo وشارات الأقسام */
-  border-radius: 50% 50% 6px 6px;
-  transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+  width: 64px; height: 32px;
+  border-radius: var(--m3-shape-lg);
+  overflow: hidden;
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard);
 }
-.nav-ic .ic { width: 21px; height: 21px; transition: stroke-width 0.2s; }
-.nav-btn.active { color: var(--brand); }
-.nav-btn.active .nav-ic { background: var(--brand-soft); transform: translateY(-1px); }
-.nav-btn.active .nav-ic .ic { stroke-width: 2.1; }
-.nav-btn:active .nav-ic { transform: scale(0.9); }
+.nav-ic::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--m3-on-surface);
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.nav-btn:active .nav-ic::before { opacity: var(--m3-state-pressed); }
+.nav-ic .ic { width: 24px; height: 24px; position: relative; transition: stroke-width var(--m3-dur-short); }
+.nav-label { line-height: 1.35; }
 
-/* ---------------- 7. مكوّنات عامة ---------------- */
+.nav-btn.active { color: var(--m3-on-surface); }
+.nav-btn.active .nav-ic { background: var(--m3-secondary-container); }
+.nav-btn.active .nav-ic .ic { stroke-width: 2.2; color: var(--m3-on-secondary-container); }
+.nav-btn.active .nav-label { font-weight: 700; }
+
+/* ============================================================
+   ٩) زر الإجراء العائم — M3 FAB
+   ============================================================
+   ثابت أسفل الشاشة في الجهة الطرفية (يسار في RTL)، فوق شريط التنقل.
+   يعيش داخل قسمه فقط، فيختفي معه تلقائياً بلا أي كود. */
+.fab {
+  position: fixed;
+  bottom: calc(var(--nav-h) + var(--sab) + 16px);
+  inset-inline-end: max(16px, calc(50vw - (var(--app-w) / 2) + 16px));
+  z-index: 60;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 56px;
+  height: 56px;
+  padding: 0 20px;
+  border-radius: var(--m3-shape-lg);
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  box-shadow: var(--m3-elev-3);
+  font-size: var(--type-label-l);
+  font-weight: 700;
+  overflow: hidden;
+  transition: box-shadow var(--m3-dur-short) var(--m3-ease-standard),
+              transform var(--m3-dur-short) var(--m3-ease-standard);
+}
+.fab .ic { width: 24px; height: 24px; }
+.fab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.fab:active { box-shadow: var(--m3-elev-1); }
+.fab:active::before { opacity: var(--m3-state-pressed); }
+.fab > * { position: relative; }
+/* مصغّر (أيقونة فقط) */
+.fab.fab-icon { padding: 0; width: 56px; }
+/* لا يظهر أثناء القراءة الغامرة */
+.app-shell.reading .fab { display: none; }
+/* مساحة أسفل الأقسام التي تحمل زر إجراء عائم حتى لا يغطّي آخر عنصر فيها */
+#adhkarCatView, #khatmaListView { padding-bottom: 88px; }
+
+/* ============================================================
+   ١٠) البطاقات — M3 Cards
+   ============================================================ */
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  box-shadow: var(--m3-elev-1);
   margin-bottom: 12px;
   overflow: hidden;
 }
+/* بطاقة محدَّدة بحد (outlined) — للسطوح الثانوية */
+.card.card-outlined {
+  background: var(--m3-surface);
+  border: 1px solid var(--m3-outline-variant);
+  box-shadow: none;
+}
 
+/* ---------------- رؤوس الأقسام ---------------- */
 .sec-head {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin: 4px 2px 16px;
+  gap: 12px;
+  margin: 8px 4px 12px;
+  min-height: 32px;
 }
 .sec-head h2 {
-  font-size: 0.95rem;
+  font-size: var(--type-title-s);
   font-weight: 700;
-  color: var(--text-2);
+  letter-spacing: 0.1px;
+  color: var(--m3-primary);
 }
-.head-actions { display: flex; gap: 2px; flex: none; }
+.head-actions { display: flex; gap: 0; flex: none; }
 .loc-info { min-width: 0; }
 
 .sub-head {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 .sub-head h2 {
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: var(--type-title-m);
+  font-weight: 700;
   text-align: center;
   flex: 1;
   min-width: 0;
@@ -408,232 +685,312 @@ input, textarea, select {
   white-space: nowrap;
 }
 
-.page-note { color: var(--muted); font-size: 0.85rem; margin: 2px 2px 14px; line-height: 1.6; }
-.page-note.tiny { font-size: 0.72rem; margin-top: -10px; }
+.page-note {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-m);
+  margin: 4px 4px 16px;
+  line-height: 1.6;
+}
+.page-note.tiny { font-size: var(--type-body-s); margin-top: -10px; }
 .sec-head .page-note { margin: 0; }
 
-/* زخرفة صغيرة: خط رفيع + نجمة ذهبية في منتصفه، أسفل رؤوس الأقسام
-   والأوراق السفلية — لمسة هندسية إسلامية خفيفة متكررة في كل الصفحات */
-.sec-head::after,
-.sub-head::after,
-.khatma-section-head::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: -9px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-strong) 18%, var(--border-strong) 82%, transparent);
+.muted { color: var(--m3-on-surface-variant); font-size: var(--type-body-m); }
+
+.loading {
+  text-align: center;
+  color: var(--m3-on-surface-variant);
+  padding: 48px 0;
+  font-size: var(--type-body-m);
 }
-.sec-head::before,
-.sub-head::before,
-.khatma-section-head::before {
-  content: "✦";
-  position: absolute;
-  left: 50%; bottom: -14px;
-  transform: translateX(-50%);
-  font-size: 9px;
-  line-height: 1;
-  color: var(--gold);
-  background: var(--bg);
-  padding: 0 8px;
-  z-index: 1;
+.error-msg {
+  text-align: center;
+  color: var(--m3-error);
+  padding: 32px 12px;
+  font-size: var(--type-body-m);
+  line-height: 1.9;
 }
 
-.muted { color: var(--muted); font-size: 0.85rem; }
-
-.loading { text-align: center; color: var(--muted); padding: 48px 0; font-size: 0.9rem; }
-.error-msg { text-align: center; color: var(--danger); padding: 32px 12px; font-size: 0.9rem; line-height: 1.9; }
-
-/* الأزرار */
+/* ============================================================
+   ١١) الأزرار — M3 Buttons
+   ============================================================
+   ارتفاع 40dp، حواف كبسولة كاملة، ونصّ label-large. */
 .btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-height: 40px;
   font-weight: 700;
-  font-size: 0.93rem;
-  border-radius: var(--r-md);
-  padding: 13px 20px;
-  transition: transform 0.12s var(--ease), filter 0.18s, background 0.18s;
+  font-size: var(--type-label-l);
+  letter-spacing: 0.1px;
+  border-radius: var(--m3-shape-full);
+  padding: 10px 24px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: box-shadow var(--m3-dur-short) var(--m3-ease-standard),
+              background var(--m3-dur-short) var(--m3-ease-standard);
   -webkit-user-select: none;
   user-select: none;
 }
-.btn .ic { width: 18px; height: 18px; }
-.btn:active { transform: scale(0.97); }
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.btn:active::before { opacity: var(--m3-state-pressed); }
+.btn > * { position: relative; }
+.btn .ic { width: 18px; height: 18px; position: relative; }
 .btn-block { width: 100%; }
-.btn-sm { padding: 9px 16px; font-size: 0.82rem; border-radius: var(--r-sm); }
+.btn-sm { min-height: 32px; padding: 6px 16px; font-size: var(--type-label-m); }
 
+/* Filled button */
 .btn-primary {
-  background: linear-gradient(140deg, var(--brand), var(--brand-deep));
-  color: #fff;
-  box-shadow: 0 8px 20px -10px var(--hero-glow);
+  background: var(--m3-primary);
+  color: var(--m3-on-primary);
 }
+.btn-primary:active { box-shadow: var(--m3-elev-1); }
+
+/* Filled tonal button */
 .btn-soft {
-  background: var(--surface-2);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-light {
-  background: rgba(255, 255, 255, 0.16);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  backdrop-filter: blur(6px);
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
 }
 
+/* زر فوق سطح ملوّن (بطاقة الصلاة القادمة) */
+.btn-light {
+  background: var(--hero-t16);
+  color: var(--hero-strong);
+}
+
+/* ---------------- الشرائح — M3 Chips ---------------- */
 .chip-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-2);
-  border-radius: var(--r-pill);
-  font-size: 0.78rem;
-  font-weight: 700;
-  padding: 7px 14px;
+  gap: 8px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid var(--m3-outline);
+  color: var(--m3-on-surface-variant);
+  border-radius: var(--m3-shape-sm);
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  padding: 0 16px;
   flex: none;
-  transition: transform 0.12s, color 0.18s, border-color 0.18s;
+  overflow: hidden;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard),
+              color var(--m3-dur-short) var(--m3-ease-standard),
+              border-color var(--m3-dur-short) var(--m3-ease-standard);
 }
-.chip-btn .ic { width: 15px; height: 15px; }
-.chip-btn:active { transform: scale(0.95); }
+.chip-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.chip-btn:active::before { opacity: var(--m3-state-pressed); }
+.chip-btn > *, .chip-btn .ic { position: relative; }
+.chip-btn .ic { width: 18px; height: 18px; }
 .chip-btn.ghost { background: transparent; }
-.chip-btn.on { color: var(--brand); border-color: var(--brand); background: var(--brand-soft); }
+/* شريحة مفلترة مُختارة */
+.chip-btn.on {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  border-color: transparent;
+}
 
-/* حقول الإدخال */
-.field { margin-bottom: 20px; }
+/* ============================================================
+   ١٢) حقول الإدخال — M3 Text fields (filled)
+   ============================================================ */
+.field { margin-bottom: 24px; }
 .field-label {
   display: block;
-  color: var(--muted);
-  font-size: 0.78rem;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-s);
   font-weight: 700;
+  letter-spacing: 0.4px;
   margin-bottom: 8px;
 }
-.field-hint { color: var(--muted); font-size: 0.72rem; line-height: 1.7; margin-top: 8px; }
+.field-hint {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-s);
+  line-height: 1.7;
+  margin-top: 8px;
+  padding-inline: 4px;
+}
 .field-hint.top { margin-top: -4px; margin-bottom: 10px; }
 
 .search-input, .select-input {
   width: 100%;
-  padding: 13px 16px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text);
-  font-size: 0.93rem;
+  min-height: 56px;
+  padding: 16px;
+  border: none;
+  border-bottom: 1px solid var(--m3-on-surface-variant);
+  border-radius: var(--m3-shape-xs) var(--m3-shape-xs) 0 0;
+  background: var(--m3-surface-container-highest);
+  color: var(--m3-on-surface);
+  font-size: var(--type-body-l);
   outline: none;
-  transition: border-color 0.18s, background 0.18s;
+  transition: border-color var(--m3-dur-short) var(--m3-ease-standard),
+              background var(--m3-dur-short) var(--m3-ease-standard);
   appearance: none;
   -webkit-appearance: none;
 }
-.search-input::placeholder { color: var(--muted); }
-.search-input:focus, .select-input:focus { border-color: var(--brand); background: var(--surface); }
-textarea.search-input { resize: vertical; min-height: 96px; line-height: 1.9; }
+.search-input::placeholder { color: var(--m3-on-surface-variant); }
+.search-input:focus, .select-input:focus {
+  border-bottom: 2px solid var(--m3-primary);
+  padding-bottom: 15px;
+}
+textarea.search-input { resize: vertical; min-height: 112px; line-height: 1.9; }
 input[type="number"].search-input { text-align: center; }
 
 .select-input {
-  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237E9089' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236F7972' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: left 14px center;
-  background-size: 16px;
-  padding-left: 38px;
+  background-position: left 16px center;
+  background-size: 20px;
+  padding-left: 46px;
 }
 
-.search-field { position: relative; margin-bottom: 14px; }
+/* ---------------- شريط البحث — M3 Search bar ---------------- */
+.search-field { position: relative; margin-bottom: 16px; }
 .search-field .search-ic {
   position: absolute;
-  right: 15px;
+  right: 16px;
   top: 50%;
   transform: translateY(-50%);
-  width: 18px; height: 18px;
-  color: var(--muted);
+  width: 24px; height: 24px;
+  color: var(--m3-on-surface-variant);
   pointer-events: none;
 }
-.search-field .search-input { padding-right: 44px; border-radius: var(--r-pill); }
+.search-field .search-input {
+  height: 56px;
+  min-height: 56px;
+  padding: 0 56px 0 20px;
+  border: none;
+  border-radius: var(--m3-shape-xl);
+  background: var(--m3-surface-container-high);
+  font-size: var(--type-body-l);
+}
+.search-field .search-input:focus {
+  border: none;
+  padding-bottom: 0;
+  background: var(--m3-surface-container-highest);
+}
 .search-input::-webkit-search-cancel-button { -webkit-appearance: none; }
 
-/* المدرّج (Stepper) */
+/* ---------------- المدرّج (Stepper) ---------------- */
 .stepper {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  background: var(--m3-surface-container-high);
+  border-radius: var(--m3-shape-full);
   padding: 6px;
 }
 .step-btn {
-  width: 44px; height: 40px;
-  border-radius: var(--r-xs);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  font-weight: 800;
-  font-size: 0.95rem;
-  color: var(--text);
-  transition: transform 0.12s;
+  position: relative;
+  width: 48px; height: 40px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  font-weight: 700;
+  font-size: var(--type-title-m);
+  overflow: hidden;
+  transition: background var(--m3-dur-short);
 }
-.step-btn:active { transform: scale(0.92); }
-.step-value { font-weight: 800; color: var(--brand); font-variant-numeric: tabular-nums; }
+.step-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short);
+}
+.step-btn:active::before { opacity: var(--m3-state-pressed); }
+.step-value {
+  font-weight: 700;
+  color: var(--m3-primary);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--type-title-m);
+}
 
 .preview-box {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 18px 16px;
+  background: var(--m3-surface-container-low);
+  border-radius: var(--m3-shape-md);
+  padding: 20px 16px;
   text-align: center;
 }
-.preview-label { display: block; color: var(--muted); font-size: 0.7rem; margin-bottom: 10px; }
+.preview-label {
+  display: block;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-m);
+  margin-bottom: 12px;
+}
 #fontPreview { margin: 0; }
 
 .or-divider {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 14px 0;
-  color: var(--muted);
-  font-size: 0.72rem;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-s);
 }
 .or-divider::before, .or-divider::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--border);
+  background: var(--m3-outline-variant);
 }
 
+/* ---------------- الحالة الفارغة ---------------- */
 .empty-state {
   text-align: center;
-  color: var(--muted);
-  padding: 56px 24px;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--r-lg);
-  background: var(--surface);
+  color: var(--m3-on-surface-variant);
+  padding: 48px 24px;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-low);
 }
 .empty-state .big {
-  width: 56px; height: 56px;
-  margin: 0 auto 14px;
+  width: 64px; height: 64px;
+  margin: 0 auto 16px;
   display: grid; place-items: center;
-  border-radius: 50% 50% 16px 16px;
-  background: var(--surface-2);
+  border-radius: 50%;
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
   font-size: 1.6rem;
 }
-.empty-state p { line-height: 1.9; font-size: 0.88rem; }
+.empty-state .big .ic { width: 28px; height: 28px; }
+.empty-state p { line-height: 1.9; font-size: var(--type-body-m); }
 
-/* ---------------- 8. البطاقة الرئيسية (Hero) ---------------- */
+/* ============================================================
+   ١٣) بطاقة الصلاة القادمة (Hero)
+   ============================================================
+   بطاقة Material مملوءة بلون primary-container، بحواف 28dp. */
 .hero-card {
   position: relative;
-  background: linear-gradient(145deg, var(--hero-1), var(--hero-2));
-  border-radius: var(--r-xl);
-  padding: 22px 18px 16px;
-  margin-bottom: 18px;
+  background: var(--hero-bg);
+  border-radius: var(--m3-shape-xl);
+  padding: 24px 20px 18px;
+  margin-bottom: 20px;
   overflow: hidden;
-  color: #fff;
-  box-shadow: var(--shadow-2);
+  color: var(--hero-on);
   isolation: isolate;
 }
-.hero-card.compact { padding: 20px 18px 14px; }
+.hero-card.compact { padding: 20px 20px 16px; }
 
 .hero-glow {
   position: absolute;
   inset: -40% -20% auto -20%;
   height: 220px;
-  background: radial-gradient(closest-side, var(--hero-glow), transparent);
+  background: radial-gradient(closest-side, var(--hero-t16), transparent);
   z-index: -1;
   pointer-events: none;
 }
@@ -642,77 +999,80 @@ input[type="number"].search-input { text-align: center; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  /* نسيج نجوم ثمانية متكرر — نفس زخرفة --star8 بخط رفيع، بمزيج فتح لتظل
-     الخلفية الخضراء التدرّجية هي الأساس والنجوم لمسة خفيفة فوقها فقط */
-  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='white' stroke-width='1.3'/%3E%3C/svg%3E");
+  /* نسيج نجوم ثمانية متكرر بخط رفيع — لمسة هوية فوق السطح الملوّن.
+     اللون مكتوب صراحةً (لا currentColor) لأن SVG كخلفية لا يرث لون العنصر. */
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='%23ffffff' stroke-width='1.3'/%3E%3C/svg%3E");
   background-size: 90px 90px;
-  opacity: 0.14;
+  opacity: 0.10;
   pointer-events: none;
+}
+:root[data-theme="light"] .hero-card::after {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 64 64'%3E%3Cpath d='M32 4 36.6 20.9 51.8 12.2 43.1 27.4 60 32 43.1 36.6 51.8 51.8 36.6 43.1 32 60 27.4 43.1 12.2 51.8 20.9 36.6 4 32 20.9 27.4 12.2 12.2 27.4 20.9Z' fill='none' stroke='%23002D1C' stroke-width='1.3'/%3E%3C/svg%3E");
+  opacity: 0.09;
 }
 
 .hero-main { text-align: center; }
 .hero-label {
   display: inline-block;
-  font-size: 0.68rem;
+  font-size: var(--type-label-m);
   font-weight: 700;
-  letter-spacing: 0.6px;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: var(--r-pill);
-  padding: 4px 12px;
-  margin-bottom: 10px;
+  letter-spacing: 0.5px;
+  color: var(--hero-strong);
+  background: var(--hero-t16);
+  border-radius: var(--m3-shape-sm);
+  padding: 5px 12px;
+  margin-bottom: 12px;
 }
 .hero-prayer {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #fff;
+  font-size: var(--type-headline-s);
+  font-weight: 700;
+  color: var(--hero-strong);
   line-height: 1.3;
 }
-.hero-sub { font-size: 0.82rem; color: rgba(255, 255, 255, 0.72); margin-top: 2px; }
+.hero-sub { font-size: var(--type-body-m); color: var(--hero-on); margin-top: 2px; }
 .hero-countdown {
-  font-size: 2.1rem;
-  font-weight: 800;
-  color: var(--gold-soft);
+  font-size: var(--type-display-s);
+  font-weight: 700;
+  color: var(--hero-strong);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 1.5px;
-  margin-top: 4px;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.25);
+  letter-spacing: 1px;
+  margin-top: 6px;
+  direction: ltr;
 }
-/* البطاقة دائماً بخلفية خضراء داكنة — اللون الذهبي الفاتح مقروء في كلا الوضعين */
-[data-theme="light"] .hero-countdown { color: #F0D6A6; }
-.hero-note { font-size: 0.78rem; color: rgba(255, 255, 255, 0.7); margin-top: 10px; line-height: 1.7; }
+.hero-note { font-size: var(--type-body-m); color: var(--hero-on); margin-top: 12px; line-height: 1.7; }
 
+/* مؤشّر تقدّم خطّي بمواصفات Material (4dp، حواف كاملة) */
 .hero-progress {
-  height: 5px;
-  background: rgba(255, 255, 255, 0.16);
-  border-radius: var(--r-pill);
-  margin-top: 16px;
+  height: 4px;
+  background: var(--hero-t24);
+  border-radius: var(--m3-shape-full);
+  margin-top: 18px;
   overflow: hidden;
 }
 .hero-progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--gold-soft), #fff);
-  border-radius: var(--r-pill);
+  background: var(--hero-strong);
+  border-radius: var(--m3-shape-full);
   transition: width 1s linear;
 }
 
 .hero-empty { text-align: center; padding: 6px 0 10px; }
 .hero-empty-icon {
   display: grid; place-items: center;
-  width: 52px; height: 52px;
-  margin: 0 auto 10px;
-  border-radius: 50% 50% 15px 15px;
-  background: rgba(255, 255, 255, 0.13);
+  width: 56px; height: 56px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: var(--hero-t16);
 }
-.hero-empty-icon .ic { width: 26px; height: 26px; color: #fff; }
-.hero-empty p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.82); margin-bottom: 14px; }
+.hero-empty-icon .ic { width: 28px; height: 28px; color: var(--hero-strong); }
+.hero-empty p { font-size: var(--type-body-m); color: var(--hero-on); margin-bottom: 16px; }
 
-/* شريط أوقات الصلاة داخل البطاقة */
+/* شريط أوقات اليوم داخل البطاقة */
 .prayer-strip {
   display: flex;
   gap: 6px;
-  margin-top: 16px;
+  margin-top: 18px;
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 2px;
@@ -726,118 +1086,159 @@ input[type="number"].search-input { text-align: center; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 6px 4px;
-  border-radius: var(--r-sm);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid transparent;
-  transition: background 0.2s, border-color 0.2s;
+  gap: 3px;
+  padding: 8px 4px;
+  border-radius: var(--m3-shape-md);
+  background: var(--hero-t8);
+  transition: background var(--m3-dur-short) var(--m3-ease-standard);
 }
-.home-prayer-item.next-prayer {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.34);
-}
-.home-prayer-icon { font-size: 0.72rem; line-height: 1; }
-.home-prayer-name { font-size: 0.56rem; color: rgba(255, 255, 255, 0.68); font-weight: 600; }
+.home-prayer-item.next-prayer { background: var(--hero-t24); }
+.home-prayer-icon { font-size: 0.78rem; line-height: 1; }
+.home-prayer-name { font-size: var(--type-label-s); color: var(--hero-on); font-weight: 600; }
 .home-prayer-time {
-  font-size: 0.62rem;
+  font-size: var(--type-label-s);
   font-weight: 700;
-  color: #fff;
+  color: var(--hero-strong);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.home-prayer-item.next-prayer .home-prayer-name { color: rgba(255, 255, 255, 0.9); }
-.home-prayer-item.next-prayer .home-prayer-time { color: var(--gold-soft); }
 
-/* ---------------- 9. شبكة الأقسام السريعة ---------------- */
+/* ============================================================
+   ١٤) شبكة الأقسام السريعة
+   ============================================================ */
 .quick-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 12px;
 }
 .quick-tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
   padding: 16px 6px 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  color: var(--text);
-  box-shadow: var(--shadow-1);
-  transition: transform 0.14s var(--ease), border-color 0.18s, background 0.18s;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  color: var(--m3-on-surface);
+  box-shadow: var(--m3-elev-1);
+  overflow: hidden;
+  transition: box-shadow var(--m3-dur-short) var(--m3-ease-standard);
 }
-.quick-tile:active { transform: scale(0.95); background: var(--surface-2); }
+.quick-tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.quick-tile:active::before { opacity: var(--m3-state-pressed); }
+.quick-tile > * { position: relative; }
 .qt-icon {
   display: grid;
   place-items: center;
-  width: 46px; height: 46px;
-  border-radius: 50% 50% 14px 14px;
+  width: 48px; height: 48px;
+  border-radius: 50%;
   color: #fff;
 }
-.qt-icon .ic { width: 23px; height: 23px; stroke-width: 1.8; }
-.qt-name { font-size: 0.72rem; font-weight: 700; text-align: center; line-height: 1.35; }
+.qt-icon .ic { width: 24px; height: 24px; stroke-width: 1.9; }
+.qt-name {
+  font-size: var(--type-label-m);
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.35;
+}
 
-.tone-emerald { background: linear-gradient(140deg, #34C77B, #0F7A50); box-shadow: 0 6px 16px -8px rgba(52,199,123,0.7); }
-.tone-violet  { background: linear-gradient(140deg, #A98BF0, #6440B8); box-shadow: 0 6px 16px -8px rgba(169,139,240,0.7); }
-.tone-amber   { background: linear-gradient(140deg, #EFC069, #B07D22); box-shadow: 0 6px 16px -8px rgba(239,192,105,0.7); }
-.tone-teal    { background: linear-gradient(140deg, #4CC8C4, #14807E); box-shadow: 0 6px 16px -8px rgba(76,200,196,0.7); }
-.tone-rose    { background: linear-gradient(140deg, #F0899B, #B23E56); box-shadow: 0 6px 16px -8px rgba(240,137,155,0.7); }
-.tone-blue    { background: linear-gradient(140deg, #6FA8F5, #2A5FB5); box-shadow: 0 6px 16px -8px rgba(111,168,245,0.7); }
+/* ألوان الأقسام — مسطّحة بأسلوب Material بدل التدرّجات والظلال الملوّنة */
+.tone-emerald { background: #1E9E67; }
+.tone-violet  { background: #7B57C9; }
+.tone-amber   { background: #B07D22; }
+.tone-teal    { background: #14807E; }
+.tone-rose    { background: #B44A61; }
+.tone-blue    { background: #3665C0; }
+.tone-gold    { background: #A07828; }
+.tone-jade    { background: #0D7A5A; }
+:root[data-theme="dark"] .tone-emerald,
+:root:not([data-theme="light"]) .tone-emerald { background: #2CB477; }
+:root:not([data-theme="light"]) .tone-violet  { background: #8F6BDE; }
+:root:not([data-theme="light"]) .tone-amber   { background: #D19E45; }
+:root:not([data-theme="light"]) .tone-teal    { background: #2AA5A2; }
+:root:not([data-theme="light"]) .tone-rose    { background: #D2647C; }
+:root:not([data-theme="light"]) .tone-blue    { background: #5B8AE0; }
+:root:not([data-theme="light"]) .tone-gold    { background: #C89A48; }
+:root:not([data-theme="light"]) .tone-jade    { background: #1FA97D; }
 
-/* ---------------- 10. قائمة السور ---------------- */
-.surah-list { display: flex; flex-direction: column; gap: 8px; }
+/* ============================================================
+   ١٥) قائمة السور — M3 List items
+   ============================================================ */
+.surah-list { display: flex; flex-direction: column; gap: 4px; }
 
 .surah-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 13px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 12px 14px;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 10px 12px;
+  min-height: 72px;
   cursor: pointer;
-  transition: transform 0.14s var(--ease), background 0.18s, border-color 0.18s;
+  overflow: hidden;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard);
 }
-.surah-card:active { transform: scale(0.985); background: var(--surface-2); }
-.surah-card.current-surah { border-color: var(--brand); background: var(--brand-soft); }
+.surah-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--m3-on-surface);
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.surah-card:active::before { opacity: var(--m3-state-pressed); }
+.surah-card > * { position: relative; }
+.surah-card.current-surah { background: var(--m3-secondary-container); }
+.surah-card.current-surah .surah-card-name { color: var(--m3-on-secondary-container); }
 
 .surah-number {
   position: relative;
-  width: 40px; height: 40px;
+  width: 44px; height: 44px;
   flex-shrink: 0;
   display: grid;
   place-items: center;
-  color: var(--brand);
-  font-weight: 800;
-  font-size: 0.82rem;
+  color: var(--m3-on-primary-container);
+  font-weight: 700;
+  font-size: var(--type-label-l);
   font-variant-numeric: tabular-nums;
 }
 .surah-number::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--brand-soft);
-  border: 1.5px solid var(--brand);
-  opacity: 0.85;
+  background: var(--m3-primary-container);
   clip-path: var(--star8);
 }
 .surah-number span { position: relative; }
 
 .surah-card-info { flex: 1; min-width: 0; }
-.surah-card-name { font-size: 1rem; font-weight: 700; line-height: 1.4; }
-.surah-card-meta { color: var(--muted); font-size: 0.72rem; margin-top: 1px; }
+.surah-card-name { font-size: var(--type-body-l); font-weight: 600; line-height: 1.4; }
+.surah-card-meta {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-m);
+  margin-top: 2px;
+}
 
-/* ---------------- 11. قارئ المصحف ---------------- */
+/* ============================================================
+   ١٦) قارئ المصحف
+   ============================================================ */
 .ayah-container {
   position: absolute;
   inset: 0;
-  background: var(--bg);
+  background: var(--m3-surface);
   /* --khatma-bar-h و --as-bar-h يضبطهما khatma.js/auto-scroll.js بارتفاع
-     الشريط الفعلي وقت ظهوره، حتى لا يغطّي آخر آيات معروضة. زائد سطر فاضٍ
-     بنفس line-height نص المصحف (٢٫٧) حتى لا تنتهي الآية الأخيرة عند حافة
-     الشاشة تماماً. */
+     الشريط الفعلي وقت ظهوره، حتى لا يغطّي آخر آيات معروضة. */
   padding: 22px 20px calc(22px + (var(--quran-font-size, 1.75rem) * 2.7) + var(--khatma-bar-h, 0px) + var(--as-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -852,16 +1253,16 @@ input[type="number"].search-input { text-align: center; }
   text-align: center;
   font-family: var(--font-quran);
   font-size: calc(var(--quran-font-size) + 0.1rem);
-  color: var(--gold);
+  color: var(--m3-tertiary);
   margin-bottom: 24px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--m3-outline-variant);
 }
 .basmala-ayah-line {
   text-align: center;
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
-  color: var(--text);
+  color: var(--m3-on-surface);
   line-height: 2.2;
   margin-bottom: 22px;
 }
@@ -870,177 +1271,290 @@ input[type="number"].search-input { text-align: center; }
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
   line-height: 2.7;
-  color: var(--text);
+  color: var(--m3-on-surface);
   text-align: center;
-  /* بدونها، الضغط المطوَّل بين الآيات (على المسافة الفاصلة، لا على أي
-     ayah-span) يُظهر مؤشر تحديد النص الأصلي للمتصفح رغم أنه يفتح قائمة
-     إجراءات مخصَّصة بدل التحديد. */
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
 .ayah-span {
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--m3-shape-xs);
   padding: 2px 1px;
-  transition: background 0.15s ease;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard);
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
   touch-action: manipulation;
   scroll-margin-top: 90px;
 }
-.ayah-span.bookmarked { box-shadow: inset 0 -3px 0 var(--gold); background: var(--gold-tint); }
-.ayah-span.pressing { background: rgba(230, 190, 123, 0.4); }
-.ayah-span.highlighted { background: rgba(230, 190, 123, 0.28); }
-.ayah-span.pulse { animation: bookmarkPulse 0.45s ease; }
-@keyframes bookmarkPulse {
-  0% { background: rgba(230, 190, 123, 0.6); }
+.ayah-span.bookmarked {
+  box-shadow: inset 0 -3px 0 var(--m3-tertiary);
+  background: var(--gold-tint);
+}
+.ayah-span.pressing { background: var(--m3-secondary-container); }
+.ayah-span.highlighted { background: var(--gold-tint); }
+.ayah-span.pulse { animation: m3BookmarkPulse var(--m3-dur-long) var(--m3-ease-standard); }
+@keyframes m3BookmarkPulse {
+  0% { background: var(--m3-tertiary-container); }
   100% { background: transparent; }
 }
-.ayah-marker { color: var(--gold); font-size: 1.15rem; margin: 0 5px; white-space: nowrap; }
+.ayah-marker { color: var(--m3-tertiary); font-size: 1.15rem; margin: 0 5px; white-space: nowrap; }
 
-/* ---------------- 12. الأذكار ---------------- */
+/* فاصل صفحات المصحف */
+.page-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 20px;
+  user-select: none;
+}
+.page-separator-line {
+  flex: 1;
+  height: 1px;
+  background: var(--m3-outline-variant);
+}
+.page-separator-label {
+  font-family: var(--font-ui);
+  font-size: var(--type-label-m);
+  font-weight: 700;
+  color: var(--m3-on-tertiary-container);
+  background: var(--m3-tertiary-container);
+  border-radius: var(--m3-shape-sm);
+  padding: 4px 14px;
+  white-space: nowrap;
+}
+
+/* علامة السجدة */
+.sajdah-mark {
+  color: var(--m3-tertiary);
+  font-size: 0.85em;
+  margin: 0 2px;
+}
+
+/* بطاقة متابعة القراءة */
+.resume-card {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.resume-open {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  cursor: pointer;
+  text-align: start;
+  font-family: inherit;
+  overflow: hidden;
+}
+.resume-open::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.resume-open:active::before { opacity: var(--m3-state-pressed); }
+.resume-open > * { position: relative; }
+.resume-label {
+  font-size: var(--type-label-m);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: var(--m3-tertiary);
+}
+.resume-ref { font-size: var(--type-body-m); font-weight: 600; }
+.resume-card .icon-action { align-self: center; }
+
+/* ============================================================
+   ١٧) الأذكار
+   ============================================================ */
 .category-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 .category-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px 12px 16px;
+  position: relative;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 20px 12px 18px;
   text-align: center;
   cursor: pointer;
-  box-shadow: var(--shadow-1);
-  transition: transform 0.14s var(--ease), background 0.18s;
+  box-shadow: var(--m3-elev-1);
+  overflow: hidden;
 }
-.category-card:active { transform: scale(0.96); background: var(--surface-2); }
+.category-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--m3-on-surface);
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.category-card:active::before { opacity: var(--m3-state-pressed); }
+.category-card > * { position: relative; }
 .category-icon {
-  width: 46px; height: 46px;
-  margin: 0 auto 10px;
+  width: 48px; height: 48px;
+  margin: 0 auto 12px;
   display: grid; place-items: center;
-  border-radius: 50% 50% 14px 14px;
-  background: linear-gradient(140deg, var(--surface-2), var(--surface-3));
-  border: 1px solid var(--border);
-  font-size: 1.35rem;
+  border-radius: 50%;
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  font-size: 1.4rem;
 }
-.category-name { font-weight: 700; font-size: 0.88rem; line-height: 1.4; }
-.category-count { color: var(--muted); font-size: 0.7rem; margin-top: 3px; }
+.category-name { font-weight: 700; font-size: var(--type-title-s); line-height: 1.4; }
+.category-count {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-s);
+  margin-top: 4px;
+}
 
 .dhikr-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 20px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--m3-elev-1);
 }
 .dhikr-text { font-size: 1.2rem; line-height: 2.1; font-family: var(--font-quran); }
 .dhikr-benefit {
-  color: var(--text-2);
-  font-size: 0.79rem;
+  color: var(--m3-on-tertiary-container);
+  background: var(--m3-tertiary-container);
+  font-size: var(--type-body-m);
   line-height: 1.8;
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: var(--gold-tint);
-  border-radius: var(--r-xs);
-  border-inline-start: 3px solid var(--gold);
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: var(--m3-shape-sm);
 }
 .dhikr-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 14px;
-  padding-top: 13px;
-  border-top: 1px solid var(--border);
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--m3-outline-variant);
 }
-.dhikr-repeat { color: var(--muted); font-size: 0.76rem; font-weight: 600; }
+.dhikr-repeat {
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-m);
+  font-weight: 600;
+}
 .custom-adhkar-tag {
   display: inline-block;
-  margin-top: 10px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 0.68rem;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
+  margin-top: 12px;
+  background: var(--m3-surface-container-high);
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-m);
+  padding: 4px 12px;
+  border-radius: var(--m3-shape-sm);
 }
 
 .dhikr-counter-btn {
-  background: linear-gradient(140deg, var(--brand), var(--brand-deep));
-  color: #fff;
-  border-radius: var(--r-pill);
+  position: relative;
+  background: var(--m3-primary);
+  color: var(--m3-on-primary);
+  border-radius: var(--m3-shape-full);
   padding: 10px 24px;
-  font-weight: 800;
-  font-size: 0.95rem;
+  min-height: 40px;
+  font-weight: 700;
+  font-size: var(--type-title-m);
   min-width: 92px;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 6px 16px -9px var(--hero-glow);
-  transition: transform 0.1s, background 0.25s;
+  overflow: hidden;
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard);
 }
-.dhikr-counter-btn:active { transform: scale(0.93); }
+.dhikr-counter-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.dhikr-counter-btn:active::before { opacity: var(--m3-state-pressed); }
 .dhikr-counter-btn.done {
-  background: linear-gradient(140deg, var(--gold), #A9762A);
-  color: #241703;
+  background: var(--m3-tertiary-container);
+  color: var(--m3-on-tertiary-container);
 }
 
-.reorder-controls { display: flex; gap: 6px; }
-.reorder-controls .tune-btn:disabled { opacity: 0.3; }
+.reorder-controls { display: flex; gap: 8px; }
+.reorder-controls .tune-btn:disabled { opacity: 0.38; }
 
-/* السبحة */
+/* ---------------- السبحة الإلكترونية ---------------- */
 .tasbeeh-card {
-  background: radial-gradient(120% 90% at 50% 0%, var(--surface-3), var(--surface));
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  padding: 18px;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-xl);
+  padding: 20px;
   text-align: center;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--m3-elev-1);
 }
 .tasbeeh-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
-.tasbeeh-title { font-size: 0.85rem; font-weight: 700; color: var(--text-2); }
+.tasbeeh-title { font-size: var(--type-title-s); font-weight: 700; color: var(--m3-on-surface-variant); }
 .tasbeeh-count {
   font-size: 3rem;
-  font-weight: 800;
-  color: var(--gold);
+  font-weight: 700;
+  color: var(--m3-primary);
   line-height: 1.2;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   font-variant-numeric: tabular-nums;
 }
 .tasbeeh-btn {
-  width: 148px; height: 148px;
+  position: relative;
+  width: 156px; height: 156px;
   border-radius: 50%;
-  border: 1px solid var(--border-strong);
-  background: linear-gradient(160deg, var(--surface-2), var(--surface));
-  color: var(--text);
-  font-size: 1.05rem;
+  border: none;
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+  font-size: var(--type-title-m);
   font-weight: 700;
-  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  transition: transform 0.08s, box-shadow 0.2s;
+  box-shadow: var(--m3-elev-3);
+  overflow: hidden;
+  transition: box-shadow var(--m3-dur-short) var(--m3-ease-standard);
   -webkit-user-select: none;
   user-select: none;
 }
-.tasbeeh-btn:active {
-  transform: scale(0.94);
-  box-shadow: 0 6px 16px -12px rgba(0, 0, 0, 0.6);
+.tasbeeh-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
 }
-.tasbeeh-select { margin-top: 16px; }
+.tasbeeh-btn:active { box-shadow: var(--m3-elev-1); }
+.tasbeeh-btn:active::before { opacity: var(--m3-state-pressed); }
+.tasbeeh-select { margin-top: 18px; }
 
-/* ---------------- 13. المحفوظات ---------------- */
+/* ============================================================
+   ١٨) المحفوظات
+   ============================================================ */
 .bookmark-item {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 16px 18px;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 18px 20px;
   margin-bottom: 10px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--m3-elev-1);
 }
 .bookmark-ayah-text { font-family: var(--font-quran); font-size: 1.28rem; line-height: 2.2; }
 .bookmark-meta {
@@ -1048,146 +1562,196 @@ input[type="number"].search-input { text-align: center; }
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-top: 13px;
+  margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--m3-outline-variant);
 }
-.bookmark-ref { color: var(--gold); font-weight: 700; font-size: 0.78rem; }
-.bookmark-actions { display: flex; gap: 6px; flex: none; }
-.icon-action {
-  width: 34px; height: 34px;
-  display: grid; place-items: center;
-  border-radius: var(--r-xs);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text-2);
-  transition: transform 0.12s, color 0.18s;
-}
-.icon-action .ic { width: 17px; height: 17px; }
-.icon-action:active { transform: scale(0.9); }
-.icon-action.danger { color: var(--danger); }
+.bookmark-ref { color: var(--m3-tertiary); font-weight: 700; font-size: var(--type-body-m); }
+.bookmark-actions { display: flex; gap: 4px; flex: none; }
 
-/* ---------------- 14. مواقيت الصلاة ---------------- */
-.prayer-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+/* زر أيقونة ثانوي (M3 icon button — tonal) */
+.icon-action {
+  position: relative;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--m3-surface-container-high);
+  border: none;
+  color: var(--m3-on-surface-variant);
+  overflow: hidden;
+}
+.icon-action::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.icon-action:active::before { opacity: var(--m3-state-pressed); }
+.icon-action .ic { width: 20px; height: 20px; position: relative; }
+.icon-action.danger { color: var(--m3-error); }
+
+/* ============================================================
+   ١٩) مواقيت الصلاة
+   ============================================================ */
+.prayer-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
 
 .prayer-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 13px 16px;
-  transition: border-color 0.2s, background 0.2s;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 14px 16px;
+  min-height: 56px;
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard);
 }
 .prayer-row.current {
-  border-color: var(--brand);
-  background: var(--brand-soft);
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
 }
-.prayer-name { font-weight: 700; font-size: 0.92rem; display: flex; align-items: center; gap: 9px; }
-.prayer-time-wrap { display: flex; align-items: center; gap: 8px; }
+.prayer-name {
+  font-weight: 600;
+  font-size: var(--type-body-l);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.prayer-time-wrap { display: flex; align-items: center; gap: 10px; }
 .prayer-time {
-  font-size: 1rem;
+  font-size: var(--type-title-m);
   font-weight: 700;
-  color: var(--text-2);
+  color: var(--m3-on-surface-variant);
   font-variant-numeric: tabular-nums;
 }
-.prayer-row.current .prayer-time { color: var(--brand); }
+.prayer-row.current .prayer-time { color: var(--m3-on-primary-container); }
 .prayer-tune-badge {
-  font-size: 0.65rem;
-  color: var(--muted);
-  background: var(--surface-2);
-  border-radius: var(--r-pill);
-  padding: 2px 7px;
+  font-size: var(--type-label-s);
+  color: var(--m3-on-surface-variant);
+  background: var(--m3-surface-container-high);
+  border-radius: var(--m3-shape-sm);
+  padding: 3px 8px;
   font-variant-numeric: tabular-nums;
+}
+.prayer-row.current .prayer-tune-badge {
+  background: var(--hero-t16);
+  color: var(--m3-on-primary-container);
 }
 .current-badge {
-  background: var(--brand);
-  color: var(--on-brand);
-  font-size: 0.62rem;
-  font-weight: 800;
-  padding: 3px 9px;
-  border-radius: var(--r-pill);
+  background: var(--m3-primary);
+  color: var(--m3-on-primary);
+  font-size: var(--type-label-s);
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--m3-shape-sm);
 }
 
 /* زر "صلّيتها" — يُفعَّل فقط بعد دخول وقت الصلاة، يغذّي لوحة الإحصائيات */
 .prayer-mark-btn {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 30px; height: 30px;
+  width: 36px; height: 36px;
   flex-shrink: 0;
   border-radius: 50%;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  transition: transform 0.12s, background 0.2s, color 0.2s, border-color 0.2s;
+  background: var(--m3-surface-container-high);
+  border: none;
+  color: var(--m3-on-surface-variant);
+  overflow: hidden;
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard),
+              color var(--m3-dur-medium) var(--m3-ease-standard);
 }
-.prayer-mark-btn .ic { width: 15px; height: 15px; }
-.prayer-mark-btn:active { transform: scale(0.9); }
-.prayer-mark-btn:disabled { opacity: 0.3; }
-.prayer-mark-btn.done { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+.prayer-mark-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.prayer-mark-btn:active::before { opacity: var(--m3-state-pressed); }
+.prayer-mark-btn .ic { width: 18px; height: 18px; position: relative; }
+.prayer-mark-btn:disabled { opacity: 0.38; }
+.prayer-mark-btn.done { background: var(--m3-primary); color: var(--m3-on-primary); }
 
 .loc-card { padding: 16px; }
 .city-form { display: grid; gap: 8px; }
 
 .skeleton-row {
-  height: 52px;
-  border-radius: var(--r-md);
-  background: linear-gradient(90deg, var(--surface) 25%, var(--surface-2) 50%, var(--surface) 75%);
+  height: 56px;
+  border-radius: var(--m3-shape-md);
+  background: linear-gradient(90deg,
+    var(--m3-surface-container-low) 25%,
+    var(--m3-surface-container-high) 50%,
+    var(--m3-surface-container-low) 75%);
   background-size: 200% 100%;
-  animation: skeletonShimmer 1.4s ease-in-out infinite;
+  animation: m3Shimmer 1.4s ease-in-out infinite;
 }
-@keyframes skeletonShimmer {
+@keyframes m3Shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
-/* تصحيح الأوقات */
-.tune-list { display: grid; gap: 8px; }
+/* ---------------- تصحيح الأوقات ---------------- */
+.tune-list { display: grid; gap: 4px; }
 .tune-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 8px 12px;
+  background: var(--m3-surface-container-high);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 8px 8px 8px 16px;
+  min-height: 56px;
 }
-.tune-row .tune-name { font-weight: 600; font-size: 0.86rem; }
-.tune-row .tune-controls { display: flex; align-items: center; gap: 8px; }
+.tune-row .tune-name { font-weight: 600; font-size: var(--type-body-l); }
+.tune-row .tune-controls { display: flex; align-items: center; gap: 4px; }
 .tune-btn {
-  width: 30px; height: 30px;
-  border-radius: 9px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-weight: 800;
-  font-size: 0.95rem;
-  transition: transform 0.12s, color 0.15s;
+  position: relative;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: var(--m3-surface-container-lowest);
+  border: none;
+  color: var(--m3-on-surface);
+  font-weight: 700;
+  font-size: var(--type-title-m);
+  overflow: hidden;
 }
-.tune-btn:active { transform: scale(0.9); }
+.tune-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.tune-btn:active::before { opacity: var(--m3-state-pressed); }
 .tune-value {
-  min-width: 38px;
+  min-width: 40px;
   text-align: center;
-  font-weight: 800;
-  font-size: 0.85rem;
-  color: var(--brand);
+  font-weight: 700;
+  font-size: var(--type-body-l);
+  color: var(--m3-primary);
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------------- 15. الأدعية ---------------- */
+/* ============================================================
+   ٢٠) الأدعية
+   ============================================================ */
 .adiyah-list { display: flex; flex-direction: column; gap: 10px; }
 .dua-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  padding: 18px;
-  box-shadow: var(--shadow-1);
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 20px;
+  box-shadow: var(--m3-elev-1);
 }
 .dua-title {
-  color: var(--gold);
+  color: var(--m3-primary);
   font-weight: 700;
-  font-size: 0.88rem;
+  font-size: var(--type-title-s);
   margin-bottom: 12px;
   display: flex;
   align-items: center;
@@ -1197,28 +1761,31 @@ input[type="number"].search-input { text-align: center; }
   font-family: var(--font-quran);
   font-size: 1.22rem;
   line-height: 2.2;
-  color: var(--text);
-  margin-bottom: 12px;
+  color: var(--m3-on-surface);
+  margin-bottom: 14px;
 }
 .dua-source {
-  color: var(--muted);
-  font-size: 0.72rem;
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-s);
+  border-top: 1px solid var(--m3-outline-variant);
+  padding-top: 12px;
+  line-height: 1.7;
 }
-.dua-read-btn { margin-top: 12px; width: 100%; justify-content: center; }
+.dua-read-btn { margin-top: 14px; width: 100%; justify-content: center; }
 
-/* ---------------- 16. صفحة الأذان ---------------- */
-.player-card { padding: 18px; }
+/* ============================================================
+   ٢١) صفحة الأذان
+   ============================================================ */
+.player-card { padding: 20px; }
 .player-card .field:last-of-type { margin-bottom: 0; }
 
 .note-badge {
-  background: var(--gold-tint);
-  border: 1px solid rgba(230, 190, 123, 0.3);
-  border-radius: var(--r-sm);
-  padding: 9px 14px;
-  font-size: 0.78rem;
-  color: var(--gold);
+  background: var(--m3-tertiary-container);
+  border: none;
+  border-radius: var(--m3-shape-sm);
+  padding: 12px 16px;
+  font-size: var(--type-body-m);
+  color: var(--m3-on-tertiary-container);
   text-align: center;
   margin-bottom: 16px;
 }
@@ -1227,316 +1794,366 @@ input[type="number"].search-input { text-align: center; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  margin: 18px 0;
+  gap: 14px;
+  margin: 20px 0;
 }
+/* زر تشغيل كبير بأسلوب FAB الكبير في Material 3 */
 .play-btn {
-  width: 88px; height: 88px;
-  border-radius: 50%;
-  background: linear-gradient(150deg, var(--brand), var(--brand-deep));
-  color: #fff;
+  position: relative;
+  width: 96px; height: 96px;
+  border-radius: var(--m3-shape-xl);
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
   display: grid;
   place-items: center;
-  box-shadow: 0 14px 34px -14px var(--hero-glow);
-  transition: transform 0.14s var(--ease), box-shadow 0.25s;
+  box-shadow: var(--m3-elev-3);
+  overflow: hidden;
+  transition: box-shadow var(--m3-dur-short) var(--m3-ease-standard);
 }
-.play-btn .ic { width: 32px; height: 32px; }
-.play-btn:active { transform: scale(0.93); }
-.play-btn.playing { animation: playPulse 2.2s ease-in-out infinite; }
-@keyframes playPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 199, 123, 0.35), 0 14px 34px -14px var(--hero-glow); }
-  50%      { box-shadow: 0 0 0 16px rgba(52, 199, 123, 0), 0 14px 34px -14px var(--hero-glow); }
+.play-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
 }
-.play-label { color: var(--muted); font-size: 0.82rem; font-weight: 600; }
+.play-btn:active { box-shadow: var(--m3-elev-1); }
+.play-btn:active::before { opacity: var(--m3-state-pressed); }
+.play-btn .ic { width: 36px; height: 36px; position: relative; }
+.play-btn.playing { animation: m3PlayPulse 2.4s ease-in-out infinite; }
+@keyframes m3PlayPulse {
+  0%, 100% { box-shadow: var(--m3-elev-3), 0 0 0 0 var(--hero-glow); }
+  50%      { box-shadow: var(--m3-elev-3), 0 0 0 18px rgba(0, 0, 0, 0); }
+}
+.play-label { color: var(--m3-on-surface-variant); font-size: var(--type-body-m); font-weight: 600; }
 
 .progress-wrap { margin-bottom: 16px; }
+/* مؤشّر تقدّم Material الخطّي — 4dp */
 .progress-bar {
-  height: 6px;
-  background: var(--track);
-  border-radius: var(--r-pill);
+  height: 4px;
+  background: var(--m3-surface-container-highest);
+  border-radius: var(--m3-shape-full);
   overflow: hidden;
   cursor: pointer;
-  margin-bottom: 7px;
+  margin-bottom: 8px;
 }
 .progress-fill {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--brand), var(--gold));
-  border-radius: var(--r-pill);
+  background: var(--m3-primary);
+  border-radius: var(--m3-shape-full);
   transition: width 0.5s linear;
 }
 .progress-times {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
-  color: var(--muted);
+  font-size: var(--type-label-m);
+  color: var(--m3-on-surface-variant);
   font-variant-numeric: tabular-nums;
 }
 
-.volume-row { display: flex; align-items: center; gap: 12px; }
-.vol-ic { width: 17px; height: 17px; color: var(--muted); }
+.volume-row { display: flex; align-items: center; gap: 14px; }
+.vol-ic { width: 20px; height: 20px; color: var(--m3-on-surface-variant); }
 
+/* ---------------- المزلاج — M3 Slider ----------------
+   appearance:none وحدها لم تعد تكفي في Chromium الحديث لإلغاء مسار
+   المزلاج الافتراضي (كان يظهر شريطاً فاتحاً فوق خلفيتنا الداكنة)، فنرسم
+   المسار والمقبض صراحةً. */
 .range-input {
   flex: 1;
   -webkit-appearance: none;
   appearance: none;
-  height: 5px;
-  border-radius: var(--r-pill);
-  background: var(--track);
+  height: 20px;
+  background: transparent;
   outline: none;
+}
+.range-input::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
 }
 .range-input::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 18px; height: 18px;
+  width: 20px; height: 20px;
+  margin-top: -8px;
   border-radius: 50%;
-  background: var(--brand);
-  border: 3px solid var(--surface);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  background: var(--m3-primary);
+  border: none;
+  box-shadow: var(--m3-elev-1);
+}
+.range-input::-moz-range-track {
+  height: 4px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
 }
 .range-input::-moz-range-thumb {
-  width: 14px; height: 14px;
+  width: 20px; height: 20px;
   border-radius: 50%;
-  background: var(--brand);
-  border: 3px solid var(--surface);
+  background: var(--m3-primary);
+  border: none;
 }
 
-/* البطاقات القابلة للطي */
+/* ---------------- البطاقات القابلة للطي ---------------- */
 .collapse-card { overflow: hidden; }
 .collapse-btn {
+  position: relative;
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 18px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text);
+  padding: 16px 20px;
+  min-height: 56px;
+  font-size: var(--type-title-m);
+  font-weight: 600;
+  color: var(--m3-on-surface);
   text-align: right;
-  transition: background 0.18s;
+  overflow: hidden;
 }
-.collapse-btn:active { background: var(--surface-2); }
-.collapse-title { display: flex; align-items: center; gap: 9px; }
-.collapse-title .ic { width: 18px; height: 18px; color: var(--brand); }
+.collapse-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.collapse-btn:active::before { opacity: var(--m3-state-pressed); }
+.collapse-btn > * { position: relative; }
+.collapse-title { display: flex; align-items: center; gap: 12px; }
+.collapse-title .ic { width: 22px; height: 22px; color: var(--m3-primary); }
 .collapse-arrow {
-  width: 18px; height: 18px;
-  color: var(--muted);
-  transition: transform 0.3s var(--ease);
+  width: 22px; height: 22px;
+  color: var(--m3-on-surface-variant);
+  transition: transform var(--m3-dur-medium) var(--m3-ease-standard);
 }
 .collapse-arrow.open { transform: rotate(180deg); }
 .collapse-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.4s var(--ease);
+  transition: max-height var(--m3-dur-long) var(--m3-ease-standard);
   border-top: 1px solid transparent;
 }
-.collapse-body.open { max-height: 2200px; border-top-color: var(--border); }
+.collapse-body.open { max-height: 2200px; border-top-color: var(--m3-outline-variant); }
 
-.adhan-text-list { padding: 14px 18px; }
+.adhan-text-list { padding: 16px 20px; }
 .adhan-text-phrase {
   font-family: var(--font-quran);
   font-size: 1.32rem;
   line-height: 2.3;
-  color: var(--text);
+  color: var(--m3-on-surface);
   text-align: center;
   padding: 4px 0;
 }
 .fajr-note {
-  background: var(--gold-tint);
-  border: 1px dashed rgba(230, 190, 123, 0.4);
-  border-radius: var(--r-sm);
-  padding: 12px 14px;
-  margin: 6px 18px 16px;
+  background: var(--m3-tertiary-container);
+  color: var(--m3-on-tertiary-container);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 14px;
+  margin: 6px 20px 18px;
   text-align: center;
 }
 .fajr-tag {
-  font-size: 0.72rem;
-  color: var(--gold);
+  font-size: var(--type-label-m);
   font-weight: 700;
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  opacity: 0.85;
 }
 
 /* بطاقات الاقتباس (أدعية / أحاديث) */
-.quote-item { padding: 15px 18px; border-bottom: 1px solid var(--border); }
+.quote-item { padding: 16px 20px; border-bottom: 1px solid var(--m3-outline-variant); }
 .quote-item:last-child { border-bottom: none; }
-.quote-title { color: var(--gold); font-weight: 700; font-size: 0.82rem; margin-bottom: 9px; }
-.quote-text { font-family: var(--font-quran); font-size: 1.15rem; line-height: 2.1; color: var(--text); }
+.quote-title { color: var(--m3-primary); font-weight: 700; font-size: var(--type-title-s); margin-bottom: 10px; }
+.quote-text { font-family: var(--font-quran); font-size: 1.15rem; line-height: 2.1; color: var(--m3-on-surface); }
 .quote-highlight {
   display: block;
   font-family: var(--font-quran);
   font-size: 1.12rem;
-  color: var(--gold);
-  margin-top: 6px;
+  color: var(--m3-tertiary);
+  margin-top: 8px;
 }
-.quote-source { color: var(--muted); font-size: 0.7rem; margin-top: 8px; }
+.quote-source { color: var(--m3-on-surface-variant); font-size: var(--type-body-s); margin-top: 10px; }
 
-/* مفاتيح التبديل */
-.toggle-list { display: grid; gap: 8px; }
+/* ---------------- مفاتيح التبديل — M3 Switch ---------------- */
+.toggle-list { display: grid; gap: 4px; }
 .adhan-toggle-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: 10px 14px;
+  background: var(--m3-surface-container-high);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 10px 16px;
+  min-height: 56px;
 }
-.adhan-toggle-label { font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 8px; }
-.adhan-toggle-switch { position: relative; width: 46px; height: 27px; flex-shrink: 0; }
+.adhan-toggle-label {
+  font-weight: 600;
+  font-size: var(--type-body-l);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.adhan-toggle-switch { position: relative; width: 52px; height: 32px; flex-shrink: 0; }
 .adhan-toggle-switch input { opacity: 0; width: 0; height: 0; }
 .adhan-toggle-track {
   position: absolute;
   inset: 0;
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  border-radius: var(--r-pill);
+  background: var(--m3-surface-container-highest);
+  border: 2px solid var(--m3-outline);
+  border-radius: var(--m3-shape-full);
   cursor: pointer;
-  transition: background 0.24s var(--ease), border-color 0.24s;
+  transition: background var(--m3-dur-medium) var(--m3-ease-standard),
+              border-color var(--m3-dur-medium) var(--m3-ease-standard);
 }
+/* المقبض: 16dp مطفأ ← 24dp مشتغل (سلوك Material 3 القياسي) */
 .adhan-toggle-track::after {
   content: "";
   position: absolute;
-  width: 21px; height: 21px;
-  left: 2px; top: 2px;
-  background: var(--muted);
+  width: 16px; height: 16px;
+  left: 6px; top: 50%;
+  background: var(--m3-outline);
   border-radius: 50%;
-  transition: transform 0.24s var(--ease), background 0.24s;
+  transform: translateY(-50%);
+  transition: transform var(--m3-dur-medium) var(--m3-ease-standard),
+              width var(--m3-dur-medium) var(--m3-ease-standard),
+              height var(--m3-dur-medium) var(--m3-ease-standard),
+              left var(--m3-dur-medium) var(--m3-ease-standard),
+              background var(--m3-dur-medium) var(--m3-ease-standard);
 }
 .adhan-toggle-switch input:checked + .adhan-toggle-track {
-  background: var(--brand);
-  border-color: var(--brand);
+  background: var(--m3-primary);
+  border-color: var(--m3-primary);
 }
 .adhan-toggle-switch input:checked + .adhan-toggle-track::after {
-  transform: translateX(19px);
-  background: #fff;
+  width: 24px;
+  height: 24px;
+  left: 24px;
+  background: var(--m3-on-primary);
 }
 
-/* ---------------- 17. الأوراق السفلية (Bottom Sheets) ---------------- */
+/* ============================================================
+   ٢٢) الأوراق السفلية — M3 Bottom sheets
+   ============================================================ */
 .modal-overlay {
   position: absolute;
   inset: 0;
-  background: var(--scrim);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: var(--m3-scrim);
   display: flex;
   align-items: flex-end;
   justify-content: center;
   z-index: 200;
-  animation: scrimIn 0.22s ease;
+  animation: m3ScrimIn var(--m3-dur-medium) var(--m3-ease-standard);
 }
-@keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m3ScrimIn { from { opacity: 0; } to { opacity: 1; } }
 
 .modal-panel {
   width: 100%;
-  background: var(--bg-2);
-  border-top: 1px solid var(--border-strong);
-  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-xl) var(--m3-shape-xl) 0 0;
   max-height: 88%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 -18px 46px -20px rgba(0, 0, 0, 0.65);
-  animation: sheetUp 0.32s var(--ease);
+  box-shadow: var(--m3-elev-3);
+  animation: m3SheetUp var(--m3-dur-long) var(--m3-ease-decelerate);
 }
-@keyframes sheetUp {
+@keyframes m3SheetUp {
   from { transform: translateY(100%); }
   to   { transform: none; }
 }
 
+/* مقبض السحب بمقاس Material (32×4) */
 .sheet-grab {
-  width: 40px; height: 4px;
-  border-radius: var(--r-pill);
-  background: var(--border-strong);
-  margin: 10px auto 2px;
+  width: 32px; height: 4px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-on-surface-variant);
+  opacity: 0.4;
+  margin: 16px auto 0;
   flex: none;
 }
 
 .modal-header {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 18px 12px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 20px 12px 12px;
+  border-bottom: none;
   flex: none;
 }
-.modal-header h3 { font-size: 1.02rem; font-weight: 800; }
-.modal-header::before {
-  content: "✦";
-  position: absolute;
-  left: 50%; bottom: -6px;
-  transform: translateX(-50%);
-  font-size: 9px;
-  line-height: 1;
-  color: var(--gold);
-  background: var(--bg-2);
-  padding: 0 8px;
-  z-index: 1;
+.modal-header h3 {
+  font-size: var(--type-title-l);
+  font-weight: 600;
+  color: var(--m3-on-surface);
 }
 
 .modal-body {
-  padding: 20px 18px calc(24px + var(--sab));
+  padding: 8px 20px calc(28px + var(--sab));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 .modal-body > .field:last-of-type { margin-bottom: 4px; }
 
-.settings-body { padding: 20px 18px calc(24px + var(--sab)); }
+.settings-body { padding: 20px 20px calc(28px + var(--sab)); }
 
-.action-stack { display: flex; flex-direction: column; gap: 9px; }
-.action-stack .btn { padding: 15px; }
-.btn.playing { background: linear-gradient(140deg, var(--gold), #A9762A); color: #241703; }
-.btn.favorited { border-color: var(--gold); color: var(--gold); background: var(--gold-tint); }
+.action-stack { display: flex; flex-direction: column; gap: 8px; }
+.action-stack .btn { min-height: 56px; justify-content: flex-start; padding-inline: 24px; }
+.btn.playing { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+.btn.favorited { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
 
 .tafsir-box {
-  margin-top: 18px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
+  margin-top: 20px;
+  background: var(--m3-surface-container-high);
+  border: none;
+  border-radius: var(--m3-shape-md);
   padding: 16px;
   max-height: 300px;
   overflow-y: auto;
 }
-.tafsir-source { color: var(--gold); font-weight: 700; font-size: 0.8rem; margin-bottom: 8px; }
-.tafsir-text { font-family: var(--font-quran); font-size: 1.1rem; line-height: 2; color: var(--text); }
+.tafsir-source { color: var(--m3-primary); font-weight: 700; font-size: var(--type-title-s); margin-bottom: 10px; }
+.tafsir-text { font-family: var(--font-quran); font-size: 1.1rem; line-height: 2; color: var(--m3-on-surface); }
 
-/* ---------------- 18. التنبيهات ---------------- */
+/* ============================================================
+   ٢٣) التنبيهات — M3 Snackbar
+   ============================================================ */
 .toast {
   position: absolute;
   bottom: calc(var(--nav-h) + var(--sab) + 16px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--surface-3);
-  border: 1px solid var(--border-strong);
-  color: var(--text);
-  padding: 11px 20px;
-  border-radius: var(--r-pill);
-  font-size: 0.83rem;
-  font-weight: 600;
+  background: var(--m3-inverse-surface);
+  border: none;
+  color: var(--m3-inverse-on-surface);
+  padding: 14px 16px;
+  border-radius: var(--m3-shape-xs);
+  font-size: var(--type-body-m);
+  font-weight: 500;
   white-space: nowrap;
-  max-width: 90%;
+  min-width: 60%;
+  max-width: calc(100% - 32px);
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 300;
-  box-shadow: var(--shadow-2);
-  animation: toastIn 0.28s var(--ease);
+  box-shadow: var(--m3-elev-3);
+  animation: m3SnackIn var(--m3-dur-long) var(--m3-ease-decelerate);
 }
-@keyframes toastIn {
-  from { opacity: 0; transform: translate(-50%, 14px); }
+@keyframes m3SnackIn {
+  from { opacity: 0; transform: translate(-50%, 16px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
-
-/* توست معلومات الآية (سورة/جزء/حزب) — نص أطول فلا يُقصّ بالنقاط */
 .toast.toast-wide {
   white-space: normal;
-  max-width: 92%;
-  text-align: center;
-  line-height: 1.6;
-  padding: 12px 20px;
+  text-align: start;
+  line-height: 1.7;
+  padding: 16px;
 }
 
-/* ---------------- 19. أوضاع خاصة ---------------- */
+/* ============================================================
+   ٢٤) أوضاع خاصة
+   ============================================================ */
 /* وضع القراءة — إخفاء شريط التنقل لتجربة غامرة */
 .app-shell.reading .tab-bar {
   transform: translateY(100%);
@@ -1544,7 +2161,8 @@ input[type="number"].search-input { text-align: center; }
   padding: 0;
   border: none;
   overflow: hidden;
-  transition: transform 0.3s var(--ease), height 0.3s var(--ease);
+  transition: transform var(--m3-dur-medium) var(--m3-ease-standard),
+              height var(--m3-dur-medium) var(--m3-ease-standard);
 }
 .app-shell.reading #mainContent { padding: 0; }
 
@@ -1557,124 +2175,66 @@ input[type="number"].search-input { text-align: center; }
 
 /* شاشات صغيرة جداً */
 @media (max-height: 620px) {
-  .tasbeeh-btn { width: 120px; height: 120px; font-size: 0.95rem; }
+  .tasbeeh-btn { width: 128px; height: 128px; font-size: var(--type-body-m); }
   .tasbeeh-count { font-size: 2.4rem; }
-  .hero-countdown { font-size: 1.8rem; }
+  .hero-countdown { font-size: 1.9rem; }
 }
 @media (max-width: 340px) {
   .quick-grid { grid-template-columns: repeat(2, 1fr); }
-  .nav-label { font-size: 0.58rem; }
+  .nav-label { font-size: var(--type-label-s); }
+  .nav-ic { width: 56px; }
 }
 
-/* ============ فاصل صفحات المصحف ============ */
-.page-separator {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 22px 0 18px;
-  user-select: none;
-}
-.page-separator-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border-strong) 30%, var(--border-strong) 70%, transparent);
-}
-.page-separator-label {
-  font-family: var(--font-ui, inherit);
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--gold);
-  background: var(--gold-tint);
-  border: 1px solid var(--gold-tint);
-  border-radius: 999px;
-  padding: 4px 14px;
-  white-space: nowrap;
-  letter-spacing: 0.02em;
-}
-
-/* ============ علامة السجدة ============ */
-.sajdah-mark {
-  color: var(--gold);
-  font-size: 0.85em;
-  margin: 0 2px;
-}
-
-/* ============ بطاقة متابعة القراءة ============ */
-.resume-card {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-.resume-open {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  padding: 12px 16px;
-  border: 1px solid var(--gold-tint);
-  border-radius: 14px;
-  background: var(--gold-tint);
-  color: var(--text);
-  cursor: pointer;
-  text-align: start;
-  font-family: inherit;
-  transition: filter 0.15s ease;
-}
-.resume-open:active { filter: brightness(1.15); }
-.resume-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--gold);
-  letter-spacing: 0.02em;
-}
-.resume-ref {
-  font-size: 0.92rem;
-  color: var(--text);
-}
-.resume-card .icon-action {
-  align-self: center;
-}
-
-/* ---------------- 24. اختيار ودجت الشاشة الرئيسية ---------------- */
+/* ============================================================
+   ٢٥) اختيار ودجت الشاشة الرئيسية
+   ============================================================ */
 .widget-picker {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
-  gap: 10px;
+  gap: 12px;
 }
 .widget-pick {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding: 10px;
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
+  gap: 10px;
+  padding: 12px;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-high);
+  border: 2px solid transparent;
+  color: var(--m3-on-surface);
   font-family: inherit;
   cursor: pointer;
   text-align: center;
-  transition: border-color 0.15s ease, filter 0.15s ease;
+  overflow: hidden;
+  transition: border-color var(--m3-dur-short) var(--m3-ease-standard);
 }
-.widget-pick:active { filter: brightness(1.15); }
-.widget-pick.selected { border-color: var(--brand); }
-.widget-pick-name { font-size: 0.8rem; font-weight: 700; }
-.widget-pick-note { font-size: 0.68rem; color: var(--muted); line-height: 1.6; }
+.widget-pick::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.widget-pick:active::before { opacity: var(--m3-state-pressed); }
+.widget-pick > * { position: relative; }
+.widget-pick.selected { border-color: var(--m3-primary); }
+.widget-pick-name { font-size: var(--type-body-m); font-weight: 700; }
+.widget-pick-note { font-size: var(--type-label-m); color: var(--m3-on-surface-variant); line-height: 1.6; }
 
 /* معاينة مصغّرة تحاكي شكل الودجت على الشاشة الرئيسية */
 .widget-pick-preview {
   display: flex;
-  /* كل معاينة تحتفظ بنسبة الودجت الحقيقية (العريض القصير مقابل المربّع)،
-     والهوامش التلقائية تتكفّل بتوسيطها رأسياً فيتحاذى الاسمان تحتها. */
   margin-block: auto;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  border-radius: 12px;
-  background: linear-gradient(145deg, var(--hero-1), var(--hero-2));
+  border-radius: var(--m3-shape-md);
+  background: var(--hero-bg);
+  color: var(--hero-on);
   padding: 8px 7px;
 }
 .widget-pick-preview.lg { min-height: 84px; }
@@ -1683,16 +2243,16 @@ input[type="number"].search-input { text-align: center; }
 .wp-label {
   font-size: 0.44rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: var(--r-pill);
+  color: var(--hero-strong);
+  background: var(--hero-t16);
+  border-radius: var(--m3-shape-full);
   padding: 1px 6px;
 }
-.wp-name { font-size: 0.6rem; font-weight: 800; color: #fff; }
+.wp-name { font-size: 0.6rem; font-weight: 700; color: var(--hero-strong); }
 .wp-countdown {
   font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--gold-soft);
+  font-weight: 700;
+  color: var(--hero-strong);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.5px;
   direction: ltr;
@@ -1704,16 +2264,16 @@ input[type="number"].search-input { text-align: center; }
   width: 100%;
   height: 3px;
   margin-top: 2px;
-  border-radius: var(--r-pill);
-  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--m3-shape-full);
+  background: var(--hero-t24);
   overflow: hidden;
 }
 .wp-progress-fill {
   display: block;
   width: 58%;
   height: 100%;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--gold-soft), #fff);
+  border-radius: var(--m3-shape-full);
+  background: var(--hero-strong);
 }
 .wp-strip {
   display: flex;
@@ -1725,65 +2285,64 @@ input[type="number"].search-input { text-align: center; }
   flex: 1;
   height: 11px;
   border-radius: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--hero-t8);
 }
-.wp-strip i.on {
-  background: rgba(255, 255, 255, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
-}
+.wp-strip i.on { background: var(--hero-t24); }
 
-/* ---------------- 25. نافذة تحديث APK الاحترافية ---------------- */
+/* ============================================================
+   ٢٦) نافذة تحديث الـ APK
+   ============================================================ */
 .aus-panel { max-height: 80%; }
 
 .aus-header {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid var(--border);
+  gap: 16px;
+  padding: 8px 20px 16px;
+  border-bottom: none;
   flex: none;
 }
 .aus-icon-wrap {
   display: grid;
   place-items: center;
-  width: 52px; height: 52px;
-  border-radius: 50% 50% 14px 14px;
-  background: var(--brand-soft);
+  width: 56px; height: 56px;
+  border-radius: var(--m3-shape-lg);
+  background: var(--m3-primary-container);
   flex: none;
 }
-.aus-app-ic { width: 24px; height: 24px; color: var(--brand); }
+.aus-app-ic { width: 26px; height: 26px; color: var(--m3-on-primary-container); }
 
 .aus-title-block { flex: 1; min-width: 0; }
-.aus-app-name { font-size: 1rem; font-weight: 800; margin-bottom: 4px; }
+.aus-app-name { font-size: var(--type-title-l); font-weight: 600; margin-bottom: 4px; }
 
 .aus-ver-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.8rem;
+  font-size: var(--type-body-m);
 }
-.aus-ver-new { font-weight: 700; color: var(--brand); }
-.aus-ver-sep { color: var(--muted); font-size: 0.7rem; }
-.aus-ver-old { color: var(--muted); }
+.aus-ver-new { font-weight: 700; color: var(--m3-primary); }
+.aus-ver-sep { color: var(--m3-on-surface-variant); font-size: var(--type-label-m); }
+.aus-ver-old { color: var(--m3-on-surface-variant); }
 
 .aus-mandatory {
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  background: #e53935;
-  color: #fff;
-  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: var(--m3-shape-sm);
+  background: var(--m3-error-container);
+  color: var(--m3-on-error-container);
+  font-size: var(--type-label-m);
   font-weight: 700;
   flex: none;
 }
 
 .aus-notes {
-  background: var(--surface-2);
-  border-radius: var(--r-md);
-  padding: 10px 14px;
-  font-size: 0.82rem;
+  background: var(--m3-surface-container-high);
+  border-radius: var(--m3-shape-md);
+  padding: 12px 16px;
+  font-size: var(--type-body-m);
   line-height: 1.7;
-  color: var(--muted);
-  margin-bottom: 14px;
+  color: var(--m3-on-surface-variant);
+  margin-bottom: 16px;
 }
 .aus-meta-row {
   display: flex;
@@ -1792,22 +2351,22 @@ input[type="number"].search-input { text-align: center; }
   min-height: 20px;
   margin-bottom: 10px;
 }
-.aus-size { font-size: 0.78rem; color: var(--muted); }
-.aus-dl-status { font-size: 0.78rem; color: var(--brand); font-weight: 600; }
+.aus-size { font-size: var(--type-body-m); color: var(--m3-on-surface-variant); }
+.aus-dl-status { font-size: var(--type-body-m); color: var(--m3-primary); font-weight: 600; }
 
 .aus-progress {
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--track);
+  height: 4px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 .aus-progress-fill {
   display: block;
   width: 0%;
   height: 100%;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--brand), var(--gold));
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-primary);
   transition: width 0.25s linear;
 }
 
@@ -1820,37 +2379,37 @@ input[type="number"].search-input { text-align: center; }
   width: fit-content;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 16px 8px 12px;
-  border-radius: var(--r-pill);
-  background: var(--surface-2);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow-3);
-  font-size: 0.8rem;
+  gap: 10px;
+  padding: 10px 18px 10px 14px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-high);
+  border: none;
+  box-shadow: var(--m3-elev-2);
+  font-size: var(--type-body-m);
   font-weight: 600;
   z-index: 250;
-  animation: pill-drop 0.3s var(--ease);
+  animation: m3PillDrop var(--m3-dur-medium) var(--m3-ease-decelerate);
 }
-@keyframes pill-drop {
-  from { opacity: 0; transform: translateY(-10px); }
+@keyframes m3PillDrop {
+  from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: none; }
 }
 .wup-spinner {
-  width: 16px; height: 16px;
-  border: 2px solid var(--border-strong);
-  border-top-color: var(--brand);
+  width: 18px; height: 18px;
+  border: 2px solid var(--m3-surface-container-highest);
+  border-top-color: var(--m3-primary);
   border-radius: 50%;
-  animation: wup-spin 0.8s linear infinite;
+  animation: m3Spin 0.8s linear infinite;
   flex: none;
 }
-@keyframes wup-spin { to { transform: rotate(360deg); } }
-.wup-text { color: var(--muted); }
+@keyframes m3Spin { to { transform: rotate(360deg); } }
+.wup-text { color: var(--m3-on-surface-variant); }
 
-/* شريط تقدم إعادة التثبيت (يشترك في نفس شكل aus-progress) */
+/* شريط تقدم إعادة التثبيت */
 .ub-progress {
-  height: 6px;
-  border-radius: var(--r-pill);
-  background: var(--track);
+  height: 4px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
   overflow: hidden;
   margin-top: 12px;
 }
@@ -1858,8 +2417,8 @@ input[type="number"].search-input { text-align: center; }
   display: block;
   width: 0%;
   height: 100%;
-  border-radius: var(--r-pill);
-  background: linear-gradient(90deg, var(--brand), var(--gold));
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-primary);
   transition: width 0.25s linear;
 }
 
@@ -1868,114 +2427,116 @@ input[type="number"].search-input { text-align: center; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: var(--surface-2);
-  border-radius: var(--r-md);
-  padding: 10px 14px;
-  margin-bottom: 10px;
+  background: var(--m3-surface-container-high);
+  border-radius: var(--m3-shape-md);
+  padding: 14px 16px;
+  min-height: 56px;
+  margin-bottom: 4px;
 }
-.avr-label { font-size: 0.85rem; color: var(--muted); }
-.avr-value { font-size: 0.85rem; font-weight: 700; color: var(--brand); }
+.avr-label { font-size: var(--type-body-l); color: var(--m3-on-surface-variant); }
+.avr-value { font-size: var(--type-body-m); font-weight: 700; color: var(--m3-primary); }
 .avr-check-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
-/* ---------------- 26. النسخة الاحتياطية وإعادة التثبيت ---------------- */
+/* ============================================================
+   ٢٧) النسخة الاحتياطية وإعادة التثبيت
+   ============================================================ */
 .backup-status {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  font-size: 0.78rem;
-  color: var(--text-2);
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-high);
+  border: none;
+  font-size: var(--type-body-m);
+  color: var(--m3-on-surface-variant);
   margin-bottom: 8px;
 }
 .backup-dot {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--m3-outline);
   flex: none;
 }
-.backup-dot.ok { background: var(--brand); }
-.backup-dot.warn { background: var(--danger); }
+.backup-dot.ok { background: var(--m3-primary); }
+.backup-dot.warn { background: var(--m3-error); }
 
 .backup-actions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 8px;
 }
-.backup-actions .btn { padding: 9px 6px; font-size: 0.74rem; }
+.backup-actions .btn { padding: 8px 6px; font-size: var(--type-label-m); }
 
-/* --- نافذة إعادة التثبيت --- */
 .reinstall-lead {
-  font-size: 0.82rem;
+  font-size: var(--type-body-m);
   line-height: 1.9;
-  color: var(--text-2);
-  margin-bottom: 16px;
+  color: var(--m3-on-surface-variant);
+  margin-bottom: 18px;
 }
 
 .reinstall-steps {
   list-style: none;
   display: grid;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 4px;
+  margin-bottom: 18px;
 }
 .reinstall-step {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  border-radius: var(--r-sm);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  opacity: 0.55;
-  transition: opacity 0.2s, border-color 0.2s;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-high);
+  border: none;
+  opacity: 0.5;
+  transition: opacity var(--m3-dur-medium) var(--m3-ease-standard),
+              background var(--m3-dur-medium) var(--m3-ease-standard);
 }
-.reinstall-step.active { opacity: 1; border-color: var(--brand); }
+.reinstall-step.active { opacity: 1; background: var(--m3-secondary-container); }
 .reinstall-step.done { opacity: 1; }
 
 .rs-num {
   display: grid;
   place-items: center;
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   flex: none;
   border-radius: 50%;
-  background: var(--surface-3);
-  color: var(--text-2);
-  font-size: 0.74rem;
+  background: var(--m3-surface-container-highest);
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-m);
   font-weight: 700;
 }
-.reinstall-step.active .rs-num { background: var(--brand); color: var(--on-brand); }
-.reinstall-step.done .rs-num { background: var(--brand-soft); color: var(--brand); }
+.reinstall-step.active .rs-num { background: var(--m3-primary); color: var(--m3-on-primary); }
+.reinstall-step.done .rs-num { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
 
 .rs-body { flex: 1; min-width: 0; }
-.rs-title { font-size: 0.82rem; font-weight: 700; }
-.rs-note { font-size: 0.7rem; color: var(--muted); margin-top: 1px; }
+.rs-title { font-size: var(--type-body-m); font-weight: 700; }
+.rs-note { font-size: var(--type-label-m); color: var(--m3-on-surface-variant); margin-top: 2px; }
 
 .rs-check {
   flex: none;
-  color: var(--brand);
-  font-weight: 800;
+  color: var(--m3-primary);
+  font-weight: 700;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
 }
 .reinstall-step.done .rs-check { opacity: 1; }
 
-#reinstallProgress { margin-bottom: 14px; }
+#reinstallProgress { margin-bottom: 16px; }
 #reinstallOverlay .btn-block { margin-bottom: 8px; }
 
 /* ============================================================
-   ختمة القرآن الكريم + منتقي السور
+   ٢٨) ختمة القرآن الكريم + منتقي السور
    ============================================================ */
-
-/* ---- زر اسم السورة في الشريط العلوي (أثناء القراءة فقط) ---- */
 .surah-nav-btn {
   display: inline-flex;
   align-items: center;
@@ -1991,102 +2552,108 @@ input[type="number"].search-input { text-align: center; }
   -webkit-tap-highlight-color: transparent;
 }
 .surah-nav-chevron {
-  width: 14px; height: 14px;
-  color: var(--muted);
+  width: 18px; height: 18px;
+  color: var(--m3-on-surface-variant);
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
 }
 #appShell.reading .surah-nav-btn { cursor: pointer; }
 #appShell.reading .surah-nav-chevron { opacity: 1; }
 #appShell.reading .surah-nav-btn:active { opacity: 0.7; }
 
-/* ---- منتقي السورة (يغطي منطقة القراءة كاملة) ---- */
+/* منتقي السورة — شاشة كاملة فوق القارئ */
 .surah-picker {
   position: absolute;
   inset: 0;
   z-index: 80;
-  background: var(--bg);
+  background: var(--m3-surface);
   display: flex;
   flex-direction: column;
-  animation: pageIn 0.22s var(--ease);
+  animation: m3PageIn var(--m3-dur-medium) var(--m3-ease-decelerate);
 }
 .surah-picker-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bar-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  gap: 8px;
+  padding: 8px 8px 8px 12px;
+  min-height: 64px;
+  background: var(--m3-surface-container);
   flex: none;
 }
 .surah-picker-header h3 {
   flex: 1;
-  font-size: 0.95rem;
-  font-weight: 800;
+  font-size: var(--type-title-l);
+  font-weight: 600;
   text-align: center;
 }
 .surah-picker-search {
   flex: none;
-  padding: 10px 12px 6px;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 12px 4px;
+  background: var(--m3-surface-container);
 }
 .surah-picker-list {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 12px 24px;
+  padding: 12px 12px 24px;
   scrollbar-width: none;
 }
 .surah-picker-list::-webkit-scrollbar { display: none; }
 
-/* ---- لون ختمة القرآن ---- */
-.tone-gold { background: linear-gradient(140deg, #E6BE7B, #A07828); box-shadow: 0 6px 16px -8px rgba(230,190,123,0.7); }
-
-/* ---- صفحة الختمة ---- */
+/* ---------------- صفحة الختمة ---------------- */
 .khatma-empty {
   text-align: center;
-  padding: 56px 24px 32px;
+  padding: 48px 24px 32px;
 }
 .khatma-empty-icon {
   font-size: 3rem;
   display: block;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .khatma-empty p {
-  color: var(--muted);
-  font-size: 0.88rem;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-body-m);
   line-height: 1.9;
   margin-bottom: 24px;
 }
 .khatma-section-head {
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin: 4px 2px 18px;
+  margin: 8px 4px 12px;
+  min-height: 32px;
 }
 .khatma-section-head h2 {
-  font-size: 0.95rem;
+  font-size: var(--type-title-s);
   font-weight: 700;
-  color: var(--text-2);
+  letter-spacing: 0.1px;
+  color: var(--m3-primary);
 }
-.khatma-list { display: flex; flex-direction: column; gap: 12px; }
+.khatma-list { display: flex; flex-direction: column; gap: 10px; }
 
-/* بطاقة الختمة */
 .khatma-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  position: relative;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
   padding: 14px 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   cursor: pointer;
-  transition: transform 0.14s var(--ease), background 0.18s;
+  box-shadow: var(--m3-elev-1);
+  overflow: hidden;
 }
-.khatma-card:active { transform: scale(0.98); background: var(--surface-2); }
+.khatma-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--m3-on-surface);
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.khatma-card:active::before { opacity: var(--m3-state-pressed); }
+.khatma-card > * { position: relative; }
 
 /* حلقة تقدم الختمة */
 .kring-wrap {
@@ -2101,14 +2668,14 @@ input[type="number"].search-input { text-align: center; }
 }
 .kring-track {
   fill: none;
-  stroke: var(--track);
+  stroke: var(--m3-surface-container-highest);
   stroke-width: 5.5;
 }
 .kring-fill {
   fill: none;
   stroke-width: 5.5;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.8s var(--ease), stroke 0.4s;
+  transition: stroke-dashoffset var(--m3-dur-long) var(--m3-ease-standard), stroke var(--m3-dur-long);
 }
 .kring-center {
   position: absolute;
@@ -2119,77 +2686,96 @@ input[type="number"].search-input { text-align: center; }
   justify-content: center;
   gap: 1px;
 }
-.kring-pct { font-size: 0.78rem; font-weight: 800; color: var(--text); line-height: 1; }
-.kring-lbl { font-size: 0.55rem; color: var(--muted); line-height: 1; }
+.kring-pct { font-size: var(--type-body-m); font-weight: 700; color: var(--m3-on-surface); line-height: 1; }
+.kring-lbl { font-size: 0.55rem; color: var(--m3-on-surface-variant); line-height: 1; }
 
 .khatma-card-info { flex: 1; min-width: 0; }
-.khatma-card-name { font-size: 0.92rem; font-weight: 800; margin-bottom: 3px; }
-.khatma-card-meta { color: var(--muted); font-size: 0.72rem; line-height: 1.6; }
-.khatma-card-remaining { color: var(--text-2); font-size: 0.75rem; font-weight: 600; margin-top: 2px; }
+.khatma-card-name { font-size: var(--type-title-m); font-weight: 600; margin-bottom: 3px; }
+.khatma-card-meta { color: var(--m3-on-surface-variant); font-size: var(--type-body-s); line-height: 1.6; }
+.khatma-card-remaining { color: var(--m3-on-surface-variant); font-size: var(--type-body-m); font-weight: 600; margin-top: 2px; }
 
 .khatma-status-badge {
   display: inline-block;
-  font-size: 0.62rem;
+  font-size: var(--type-label-s);
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  margin-top: 3px;
+  padding: 3px 10px;
+  border-radius: var(--m3-shape-sm);
+  margin-top: 5px;
 }
-.kstatus-ahead { background: rgba(52,199,123,0.14); color: var(--brand); }
-.kstatus-ontrack { background: rgba(230,190,123,0.14); color: var(--gold); }
-.kstatus-behind { background: rgba(242,114,107,0.14); color: var(--danger); }
-.kstatus-done { background: rgba(52,199,123,0.2); color: var(--brand); }
+.kstatus-ahead   { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
+.kstatus-ontrack { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
+.kstatus-behind  { background: var(--m3-error-container); color: var(--m3-on-error-container); }
+.kstatus-done    { background: var(--m3-primary-container); color: var(--m3-on-primary-container); }
 
 .khatma-card-del {
-  width: 32px; height: 32px;
+  position: relative;
+  width: 40px; height: 40px;
   display: grid; place-items: center;
-  border-radius: 10px;
-  color: var(--muted);
+  border-radius: 50%;
+  color: var(--m3-on-surface-variant);
   flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
+  overflow: hidden;
 }
-.khatma-card-del:hover { background: var(--surface-3); color: var(--danger); }
-.khatma-card-del .ic { width: 16px; height: 16px; }
+.khatma-card-del::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.khatma-card-del:active::before { opacity: var(--m3-state-pressed); }
+.khatma-card-del .ic { width: 20px; height: 20px; position: relative; }
 
-/* ---- مودال إنشاء الختمة ---- */
+/* ---------------- مودال إنشاء الختمة — M3 Segmented button ---------------- */
 .khatma-mode-tabs {
   display: flex;
-  gap: 6px;
-  background: var(--surface-2);
-  border-radius: var(--r-md);
-  padding: 4px;
-  margin-bottom: 20px;
+  gap: 0;
+  border: 1px solid var(--m3-outline);
+  border-radius: var(--m3-shape-full);
+  padding: 0;
+  margin-bottom: 24px;
+  overflow: hidden;
 }
 .khatma-tab {
+  position: relative;
   flex: 1;
-  padding: 9px 6px;
-  border-radius: calc(var(--r-md) - 2px);
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--muted);
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  height: 40px;
+  border-radius: 0;
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  color: var(--m3-on-surface);
+  overflow: hidden;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard),
+              color var(--m3-dur-short) var(--m3-ease-standard);
 }
+.khatma-tab + .khatma-tab { border-inline-start: 1px solid var(--m3-outline); }
+.khatma-tab::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.khatma-tab:active::before { opacity: var(--m3-state-pressed); }
 .khatma-tab.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: var(--shadow-1);
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
 }
 .khatma-result {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 14px 16px;
+  background: var(--m3-surface-container-high);
+  border: none;
+  border-radius: var(--m3-shape-md);
+  padding: 16px;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
-.khatma-result-label { font-size: 0.72rem; color: var(--muted); margin-bottom: 6px; }
-.khatma-result-value { font-size: 1.5rem; font-weight: 800; color: var(--brand); }
-.khatma-result-sub { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+.khatma-result-label { font-size: var(--type-body-s); color: var(--m3-on-surface-variant); margin-bottom: 6px; }
+.khatma-result-value { font-size: var(--type-headline-s); font-weight: 700; color: var(--m3-primary); }
+.khatma-result-sub { font-size: var(--type-label-m); color: var(--m3-on-surface-variant); margin-top: 2px; }
 
-/* ---- عداد قارئ الختمة (عائم فوق النص) ---- */
-/* مستطيل عائم بعرض الشاشة أسفل صفحة القراءة — سطر واحد لا يلتف. المساحة
-   المحجوزة أسفل ayah-container (متغيّر --khatma-bar-h، يُضبط من JS بحجمه
-   الفعلي) تمنعه من تغطية آخر آيات معروضة. */
+/* ---------------- عداد قارئ الختمة (عائم فوق النص) ---------------- */
 .khatma-widget {
   position: absolute;
   left: 0;
@@ -2198,21 +2784,18 @@ input[type="number"].search-input { text-align: center; }
   z-index: 20;
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: var(--surface);
-  border-top: 1px solid var(--border-strong);
-  padding: 10px 18px calc(10px + env(safe-area-inset-bottom, 0px));
-  box-shadow: var(--shadow-3);
-  backdrop-filter: saturate(160%) blur(14px);
-  -webkit-backdrop-filter: saturate(160%) blur(14px);
-  animation: widgetIn 0.3s var(--ease);
+  gap: 14px;
+  background: var(--m3-surface-container);
+  border-top: none;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+  box-shadow: var(--m3-elev-3);
+  animation: m3WidgetIn var(--m3-dur-medium) var(--m3-ease-decelerate);
 }
-@keyframes widgetIn {
+@keyframes m3WidgetIn {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* حلقة العداد الصغيرة */
 .kwidget-ring {
   position: relative;
   width: 40px;
@@ -2233,17 +2816,16 @@ input[type="number"].search-input { text-align: center; }
 }
 .kwidget-num {
   font-size: 0.62rem;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.1;
-  color: var(--text);
+  color: var(--m3-on-surface);
 }
 .kwidget-sub {
   font-size: 0.44rem;
-  color: var(--muted);
+  color: var(--m3-on-surface-variant);
   line-height: 1;
 }
 
-/* سطر واحد: كل الإحصائيات جنب بعض بلا التفاف */
 .kwidget-stats {
   display: flex;
   flex: 1;
@@ -2252,35 +2834,33 @@ input[type="number"].search-input { text-align: center; }
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
-  font-size: 0.76rem;
+  font-size: var(--type-body-s);
 }
-.kwidget-dot { color: var(--muted); opacity: 0.5; flex-shrink: 0; }
-.kwidget-stat { color: var(--muted); flex-shrink: 0; }
-.kwidget-stat strong { color: var(--text); }
-.kwidget-pct { font-weight: 800; color: var(--brand); flex-shrink: 0; }
+.kwidget-dot { color: var(--m3-outline); flex-shrink: 0; }
+.kwidget-stat { color: var(--m3-on-surface-variant); flex-shrink: 0; }
+.kwidget-stat strong { color: var(--m3-on-surface); }
+.kwidget-pct { font-weight: 700; color: var(--m3-primary); flex-shrink: 0; }
 .kwidget-badge {
-  font-size: 0.62rem;
+  font-size: var(--type-label-s);
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
+  padding: 3px 10px;
+  border-radius: var(--m3-shape-sm);
   flex-shrink: 0;
 }
 
-/* ================================================================
- * شريط التمرير التلقائي
- * ================================================================ */
-
-/* زر التشغيل في الشريط العلوي — يظهر فقط في وضع القراءة */
+/* ============================================================
+   ٢٩) شريط التمرير التلقائي ومشغّل التلاوة
+   ============================================================ */
 .as-trigger { display: none; }
-.app-shell.reading .as-trigger { display: flex; }
-.as-trigger.as-trigger-on { color: var(--brand); }
+.app-shell.reading .as-trigger { display: grid; }
+.as-trigger.as-trigger-on { color: var(--m3-primary); }
 
 .dl-trigger { display: none; }
-.app-shell.reading .dl-trigger { display: flex; }
-.dl-trigger.downloaded { color: var(--brand); }
+.app-shell.reading .dl-trigger { display: grid; }
+.dl-trigger.downloaded { color: var(--m3-primary); }
 .dl-trigger.downloading { opacity: 0.5; pointer-events: none; }
 
-/* الشريط العائم */
+/* شريط أدوات عائم بأسلوب Material (سطح container عالٍ + ارتفاع ٣) */
 .auto-scroll-bar {
   position: fixed;
   bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
@@ -2289,81 +2869,85 @@ input[type="number"].search-input { text-align: center; }
   z-index: 120;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-xl);
+  gap: 4px;
+  background: var(--m3-surface-container-high);
+  border: none;
+  border-radius: var(--m3-shape-xl);
   padding: 8px 12px;
-  box-shadow: var(--shadow-3);
-  backdrop-filter: saturate(160%) blur(16px);
-  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  box-shadow: var(--m3-elev-3);
   white-space: nowrap;
-  animation: asBarIn 0.25s var(--ease);
+  animation: m3BarIn var(--m3-dur-medium) var(--m3-ease-decelerate);
 }
 .auto-scroll-bar.hidden { display: none; }
 
-/* شريط تشغيل التلاوة المتسلسل (آية/سورة/صفحة) — نفس هيئة شريط التمرير
-   التلقائي، فوقه بمسافة حتى لا يتداخلا لو ظهرا معاً. */
-.queue-player-bar { bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); }
-.qp-label { font-size: 0.78rem; font-weight: 600; padding: 0 4px; max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-player-bar { bottom: calc(env(safe-area-inset-bottom, 0px) + 84px); }
+.qp-label {
+  font-size: var(--type-body-m);
+  font-weight: 600;
+  padding: 0 6px;
+  max-width: 46vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-@keyframes asBarIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+@keyframes m3BarIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(14px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
-/* أزرار الشريط */
 .as-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--r-md);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   border: none;
   background: transparent;
-  color: var(--text);
+  color: var(--m3-on-surface);
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 700;
-  transition: background 0.15s, color 0.15s;
+  overflow: hidden;
 }
-.as-btn:active { background: var(--surface-2); }
+.as-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity var(--m3-dur-short) var(--m3-ease-standard);
+}
+.as-btn:active::before { opacity: var(--m3-state-pressed); }
+.as-btn .ic { position: relative; }
 
-/* زر تشغيل/إيقاف — أكبر قليلاً ومميّز */
 .as-toggle-btn {
-  background: var(--brand);
-  color: #fff;
-  border-radius: var(--r-pill);
-  width: 40px;
+  background: var(--m3-primary);
+  color: var(--m3-on-primary);
+  border-radius: var(--m3-shape-md);
+  width: 48px;
   height: 40px;
 }
-.as-toggle-btn:active { background: var(--brand-dark, var(--brand)); opacity: 0.85; }
-.as-toggle-btn .ic { width: 18px; height: 18px; }
+.as-toggle-btn .ic { width: 20px; height: 20px; }
 
-/* زر السرعة */
-.as-speed-btn { font-size: 1.3rem; width: 32px; height: 32px; }
+.as-speed-btn { font-size: 1.35rem; width: 36px; height: 36px; }
 
-/* عرض السرعة */
 .as-speed-lbl {
-  min-width: 32px;
+  min-width: 34px;
   text-align: center;
-  font-size: 0.78rem;
+  font-size: var(--type-body-m);
   font-weight: 700;
-  color: var(--brand);
-  letter-spacing: 0.02em;
+  color: var(--m3-primary);
 }
 
-/* زر مراقبة النظرة */
-.as-gaze-btn .ic { width: 18px; height: 18px; }
-.as-gaze-btn.as-gaze-on { color: var(--brand); }
+.as-gaze-btn .ic { width: 20px; height: 20px; }
+.as-gaze-btn.as-gaze-on { color: var(--m3-primary); }
 
-/* زر الإغلاق */
-.as-close-btn { opacity: 0.55; }
-.as-close-btn:active { opacity: 1; }
-.as-close-btn .ic { width: 16px; height: 16px; }
+.as-close-btn { color: var(--m3-on-surface-variant); }
+.as-close-btn .ic { width: 18px; height: 18px; }
 
-/* فاصل ضوئي بين مجموعات الأزرار */
 .as-btn + .as-toggle-btn,
 .as-toggle-btn + .as-gaze-btn {
   margin-right: 4px;
@@ -2376,72 +2960,80 @@ input[type="number"].search-input { text-align: center; }
   bottom: calc(100% + 8px);
   left: 50%;
   transform: translateX(-50%);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  padding: 6px 12px;
-  font-size: 0.76rem;
-  color: var(--muted);
+  background: var(--m3-inverse-surface);
+  border: none;
+  border-radius: var(--m3-shape-xs);
+  padding: 8px 12px;
+  font-size: var(--type-body-s);
+  color: var(--m3-inverse-on-surface);
   white-space: nowrap;
   pointer-events: none;
 }
 .as-gaze-hint.hidden { display: none; }
 
-/* ---------------- 27. لوحة الإحصائيات ---------------- */
-.tone-jade { background: linear-gradient(140deg, #2FD199, #0D7A5A); box-shadow: 0 6px 16px -8px rgba(47, 209, 153, 0.7); }
-
+/* ============================================================
+   ٣٠) لوحة الإحصائيات
+   ============================================================ */
 .dash-stat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 14px;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .dash-stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  gap: 8px;
+  background: var(--m3-surface-container-low);
+  border: none;
+  border-radius: var(--m3-shape-md);
   padding: 16px 8px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--m3-elev-1);
 }
 .dash-stat-icon {
   display: grid;
   place-items: center;
-  width: 36px; height: 36px;
+  width: 40px; height: 40px;
   border-radius: 50%;
   color: #fff;
 }
-.dash-stat-icon .ic { width: 18px; height: 18px; stroke-width: 1.8; }
-.dash-stat-value { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.dash-stat-label { font-size: 0.68rem; color: var(--muted); text-align: center; line-height: 1.3; }
+.dash-stat-icon .ic { width: 20px; height: 20px; stroke-width: 1.9; }
+.dash-stat-value { font-size: var(--type-headline-s); font-weight: 700; font-variant-numeric: tabular-nums; }
+.dash-stat-label { font-size: var(--type-label-m); color: var(--m3-on-surface-variant); text-align: center; line-height: 1.3; }
 
 .dash-streak-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
+  padding: 18px 20px;
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+  box-shadow: none;
 }
-.dash-streak-current { display: flex; align-items: baseline; gap: 8px; }
-.dash-streak-num { font-size: 2rem; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
-.dash-streak-label { font-size: 0.8rem; color: var(--text-2); font-weight: 700; }
-.dash-streak-best { font-size: 0.74rem; color: var(--muted); white-space: nowrap; }
+.dash-streak-current { display: flex; align-items: baseline; gap: 10px; }
+.dash-streak-num {
+  font-size: var(--type-display-s);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--m3-tertiary);
+}
+.dash-streak-label { font-size: var(--type-body-m); font-weight: 700; }
+.dash-streak-best { font-size: var(--type-body-s); white-space: nowrap; opacity: 0.8; }
 
-.dash-chart-card { padding: 14px 10px 6px; }
+.dash-chart-card { padding: 16px 10px 6px; }
 .dash-chart-svg { width: 100%; height: auto; overflow: visible; display: block; }
-.dash-bar { fill: var(--brand); }
-.dash-chart-label { font-size: 8px; fill: var(--muted); font-family: var(--font-ui); }
+.dash-bar { fill: var(--m3-primary); }
+.dash-chart-label { font-size: 8px; fill: var(--m3-on-surface-variant); font-family: var(--font-ui); }
 
-.dash-report-card { padding: 2px 18px; }
+.dash-report-card { padding: 2px 20px; }
 .dash-report-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0;
-  font-size: 0.85rem;
-  color: var(--text-2);
+  padding: 14px 0;
+  font-size: var(--type-body-l);
+  color: var(--m3-on-surface-variant);
 }
-.dash-report-row:not(:last-child) { border-bottom: 1px solid var(--border); }
-.dash-report-row strong { color: var(--text); font-variant-numeric: tabular-nums; }
+.dash-report-row:not(:last-child) { border-bottom: 1px solid var(--m3-outline-variant); }
+.dash-report-row strong { color: var(--m3-on-surface); font-variant-numeric: tabular-nums; }

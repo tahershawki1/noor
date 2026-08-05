@@ -5,7 +5,7 @@
   <!-- تكبير الصفحة متاح (حتى ٥×) لضعاف البصر — قارئ المصحف له قرصة مخصصة
        تكبّر الخط نفسه، لكن بقية الصفحات كانت بلا أي وسيلة تكبير -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0A0F0D" />
+  <meta name="theme-color" content="#0B140F" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -192,9 +192,6 @@
         <div id="adhkarCatView">
           <div class="sec-head">
             <h2>حصّن نفسك بذكر الله</h2>
-            <button id="addAdhkarBtn" class="chip-btn">
-              <svg class="ic"><use href="#i-plus"></use></svg> إضافة
-            </button>
           </div>
 
           <div id="adhkarCategories" class="category-grid"></div>
@@ -216,6 +213,14 @@
               <option>اللهم صل على محمد</option>
             </select>
           </div>
+
+          <!-- زر الإجراء العائم (FAB) — الإجراء الرئيسي للصفحة بأسلوب أندرويد.
+               يعيش داخل عرض الأقسام فيختفي تلقائياً عند فتح قسم بعينه. -->
+          <!-- بأيقونة فقط (لا نص): السبحة دائرة كبيرة في منتصف الصفحة،
+               والزر الممتد كان يتداخل مع حافتها -->
+          <button id="addAdhkarBtn" class="fab fab-icon" aria-label="إضافة ذكر جديد" title="إضافة ذكر جديد">
+            <svg class="ic"><use href="#i-plus"></use></svg>
+          </button>
         </div>
 
         <div id="adhkarListView" class="hidden">
@@ -252,11 +257,12 @@
         <div id="khatmaListView" class="hidden">
           <div class="khatma-section-head">
             <h2>ختمات القرآن</h2>
-            <button class="chip-btn" onclick="openKhatmaSetup()">
-              <svg class="ic"><use href="#i-plus"></use></svg> ختمة جديدة
-            </button>
           </div>
           <div id="khatmaList" class="khatma-list"></div>
+          <button class="fab" onclick="openKhatmaSetup()" aria-label="بدء ختمة جديدة">
+            <svg class="ic"><use href="#i-plus"></use></svg>
+            <span>ختمة جديدة</span>
+          </button>
         </div>
       </section>
 
@@ -980,6 +986,9 @@
 <script src="adhkar-data.js"></script>
 <script src="auto-scroll.js"></script>
 <script src="stats.js"></script>
+<!-- تموّج اللمس بأسلوب أندرويد — مستمع واحد يخدم كل الواجهة، فلا يحتاج
+     أي ربط عند إعادة رسم البطاقات -->
+<script src="ripple.js"></script>
 
 <!-- صفحات التطبيق — ملف مستقل لكل صفحة (كان app.js واحداً يجمعها كلها).
      الترتيب مهم: app-shell.js أولاً (يعرّف $/icon/navigateTo التي تعتمد

@@ -35,6 +35,14 @@ No sycophancy. No restating the question. No sign-offs.
 - **حاسبا المواقيت توأمان:** `islamic-app/prayer-times.js` و
   `android/…/widget/PrayerTimesCalculator.java`. أي تعديل في أحدهما يجب أن
   ينعكس في الآخر، و`npm run test:prayer-calc` يفشل البناء إن افترقا.
+- **التصميم يتبع Material 3.** كل الألوان والأشكال والحركة من رموز `--m3-*`
+  في أول `styles.css`. لا تكتب لوناً حرفياً داخل أي مكوّن — استعمل دور اللون
+  المناسب (`primary` / `secondary-container` / `surface-container-*` /
+  `outline`…) فيتبدّل الوضع الليلي والنهاري من مكان واحد. الرموز القديمة
+  (`--brand`, `--surface`, `--r-md`…) باقية كمرادفات فقط.
+  ⚠️ `currentColor` لا يعمل داخل SVG مُستعمَل كـ `background-image` — الصورة
+  مستند مستقل لا يرث لون العنصر فيسقط اللون للأسود. اكتب اللون صراحةً في
+  الـ data URI، ونسخة لكل وضع.
 - **`version.json` تكتبه الـ CI لا اليد.** هو ما تقرأه الأجهزة المثبَّتة لتعرف
   أن هناك تحديثاً.
 - **لا تحذف `live-updates.js` ولا تؤجّل تحميله** — يستدعي `notifyAppReady()`،
@@ -59,7 +67,9 @@ No sycophancy. No restating the question. No sign-offs.
 | `khatma.js` | ختمة القرآن |
 | `dashboard.js` | لوحة الإحصائيات — طبقة عرض فقط فوق `stats.js` |
 
-ملفات مساندة (ليست صفحات): `quran-data.js` (بيانات القرآن)، `quran-audio-offline.js`
+ملفات مساندة (ليست صفحات): `ripple.js` (تموّج اللمس — مستمع واحد على
+المستند يخدم كل الأسطح القابلة للنقر، فلا يحتاج ربطاً عند إعادة رسم أي
+بطاقة)، `quran-data.js` (بيانات القرآن)، `quran-audio-offline.js`
 (تنزيل/تخزين مؤقت للتلاوة عبر Cache API — نسخة Opus مستضافة في
 `islamic-app/audio/` وتُنشر عبر GitHub Pages، مستبعدة من `www/` في
 `scripts/sync-web.js`)، `prayer-times.js`
