@@ -138,6 +138,20 @@ body {
 button, input, select, textarea { font-family: inherit; color: inherit; }
 button { background: none; border: none; cursor: pointer; }
 
+/* تعطيل تحديد النص في الموقع بالكامل — واجهة تطبيق، لا صفحة قراءة نصوص
+   تُنسخ. الحقول القابلة للكتابة مستثناة صراحةً حتى يبقى التحديد/اللصق
+   فيها يعمل طبيعياً. */
+* {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+input, textarea, select {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 .svg-sprite { display: none; }
 
 .ic {
