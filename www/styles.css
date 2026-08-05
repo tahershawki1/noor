@@ -316,7 +316,12 @@ input, textarea, select {
    يحمل data-ripple، وطبقة الحالة تُطبَّق هنا بالـ CSS وحدها. */
 .m3-surface-tap { position: relative; overflow: hidden; }
 
-.m3-ripple {
+/* المحدِّد يبدأ بـ span عمداً: الأسطح المتموّجة تضع `position: relative`
+   على أبنائها (`.quick-tile > *` وأخواتها) لترفع محتواها فوق طبقة الحالة،
+   وتلك القواعد متأخرة في الملف وبنفس وزن `.m3-ripple` فكانت تكسبها وتحوّل
+   الموجة إلى عنصر داخل التدفّق — فتمطّ البطاقة بارتفاع الموجة كاملاً بمجرد
+   لمسها. `span.m3-ripple` أثقل وزناً فيبقى التموّج خارج الحسبة دائماً. */
+span.m3-ripple {
   position: absolute;
   border-radius: 50%;
   transform: scale(0);
@@ -520,9 +525,11 @@ input, textarea, select {
 #mainContent::-webkit-scrollbar { width: 0; display: none; }
 
 .tab-panel { display: none; }
-.tab-panel.active { display: block; animation: m3PageIn var(--m3-dur-long) var(--m3-ease-decelerate); }
+/* انتقال قصير مقصود: الأطول منه كان يتراكب مع تموّج اللمسة التي أطلقت
+   الانتقال أصلاً، فتبدو الحركتان متداخلتين. */
+.tab-panel.active { display: block; animation: m3PageIn var(--m3-dur-medium) var(--m3-ease-decelerate); }
 @keyframes m3PageIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: none; }
 }
 
