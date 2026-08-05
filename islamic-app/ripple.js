@@ -8,6 +8,11 @@
    مستمع واحد على مستوى المستند (بالالتقاط) يخدم كل الواجهة — فالبطاقات
    التي تُعاد كتابتها بـ innerHTML (السور، الأذكار، الختمات…) تحصل على
    التموّج تلقائياً دون إعادة ربط أي حدث.
+
+   مهم: الموجة لا تنطلق لحظة اللمس. أندرويد ينتظر قليلاً ليعرف هل هي
+   نقرة أم بداية تمرير، ويُلغيها إن تحرّك الإصبع أو بدأت القائمة تتمرّر —
+   وبدون هذا الانتظار كانت كل محاولة تمرير تُشعل موجات متداخلة في كل
+   بطاقة يمرّ فوقها الإصبع.
    ============================================================ */
 (function () {
   "use strict";
@@ -23,9 +28,13 @@
   ].join(",");
 
   const RIPPLE_MS = 450;
+  // مهلة تمييز النقرة عن بداية التمرير، ومسافة التسامح قبل اعتبارها سحباً
+  const TAP_DELAY_MS = 90;
+  const MOVE_SLOP_PX = 8;
 
   const reduceMotion =
     window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) return;
 
   /** أزرار شريط التنقل تتموّج داخل كبسولة المؤشّر لا داخل الزر كله. */
   function rippleHost(el) {
@@ -54,16 +63,54 @@
     setTimeout(() => ripple.remove(), RIPPLE_MS);
   }
 
-  if (reduceMotion) return;
+  /** اللمسة المعلَّقة التي لم يُحسم بعد كونها نقرة أم تمريراً. */
+  let pending = null;
+
+  function cancelPending() {
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    pending = null;
+  }
+
+  function firePending() {
+    if (!pending) return;
+    clearTimeout(pending.timer);
+    spawnRipple(pending.host, pending.x, pending.y);
+    pending = null;
+  }
 
   document.addEventListener(
     "pointerdown",
     (e) => {
+      cancelPending();
       if (e.button !== 0 && e.pointerType === "mouse") return;
       const target = e.target.closest && e.target.closest(RIPPLE_TARGETS);
       if (!target || target.disabled) return;
-      spawnRipple(rippleHost(target), e.clientX, e.clientY);
+
+      const host = rippleHost(target);
+      // الفأرة لا تُمرّر بالسحب، فلا داعي لتأخيرها
+      if (e.pointerType === "mouse") {
+        spawnRipple(host, e.clientX, e.clientY);
+        return;
+      }
+      pending = { host, x: e.clientX, y: e.clientY, timer: null };
+      pending.timer = setTimeout(firePending, TAP_DELAY_MS);
     },
     { passive: true, capture: true }
   );
+
+  document.addEventListener(
+    "pointermove",
+    (e) => {
+      if (!pending) return;
+      if (Math.hypot(e.clientX - pending.x, e.clientY - pending.y) > MOVE_SLOP_PX) cancelPending();
+    },
+    { passive: true, capture: true }
+  );
+
+  // نقرة قصيرة انتهت قبل انقضاء المهلة تستحق موجتها
+  document.addEventListener("pointerup", firePending, { passive: true, capture: true });
+  document.addEventListener("pointercancel", cancelPending, { passive: true, capture: true });
+  // أي تمرير فعلي يبدأ = ليست نقرة
+  document.addEventListener("scroll", cancelPending, { passive: true, capture: true });
 })();
