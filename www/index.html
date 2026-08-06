@@ -105,7 +105,7 @@
       <!-- ======== الصفحة الرئيسية ======== -->
       <section id="home" class="tab-panel active">
 
-        <div class="hero-card">
+        <div class="hero-card compact">
           <div class="hero-glow"></div>
 
           <div class="hero-empty" id="homePlaceholder">
@@ -116,14 +116,29 @@
             </button>
           </div>
 
-          <div class="hero-main hidden" id="homeNextSection">
-            <span class="hero-label">الصلاة القادمة</span>
-            <div class="hero-prayer" id="homeNextPrayerName">—</div>
-            <div class="hero-countdown" id="homeCountdown">--:--:--</div>
+          <!-- سطر واحد: الاسم وفوقه «الصلاة القادمة» يميناً، والمتبقّي يساراً -->
+          <div class="hero-main hero-row hidden" id="homeNextSection">
+            <div class="hero-row-info">
+              <span class="hero-label">الصلاة القادمة</span>
+              <div class="hero-prayer" id="homeNextPrayerName">—</div>
+            </div>
+            <div class="hero-row-time">
+              <div class="hero-countdown" id="homeCountdown">--:--:--</div>
+              <span class="hero-row-time-lbl">المتبقّي</span>
+            </div>
           </div>
 
           <div class="prayer-strip" id="homePrayerTimesRow"></div>
         </div>
+
+        <!-- يظهر بعد دخول وقت صلاة لم تُسجَّل بعد؛ لمسه يسجّلها ويخفيه -->
+        <button class="prayer-ask hidden" id="prayerAskCard">
+          <span class="prayer-ask-box"><svg class="ic"><use href="#i-check"></use></svg></span>
+          <span class="prayer-ask-text">هل صلّيت <strong id="prayerAskName"></strong>؟</span>
+        </button>
+
+        <!-- نشاط اليوم — يقرأ من stats.js عبر dashboard.js -->
+        <div class="home-stats" id="homeStatsRow"></div>
 
         <div class="sec-head">
           <h2>الأقسام</h2>

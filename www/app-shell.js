@@ -99,6 +99,7 @@ function navigateTo(tab, options = {}) {
   if (tab === "prayer") ensurePrayerTimesFresh();
   if (tab === "khatma") renderKhatmaSection();
   if (tab === "dashboard") renderDashboard();
+  if (tab === "home" && typeof renderHomeStats === "function") renderHomeStats();
 
   document.querySelectorAll(".nav-btn").forEach((b) => {
     b.classList.toggle("active", b.dataset.tab === tab);

@@ -13,6 +13,27 @@ const DASH_STAT_CARDS = [
   { key: "tasbeeh", label: "السبحة", icon: "beads", tone: "blue" },
 ];
 
+/* --------- سطر نشاط اليوم في الصفحة الرئيسية --------- */
+// نفس مصدر بطاقات اللوحة (السجل اليومي) لكن مختصراً في أربعة أرقام،
+// حتى يرى المستخدم أثر يومه دون فتح اللوحة.
+const HOME_STAT_CARDS = [
+  { key: "prayer", label: "صلوات" },
+  { key: "quranPages", label: "صفحات" },
+  { key: "dhikr", label: "أذكار" },
+  { key: "tasbeeh", label: "تسبيح" },
+];
+
+function renderHomeStats() {
+  const row = $("homeStatsRow");
+  if (!row) return;
+  const today = NoorStats.getDailyRange(1)[0];
+  row.innerHTML = HOME_STAT_CARDS.map((c) => `
+    <div class="home-stat">
+      <span class="home-stat-value">${toArabicNum(today[c.key] || 0)}</span>
+      <span class="home-stat-label">${c.label}</span>
+    </div>`).join("");
+}
+
 function renderDashboardStats() {
   // بطاقات الشبكة تعرض نشاط اليوم الحالي فقط — تُقرأ من السجل اليومي
   // (يوم اليوم فيه صفر افتراضياً حتى يبدأ نشاط جديد فيه) لا من المجاميع
@@ -87,3 +108,8 @@ function renderDashboard() {
   renderDashboardReport("dashboardWeeklyReport", 7);
   renderDashboardReport("dashboardMonthlyReport", 30);
 }
+
+/* هذا الملف آخر ما يُحمَّل، و`navigateTo("home")` وقت الإقلاع يقع قبله
+   (آخر سطر في adhan-page.js) فلا يجد renderHomeStats معرَّفة بعد ويتخطّاها.
+   لذلك نرسم سطر نشاط اليوم هنا مرة واحدة عند الإقلاع. */
+renderHomeStats();

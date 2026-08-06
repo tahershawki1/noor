@@ -303,6 +303,10 @@ function renderPrayerRowsAndCountdown(timings, tune) {
       </div>`;
   }).join("");
 
+  // يُعاد تقييمه مع كل رسم للقائمة — ومنها الرسم الذي يقع لحظة دخول وقت
+  // الصلاة (عند انتهاء العدّ التنازلي)، فيظهر السؤال في وقته تماماً.
+  renderPrayerAsk(timings);
+
   if (!next) {
     $("nextPrayerCard").classList.add("hidden");
     clearInterval(countdownTimer);
@@ -375,7 +379,62 @@ function togglePrayerMark(btn, prayerName) {
   const nowMarked = NoorStats.togglePrayer(NoorStats.todayKey(), prayerName);
   btn.classList.toggle("done", nowMarked);
   if (navigator.vibrate) navigator.vibrate(15);
+  refreshHomeAfterPrayerChange();
 }
+
+/** الرئيسية تعرض نفس البيانات، فتُحدَّث مع أي تغيير في تسجيل الصلوات. */
+function refreshHomeAfterPrayerChange() {
+  if (typeof renderHomeStats === "function") renderHomeStats();
+  if (lastPrayerData) {
+    const tune = getTuneOffsets();
+    const timings = {};
+    PRAYER_ORDER_ALL.forEach((p) => { timings[p] = addMinutesToTime(lastPrayerData.timings[p], tune[p]); });
+    renderPrayerAsk(timings);
+  }
+}
+
+/* --------- سؤال «هل صلّيت …؟» في الصفحة الرئيسية ---------
+   يظهر بعد دخول وقت آخر صلاة مفروضة لم تُسجَّل بعد. لا يحتاج زر تجاهل:
+   بدخول وقت الصلاة التالية ينتقل السؤال إليها من تلقاء نفسه. */
+function renderPrayerAsk(timings) {
+  const card = $("prayerAskCard");
+  if (!card) return;
+  const now = new Date();
+  const todayKey = NoorStats.todayKey();
+
+  let entered = null;
+  PRAYER_ORDER_MAIN.forEach((p) => {
+    const t = timings[p];
+    if (!t || t === "--:--") return;
+    const [h, m] = t.split(":").map(Number);
+    const when = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m);
+    if (when <= now) entered = p;
+  });
+
+  if (!entered || NoorStats.isPrayerMarked(todayKey, entered)) {
+    card.classList.add("hidden");
+    card.removeAttribute("data-prayer");
+    return;
+  }
+  card.dataset.prayer = entered;
+  $("prayerAskName").textContent = PRAYER_NAMES[entered].ar;
+  card.setAttribute("aria-label", `تسجيل صلاة ${PRAYER_NAMES[entered].ar}`);
+  card.classList.remove("hidden");
+}
+
+$("prayerAskCard").addEventListener("click", () => {
+  const card = $("prayerAskCard");
+  const prayer = card.dataset.prayer;
+  if (!prayer) return;
+  const todayKey = NoorStats.todayKey();
+  if (!NoorStats.isPrayerMarked(todayKey, prayer)) NoorStats.togglePrayer(todayKey, prayer);
+  card.classList.add("hidden");
+  if (navigator.vibrate) navigator.vibrate(15);
+  showToast(`تم تسجيل صلاة ${PRAYER_NAMES[prayer].ar} ✓`);
+  if (typeof renderHomeStats === "function") renderHomeStats();
+  // قائمة المواقيت المفتوحة خلفه تحمل نفس الزر، فتُعاد لتوافق الحالة الجديدة
+  if (lastPrayerData) renderPrayerTimes();
+});
 
 /* --------- إعدادات الحساب والتصحيح --------- */
 function renderTuneList() {
