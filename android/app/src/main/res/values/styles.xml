@@ -19,4 +19,13 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
     </style>
+
+    <!-- شاشة الأذان الكاملة — بلا شريط، خلفية خضراء ثابتة (لا تتبع الوضع الليلي) -->
+    <style name="AppTheme.Adhan" parent="Theme.AppCompat.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@drawable/adhan_bg</item>
+        <item name="android:statusBarColor">@color/adhan_bg_top</item>
+        <item name="android:navigationBarColor">@color/adhan_bg_bottom</item>
+    </style>
 </resources>

@@ -284,13 +284,13 @@ async function autoPlayAdhanForPrayer(prayerName) {
   const enabled = getAdhanEnabledPrayers();
   if (!enabled[prayerName]) return;
 
-  // شاشة الأذان تظهر في المقدّمة في كل الحالات (الويب والتطبيق الأصلي) لتُعلِم
-  // المستخدم أن الوقت دخل — حتى لو كان الصوت يُشغَّل من إشعار النظام.
-  showAdhanFullscreen(prayerName);
-
-  // داخل التطبيق الأصلي، إشعار النظام (بصوت الأذان الكامل) هو مصدر الصوت
-  // الوحيد — تشغيل ثانٍ هنا كان سيُسمِع أذانين متداخلين.
+  // داخل التطبيق الأصلي: شاشة الأذان الكاملة الأصلية (AdhanAlarmActivity) هي
+  // التي تظهر فوق القفل والتطبيقات الأخرى، وإشعار النظام يشغّل الصوت الكامل —
+  // فلا نعرض شاشة الويب ولا نشغّل صوتاً ثانياً هنا.
   if (AdhanNative.isAvailable()) return;
+
+  // في الويب/PWA: شاشة الأذان داخل التطبيق تُعلِم المستخدم أن الوقت دخل.
+  showAdhanFullscreen(prayerName);
 
   const loaded = await loadAdhanAudio(getAdhanReciter());
   if (!loaded) return;
