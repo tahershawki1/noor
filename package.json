@@ -15,6 +15,7 @@
     "data:tafsir": "node scripts/build-tafsir-data.mjs",
     "data:cities": "node scripts/build-cities-data.mjs",
     "data:fonts": "node scripts/build-fonts.mjs",
+    "build:icons": "node scripts/build-app-icons.mjs",
     "sync:web": "node scripts/sync-web.js",
     "sync": "npm run sync:web && npx cap sync android",
     "open:android": "npx cap open android",
