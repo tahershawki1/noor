@@ -340,6 +340,10 @@
               <option value="makkah">أذان الحرم المكي</option>
               <option value="madinah">أذان المسجد النبوي</option>
               <option value="egypt">أذان مصري كلاسيكي</option>
+              <option value="voice5">أذان مختار ١</option>
+              <option value="voice6">أذان مختار ٢</option>
+              <option value="voice7">أذان مختار ٣</option>
+              <option value="voice8">أذان مختار ٤</option>
             </select>
           </div>
 
@@ -886,6 +890,11 @@
             <svg class="ic vol-ic"><use href="#i-adhan"></use></svg>
           </div>
         </div>
+        <div class="field">
+          <label class="field-label">أصوات الأذان — تنزيل للاستماع دون إنترنت</label>
+          <p class="field-hint top">نزّل الصوت الذي تريده ليُخزَّن على جهازك ويعمل الأذان بلا إنترنت</p>
+          <div id="adhanDownloadsList" class="adhan-dl-list"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -964,6 +973,24 @@
         </div>
         <button class="btn btn-primary btn-block" id="ausInstallBtn">تحديث الآن</button>
         <button class="btn btn-soft btn-block" id="ausDismissBtn" style="margin-top:10px">لاحقاً</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== شاشة الأذان الكاملة — تظهر عند دخول وقت الصلاة ======== -->
+  <div id="adhanFullscreen" class="adhan-fs hidden">
+    <div class="adhan-fs-inner">
+      <span class="adhan-fs-mosque" id="adhanFsIcon">🕌</span>
+      <div class="adhan-fs-now">حان الآن موعد</div>
+      <div class="adhan-fs-prayer" id="adhanFsPrayer">—</div>
+      <div class="adhan-fs-time" id="adhanFsTime"></div>
+      <div class="adhan-fs-text" id="adhanFsText"></div>
+      <div class="adhan-fs-actions">
+        <button class="btn btn-light btn-block" id="adhanFsPlayBtn">
+          <span id="adhanFsPlayIcon"><svg class="ic"><use href="#i-pause"></use></svg></span>
+          <span id="adhanFsPlayLabel">إيقاف الأذان</span>
+        </button>
+        <button class="btn btn-soft btn-block" id="adhanFsDismiss">إغلاق</button>
       </div>
     </div>
   </div>
