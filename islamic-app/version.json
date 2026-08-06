@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-06T15:44:38.510Z",
+  "generatedAt": "2026-08-06T23:19:47.326Z",
   "app": {
-    "version": "1.16.0",
-    "versionCode": 11600,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.16.0/noor-1.16.0.apk",
-    "sizeBytes": 15202241,
-    "sha256": "e8c5fa85aebd6bf0f151a3d65e68c1c4ed76b9d0af49143f368894979fb25bfc",
+    "version": "1.18.1",
+    "versionCode": 11801,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.18.1/noor-1.18.1.apk",
+    "sizeBytes": 15210125,
+    "sha256": "693da9b8ec0e3d60d0125d6aa5f2f16f52adbaf1be2ec9b904616c481f0cc85a",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "شعار نور الجديد: أيقونة التطبيق وشاشة البداية وأيقونة شريط التطبيق، مع واجهة Material 3، المصحف المتصل في الختمة، وسؤال تسجيل الصلاة في الرئيسية.",
+    "notes": "تحديث 1.18.1",
     "mandatory": false
   },
   "web": {
-    "version": "1.18.0.2",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.18.0.2/noor-web-1.18.0.2.zip",
-    "checksum": "0f2a10935810f40d61fbeeee696b58e10410363225ce4d57341a32afcdf1f47b",
+    "version": "1.18.1",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.18.1/noor-web-1.18.1.zip",
+    "checksum": "c331cfd714ee28f20f95f5544cefa16b1d37c7c74a0f364cc8726fd46df61d87",
     "contentHash": "681ee47e7674f5c35e21de4aa0409afb3758ddb60952fb068231f824e91b99c2"
   }
 }
