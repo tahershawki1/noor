@@ -429,14 +429,18 @@ span.m3-ripple {
   flex: 1;
   padding-inline-start: 12px;
 }
+/* الشعار صورة كاملة بأرضيتها الخاصة (assets/noor-logo.png) — بلا أي خلفية
+   أو حشو من الواجهة حتى يظهر تصميمه كما هو */
 .ab-logo {
   width: 40px; height: 40px;
   display: grid; place-items: center;
-  border-radius: var(--m3-shape-md);
-  background: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
+  flex: none;
 }
-.ab-logo .ic { width: 22px; height: 22px; stroke-width: 2; }
+.ab-logo img {
+  width: 40px; height: 40px;
+  display: block;
+  object-fit: contain;
+}
 .ab-brand-txt { display: flex; flex-direction: column; min-width: 0; }
 .ab-brand-txt h1 {
   font-size: var(--type-title-l);

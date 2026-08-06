@@ -428,7 +428,38 @@ for (const theme of ['dark', 'light']) {
   });
   ok(!contBack.reading, 'الخروج من قارئ الختمة سليم');
 
-  console.log('\n[13] أهداف اللمس');
+  console.log('\n[13] شعار التطبيق');
+  await page.evaluate(() => navigateTo('home'));
+  await page.waitForTimeout(300);
+  const logo = await page.evaluate(async () => {
+    const img = document.querySelector('.ab-logo img');
+    if (!img) return { missing: true };
+    const r = img.getBoundingClientRect();
+    // روابط الأيقونات في <head> لا بد أن تكون موجودة فعلاً لا مجرد معلنة
+    const links = [...document.querySelectorAll('link[rel*="icon"], link[rel="manifest"]')]
+      .map((l) => l.getAttribute('href'));
+    const results = await Promise.all(links.map(async (href) => {
+      try { const res = await fetch(href); return `${href}:${res.status}`; }
+      catch (_) { return `${href}:ERR`; }
+    }));
+    let manifest = null;
+    try { manifest = await (await fetch('manifest.webmanifest')).json(); } catch (_) { /* لا مانيفست */ }
+    return {
+      loaded: img.complete && img.naturalWidth > 0,
+      naturalW: img.naturalWidth,
+      w: Math.round(r.width), h: Math.round(r.height),
+      results,
+      manifestIcons: manifest ? manifest.icons.length : 0,
+      manifestName: manifest ? manifest.name : '',
+    };
+  });
+  ok(!logo.missing && logo.loaded, `شعار الشريط العلوي محمَّل (مصدره ${logo.naturalW}px)`);
+  ok(logo.w >= 32 && logo.h >= 32 && logo.w === logo.h, `مقاسه مربّع ومناسب (${logo.w}×${logo.h})`);
+  ok(logo.results.every((r) => r.endsWith(':200')), 'كل أيقونات <head> والمانيفست موجودة',
+    logo.results.filter((r) => !r.endsWith(':200')).join(' | '));
+  ok(logo.manifestIcons >= 3 && /نور/.test(logo.manifestName), `المانيفست فيه ${logo.manifestIcons} أيقونات`);
+
+  console.log('\n[14] أهداف اللمس');
   await page.evaluate(() => navigateTo('home'));
   await page.waitForTimeout(300);
   const targets = await page.evaluate(() => {
@@ -442,7 +473,7 @@ for (const theme of ['dark', 'light']) {
   });
   ok(targets.length === 0, 'كل أهداف اللمس ٤٠px فأكبر', targets.join(' | '));
 
-  console.log("\n[14] بلا أخطاء بعد المرور على كل شيء");
+  console.log("\n[15] بلا أخطاء بعد المرور على كل شيء");
   ok(pageErrors.length === 0, 'بلا أخطاء جافاسكريبت', pageErrors.join(' | '));
   ok(consoleErrors.length === 0, 'بلا أخطاء في الطرفية', consoleErrors.join(' | '));
 

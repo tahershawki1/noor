@@ -42,6 +42,8 @@ islamic-app/          ← مصدر تطبيق الويب (هو المنشور ع
   index.html            هيكل الواجهة والأقسام
   styles.css            نظام تصميم Material 3 (رموز نغمية، ليلي/نهاري)
   ripple.js             تموّج اللمس بأسلوب أندرويد
+  icons/                أيقونات الويب (مولَّدة من assets/noor-logo.png)
+  manifest.webmanifest  بيانات تثبيت التطبيق على الشاشة الرئيسية
   app.js                منطق التطبيق كاملاً
   adhkar-data.js        بيانات الأذكار
   quran-data.js         تحميل نص المصحف والتفسير محلياً

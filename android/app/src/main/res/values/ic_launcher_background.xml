@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- مولَّد من scripts/build-app-icons.mjs — أكثر ألوان الشعار تكراراً،
+     فتذوب حوافه المستديرة في الخلفية بلا خطّ فاصل. -->
 <resources>
-    <color name="ic_launcher_background">#FFFFFF</color>
+    <color name="ic_launcher_background">#112E20</color>
 </resources>

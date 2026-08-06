@@ -216,7 +216,9 @@ async function autoPlayAdhanForPrayer(prayerName) {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(`🕌 ${PRAYER_NAMES[prayerName]?.ar || prayerName}`, {
         body: 'حان وقت الصلاة',
-        icon: '/favicon.ico',
+        // مسار نسبي: التطبيق يُنشر تحت مسار فرعي على GitHub Pages، و'/favicon.ico'
+        // المطلق كان يشير خارج نطاقه فلا يوجد أصلاً
+        icon: 'icons/icon-192.png',
       });
     }
   }).catch(() => {});
