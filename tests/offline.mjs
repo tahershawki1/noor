@@ -123,7 +123,8 @@ check('شارة الجزء/الحزب/الصفحة', /جزء.*حزب.*صفحة/.
 
 // النص المعروض يطابق ملف البيانات حرفاً بحرف (آية الكرسي نموذجاً)
 const expected255 = JSON.parse(await (await fetch(BASE + '/data/quran-text/2.json')).text())[254];
-const ayah255 = (await page.locator('#ayah-255').textContent()).replace(/[﴾﴿٠-٩]/g, '').trim();
+// المعرِّف يحمل رقم السورة ثم رقم الآية — لأن قارئ الختمة يعرض عدة سور معاً
+const ayah255 = (await page.locator('#ayah-2-255').textContent()).replace(/[﴾﴿٠-٩]/g, '').trim();
 check('نص آية الكرسي يطابق المصدر', ayah255 === expected255.trim(), `\n     معروض: ${ayah255.slice(0, 50)}\n     مصدر:  ${expected255.slice(0, 50)}`);
 
 // ---------- 4) التفسير المحلي ----------

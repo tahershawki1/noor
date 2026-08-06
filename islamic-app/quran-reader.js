@@ -311,10 +311,29 @@ document.addEventListener("keydown", (e) => {
 
 let currentSurahName = "";
 
-function renderSurah(surah) {
-  currentSurahName = surah.name;
-  $("headerSurahName").textContent = surah.name;
+/* --------- المصحف المتصل (قارئ الختمة) ---------
+   في الختمة لا ينقطع المصحف عند نهاية السورة: تُلحَق التالية تلقائياً في
+   نفس الحاوية مسبوقةً بلوحة زخرفية باسمها. لذلك قد تتعايش عدة سور في
+   الـDOM معاً — ومن هنا صار لكل آية `data-surah` ومعرِّف يحمل رقم سورتها،
+   فما عاد `currentSurah` وحده كافياً لمعرفة سورة آية بعينها. */
+let continuousMode = false;
+let loadedSurahs = [];
+let appendingSurah = false;
 
+function setContinuousMode(on) {
+  continuousMode = !!on;
+}
+
+/** معرِّف فريد لكل آية — لا يتصادم حين تُعرض عدة سور معاً. */
+function ayahDomId(surahNumber, ayahNumber) {
+  return `ayah-${surahNumber}-${ayahNumber}`;
+}
+
+/**
+ * يبني HTML سورة كاملة. `withOrnament` يسبقها بلوحة اسم السورة الزخرفية
+ * (تُستعمل للسور المُلحَقة في المصحف المتصل، لا للسورة الأولى المفتوحة).
+ */
+function buildSurahHtml(surah, options = {}) {
   const bookmarks = getBookmarks();
   const showBasmala = surah.number !== 1 && surah.number !== 9;
   const isFatiha = surah.number === 1;
@@ -327,18 +346,32 @@ function renderSurah(surah) {
     const classes = ["ayah-span"];
     if (saved) classes.push("bookmarked");
     if (a.sajdah) classes.push("has-sajdah");
-    return `<span class="${classes.join(" ")}" id="ayah-${a.numberInSurah}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}" data-page="${a.page}">${text}<span class="ayah-marker">﴿${toArabicNum(a.numberInSurah)}﴾</span>${a.sajdah ? '<span class="sajdah-mark" title="موضع سجدة">۩</span>' : ""}</span>`;
+    return `<span class="${classes.join(" ")}" id="${ayahDomId(surah.number, a.numberInSurah)}" data-surah="${surah.number}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}" data-page="${a.page}">${text}<span class="ayah-marker">﴿${toArabicNum(a.numberInSurah)}﴾</span>${a.sajdah ? '<span class="sajdah-mark" title="موضع سجدة">۩</span>' : ""}</span>`;
   };
 
-  // فاصل صفحات المصحف — يُدرج قبل أول آية في كل صفحة جديدة
-  const pageSeparator = (pageNumber) =>
-    `<div class="page-separator" data-page="${pageNumber}">` +
+  // رقم الصفحة يُكتب أسفل الصفحة التي انتهت للتوّ — تماماً كالمصحف المطبوع.
+  // الفاصل يُدرج قبل أول آية في الصفحة التالية، فالرقم المكتوب عليه هو رقم
+  // الصفحة السابقة لا التالية، وإلا ظهر أكبر بواحد ممّا يقرؤه المستخدم فوقه.
+  const pageSeparator = (endedPage) =>
+    `<div class="page-separator" data-page="${endedPage}">` +
     `<span class="page-separator-line"></span>` +
-    `<span class="page-separator-label">صفحة ${toArabicNum(pageNumber)}</span>` +
+    `<span class="page-separator-label">صفحة ${toArabicNum(endedPage)}</span>` +
     `<span class="page-separator-line"></span>` +
     `</div>`;
 
-  let html = showBasmala ? '<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>' : "";
+  let html = "";
+  if (options.withOrnament) {
+    const meta = QuranData.getSurahMeta(surah.number);
+    const ayahCount = meta ? meta.ayahs : surah.ayahs.length;
+    const type = meta ? meta.type : "";
+    html +=
+      `<div class="surah-ornament" data-surah="${surah.number}">` +
+      `<span class="so-frame">` +
+      `<span class="so-name">سُورَةُ ${surah.name}</span>` +
+      `<span class="so-meta">${type} • ${arabicCountLabel(ayahCount, "آية واحدة", "آيتان", "آيات", "آية").replace(/\d+/g, (d) => toArabicNum(d))}</span>` +
+      `</span></div>`;
+  }
+  if (showBasmala) html += '<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
 
   let ayahsToFlow = surah.ayahs;
   if (isFatiha) {
@@ -351,17 +384,24 @@ function renderSurah(surah) {
   html += '<p class="mushaf-text" dir="rtl">';
   ayahsToFlow.forEach((a, index) => {
     if (a.pageStart && index > 0) {
-      html += `</p>${pageSeparator(a.page)}<p class="mushaf-text" dir="rtl">`;
+      html += `</p>${pageSeparator(ayahsToFlow[index - 1].page)}<p class="mushaf-text" dir="rtl">`;
     }
     html += renderAyahSpan(a, a.numberInSurah === 1 && showBasmala) + " ";
   });
   html += "</p>";
+  return html;
+}
 
-  $("ayahContainer").innerHTML = html;
+function renderSurah(surah) {
+  currentSurahName = surah.name;
+  $("headerSurahName").textContent = surah.name;
+  loadedSurahs = [surah.number];
+
+  $("ayahContainer").innerHTML = buildSurahHtml(surah);
   updateReaderProgress();
 
   if (pendingAyahScroll) {
-    const el = $(`ayah-${pendingAyahScroll}`);
+    const el = $(ayahDomId(surah.number, pendingAyahScroll));
     if (el) {
       el.classList.add("highlighted");
       setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
@@ -379,6 +419,41 @@ function renderSurah(surah) {
   }
 
   updateDownloadSurahBtn(surah.number, surah.ayahs.length);
+  // سور قصيرة قد لا تملأ الشاشة، فنُلحق التالية فوراً لا عند التمرير فقط
+  if (continuousMode) maybeAppendNextSurah();
+}
+
+/* --------- إلحاق السورة التالية في المصحف المتصل --------- */
+// مسافة الأمان قبل نهاية المحتوى التي نبدأ عندها التحميل — أكبر من شاشة
+// كاملة حتى تكون السورة التالية جاهزة قبل أن يصل القارئ إلى حافة النص.
+const CONTINUOUS_PRELOAD_PX = 1400;
+
+async function maybeAppendNextSurah() {
+  if (!continuousMode || appendingSurah) return;
+  const el = $("ayahContainer");
+  if (!el || $("surahReadView").classList.contains("hidden")) return;
+  const remaining = el.scrollHeight - (el.scrollTop + el.clientHeight);
+  if (remaining > CONTINUOUS_PRELOAD_PX) return;
+
+  const last = loadedSurahs[loadedSurahs.length - 1];
+  if (!last || last >= 114) return;
+
+  appendingSurah = true;
+  try {
+    const next = last + 1;
+    await QuranData.loadSurahText(next);
+    const surah = QuranData.getSurah(next);
+    // تحقّق ثانٍ بعد الانتظار: قد يكون القارئ خرج أو فتح سورة أخرى أثناءه
+    if (!surah || !continuousMode || loadedSurahs[loadedSurahs.length - 1] !== last) return;
+    el.insertAdjacentHTML("beforeend", buildSurahHtml(surah, { withOrnament: true }));
+    loadedSurahs.push(next);
+  } catch (_) {
+    /* تعذّر تحميل السورة التالية — تُعاد المحاولة عند التمرير التالي */
+  } finally {
+    appendingSurah = false;
+  }
+  // السور القصيرة قد لا تملأ المسافة المطلوبة، فنكرّر حتى تُملأ
+  requestAnimationFrame(maybeAppendNextSurah);
 }
 
 /* --------- تنزيل السورة للاستماع دون إنترنت (QuranAudioOffline) --------- */
@@ -498,6 +573,19 @@ function updateReaderProgress() {
     else break;
   }
 
+  // في المصحف المتصل تعبر الآيات حدود السور، فسورة الآية الظاهرة تُقرأ من
+  // العنصر نفسه لا من currentSurah — ويُحدَّث العنوان وكل ما يُحفظ تبعاً لها.
+  const spanSurah = parseInt(current.dataset.surah, 10);
+  if (spanSurah && spanSurah !== currentSurah) {
+    const meta = QuranData.getSurahMeta(spanSurah);
+    currentSurah = spanSurah;
+    if (meta) {
+      currentSurahName = meta.name;
+      $("headerSurahName").textContent = meta.name;
+      updateDownloadSurahBtn(spanSurah, meta.ayahs);
+    }
+  }
+
   const juz = parseInt(current.dataset.juz, 10);
   const hizb = Math.ceil(parseInt(current.dataset.hizbQuarter, 10) / 4);
   const page = parseInt(current.dataset.page, 10);
@@ -526,6 +614,7 @@ $("ayahContainer").addEventListener(
     juzHizbScrollRaf = requestAnimationFrame(() => {
       juzHizbScrollRaf = null;
       updateReaderProgress();
+      if (continuousMode) maybeAppendNextSurah();
     });
   },
   { passive: true }
@@ -552,6 +641,9 @@ function resetSurahOverscroll() {
 }
 
 async function goToAdjacentSurah(direction) {
+  // في المصحف المتصل لا معنى للانتقال بالتمرير الزائد: السورة التالية
+  // تُلحق تلقائياً، والتمرير للأعلى يظل داخل ما هو معروض بالفعل.
+  if (continuousMode) return;
   if (surahNavigating || !currentSurah) return;
   const target = currentSurah + direction;
   if (target < 1 || target > 114) return;
@@ -692,8 +784,11 @@ ayahContainerEl.addEventListener("contextmenu", (e) => {
 /** ضغطة قصيرة: توست سفلي بموضع الآية — السورة/رقمها من إجمالي آيات السورة/الجزء/الحزب. */
 function showAyahQuickInfo(span) {
   const ayahNum = parseInt(span.dataset.ayah, 10);
-  const meta = QuranData.getSurahMeta(currentSurah);
+  // سورة الآية من العنصر نفسه: في المصحف المتصل قد تكون غير السورة التي فُتحت
+  const spanSurah = parseInt(span.dataset.surah, 10) || currentSurah;
+  const meta = QuranData.getSurahMeta(spanSurah);
   const total = meta ? meta.ayahs : "";
+  const surahName = meta ? meta.name : currentSurahName;
   const juz = parseInt(span.dataset.juz, 10);
   const globalQuarter = parseInt(span.dataset.hizbQuarter, 10);
   const hizb = Math.ceil(globalQuarter / 4);
@@ -701,7 +796,7 @@ function showAyahQuickInfo(span) {
   const quarterInHizb = ((globalQuarter - 1) % 4) + 1;
   const fraction = ["", " ¼", " ½", " ¾"][quarterInHizb - 1];
   const text =
-    `سورة ${currentSurahName} — آية ${toArabicNum(ayahNum)} من ${toArabicNum(total)} ` +
+    `سورة ${surahName} — آية ${toArabicNum(ayahNum)} من ${toArabicNum(total)} ` +
     `• الجزء ${toArabicNum(juz)} • الحزب ${toArabicNum(hizb)}${fraction}`;
   showToast(text, { wide: true, duration: 3800 });
 }
@@ -711,8 +806,11 @@ let currentDialogAyah = null;
 
 function openAyahDialog(span) {
   const ayahNum = parseInt(span.dataset.ayah, 10);
-  currentDialogAyah = { surah: currentSurah, ayah: ayahNum, span };
-  $("ayahDialogTitle").textContent = `${currentSurahName} — الآية ${toArabicNum(ayahNum)}`;
+  const spanSurah = parseInt(span.dataset.surah, 10) || currentSurah;
+  const meta = QuranData.getSurahMeta(spanSurah);
+  const surahName = meta ? meta.name : currentSurahName;
+  currentDialogAyah = { surah: spanSurah, ayah: ayahNum, surahName, span };
+  $("ayahDialogTitle").textContent = `${surahName} — الآية ${toArabicNum(ayahNum)}`;
   $("ayahTafsirBox").classList.add("hidden");
   $("ayahTafsirBox").innerHTML = "";
   updateFavoriteBtnLabel();
@@ -765,8 +863,9 @@ function resolveAyahAudioUrl(surah, ayah) {
 function highlightPlayingAyah(item) {
   if (playHighlightSpan) playHighlightSpan.classList.remove("highlighted");
   playHighlightSpan = null;
-  if (item.surah !== currentSurah) return; // آية من سورة مجاورة غير معروضة حالياً (تشغيل صفحة يمتد بين سورتين)
-  const span = $(`ayah-${item.ayahNumberInSurah}`);
+  // المعرِّف يحمل رقم السورة، فآية من سورة غير معروضة لا تُوجَد ببساطة
+  // (يحدث عند تشغيل صفحة تمتد بين سورتين خارج المصحف المتصل).
+  const span = $(ayahDomId(item.surah, item.ayahNumberInSurah));
   if (!span) return;
   span.classList.add("highlighted");
   span.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -887,8 +986,8 @@ $("ayahListenPageBtn").addEventListener("click", () => {
 });
 
 $("ayahFavoriteBtn").addEventListener("click", () => {
-  const { surah, ayah, span } = currentDialogAyah;
-  toggleBookmark(surah, ayah, currentSurahName, span);
+  const { surah, ayah, surahName, span } = currentDialogAyah;
+  toggleBookmark(surah, ayah, surahName, span);
   updateFavoriteBtnLabel();
 });
 
@@ -913,6 +1012,9 @@ function goBackToSurahList() {
   if (typeof AutoScroll !== "undefined") AutoScroll.hide();
   stopAyahQueue();
   _releaseQuranWakeLock();
+  // المصحف المتصل خاص بقارئ الختمة وحده — يُطفأ عند مغادرة القارئ
+  setContinuousMode(false);
+  loadedSurahs = [];
   $("surahReadView").classList.add("hidden");
   hideKhatmaWidget();
   const shouldRestoreList = readerReturnTab === "quran";

@@ -169,6 +169,9 @@ function openKhatmaReader(khatmaId) {
   activeKhatmaId = khatmaId;
   readerReturnTab = "khatma";
   navigatingBack = true;
+  // قارئ الختمة مصحف متصل: السورة التالية تُلحق تلقائياً بلوحة اسمها
+  // الزخرفية بدل أن ينتهي النص عند آخر آية (quran-reader.js)
+  setContinuousMode(true);
   navigateTo("quran");
   QuranData.loadMeta().then(() => {
     // lastSurah/lastAyah هو الموضع الدقيق الذي توقّفنا عنده فعلياً (يُحدَّث في

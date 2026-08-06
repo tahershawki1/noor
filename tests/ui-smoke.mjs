@@ -149,6 +149,15 @@ for (const theme of ['dark', 'light']) {
   ok(pageErrors.length === 0, 'بلا أخطاء جافاسكريبت', pageErrors.join(' | '));
   ok(consoleErrors.length === 0, 'بلا أخطاء في الطرفية', consoleErrors.join(' | '));
   ok(await page.locator('#home.active').count() === 1, 'الصفحة الرئيسية هي المفتوحة');
+  // مباشرةً بعد الإقلاع، دون أي تنقّل: الرئيسية لا تُرسَم إلا مرة واحدة عبر
+  // navigateTo("home") في آخر adhan-page.js، وهو يسبق تحميل dashboard.js —
+  // فأي جزء منها يعتمد على ملف لاحق يبقى فارغاً للمستخدم وإن ظهر بعد التنقّل.
+  const boot = await page.evaluate(() => ({
+    stats: document.querySelectorAll('#homeStatsRow .home-stat').length,
+    strip: document.querySelectorAll('#homePrayerTimesRow .home-prayer-item').length,
+  }));
+  ok(boot.stats === 4, `سطر نشاط اليوم مرسوم عند الإقلاع (${boot.stats} من ٤)`);
+  ok(boot.strip === 6, `شريط مواقيت اليوم مرسوم عند الإقلاع (${boot.strip} من ٦)`);
 
   console.log('\n[2] كل صفحة تفتح وتعرض محتوى');
   for (const tab of PAGES) {
@@ -289,7 +298,137 @@ for (const theme of ['dark', 'light']) {
   ok(await page.evaluate(() => !document.getElementById('appShell').classList.contains('reading')),
     'الخروج من وضع القراءة يعيد الواجهة');
 
-  console.log('\n[9] أهداف اللمس');
+  console.log('\n[9] بطاقة الرئيسية المضغوطة وسطر الإحصائيات');
+  await page.evaluate(() => navigateTo('home'));
+  await page.waitForTimeout(500);
+  const homeCard = await page.evaluate(() => {
+    const info = document.querySelector('.hero-row-info').getBoundingClientRect();
+    const time = document.querySelector('.hero-row-time').getBoundingClientRect();
+    const hero = document.querySelector('#home .hero-card').getBoundingClientRect();
+    const stats = [...document.querySelectorAll('#homeStatsRow .home-stat')].map((s) =>
+      s.querySelector('.home-stat-label').textContent.trim());
+    return {
+      infoRight: Math.round(info.right), timeRight: Math.round(time.right),
+      sameRow: Math.abs(info.top - time.top) < info.height,
+      heroH: Math.round(hero.height),
+      stats,
+      name: document.getElementById('homeNextPrayerName').textContent.trim(),
+      countdown: document.getElementById('homeCountdown').textContent.trim(),
+    };
+  });
+  // الواجهة RTL: الاسم يمين (right أكبر) والوقت يساره
+  ok(homeCard.infoRight > homeCard.timeRight, 'اسم الصلاة يميناً والمتبقّي يساراً',
+    `الاسم ${homeCard.infoRight} مقابل الوقت ${homeCard.timeRight}`);
+  ok(homeCard.sameRow, 'الاثنان في سطر واحد');
+  ok(homeCard.heroH < 260, `البطاقة مضغوطة (${homeCard.heroH}px)`);
+  ok(homeCard.name.length > 1 && /\d/.test(homeCard.countdown), 'الاسم والعدّاد معبّآن');
+  ok(homeCard.stats.length === 4, `سطر الإحصائيات فيه ٤ أرقام (${homeCard.stats.join('، ')})`);
+
+  console.log('\n[10] سؤال «هل صلّيت …؟»');
+  const ask = await page.evaluate(() => {
+    // نفرض دخول وقت صلاة لم تُسجَّل: نمسح سجل اليوم ونعيد الرسم
+    localStorage.removeItem('noorPrayerLog');
+    renderPrayerTimes();
+    const card = document.getElementById('prayerAskCard');
+    return {
+      visible: !card.classList.contains('hidden'),
+      prayer: card.dataset.prayer || '',
+      text: card.textContent.replace(/\s+/g, ' ').trim(),
+    };
+  });
+  ok(ask.visible && ask.prayer, `يظهر للصلاة التي دخل وقتها (${ask.prayer})`);
+  ok(/هل صلّيت/.test(ask.text), `نصّه سؤال — «${ask.text}»`);
+
+  const afterTap = await page.evaluate(() => {
+    const card = document.getElementById('prayerAskCard');
+    const prayer = card.dataset.prayer;
+    card.click();
+    return {
+      hidden: card.classList.contains('hidden'),
+      recorded: NoorStats.isPrayerMarked(NoorStats.todayKey(), prayer),
+      statValue: document.querySelector('#homeStatsRow .home-stat-value').textContent.trim(),
+    };
+  });
+  ok(afterTap.recorded, 'الضغط يسجّل الصلاة فعلاً في السجل');
+  ok(afterTap.hidden, 'السؤال يختفي بعد التسجيل');
+  ok(afterTap.statValue !== '٠', `عدّاد الصلوات تحدّث (${afterTap.statValue})`);
+
+  const stays = await page.evaluate(() => {
+    renderPrayerTimes();
+    return document.getElementById('prayerAskCard').classList.contains('hidden');
+  });
+  ok(stays, 'لا يعود بعد التسجيل عند إعادة الرسم');
+
+  console.log('\n[11] ترقيم صفحات المصحف');
+  // العيب: الفاصل كان يحمل رقم الصفحة التالية، فيبدو أكبر بواحد من الصفحة
+  // التي فوقه. الصحيح: رقم الصفحة المنتهية، كالمصحف المطبوع.
+  await page.evaluate(() => navigateTo('quran'));
+  await page.evaluate(() => openSurah(2));
+  await page.waitForTimeout(1200);
+  const paging = await page.evaluate(() => {
+    const seps = [...document.querySelectorAll('.page-separator')];
+    const problems = [];
+    for (const sep of seps.slice(0, 12)) {
+      const shown = Number(sep.dataset.page);
+      // آخر آية قبل الفاصل تنتمي للصفحة التي انتهت
+      let prev = sep.previousElementSibling;
+      while (prev && !prev.querySelector('.ayah-span')) prev = prev.previousElementSibling;
+      const spans = prev ? prev.querySelectorAll('.ayah-span') : [];
+      const lastPage = spans.length ? Number(spans[spans.length - 1].dataset.page) : null;
+      // أول آية بعد الفاصل تبدأ الصفحة التالية
+      let nextEl = sep.nextElementSibling;
+      const nextSpan = nextEl ? nextEl.querySelector('.ayah-span') : null;
+      const nextPage = nextSpan ? Number(nextSpan.dataset.page) : null;
+      if (lastPage !== null && shown !== lastPage) problems.push(`الفاصل ${shown} فوقه صفحة ${lastPage}`);
+      if (nextPage !== null && nextPage !== shown + 1) problems.push(`الفاصل ${shown} تحته صفحة ${nextPage}`);
+    }
+    return { count: seps.length, problems, labels: seps.slice(0, 3).map((s) => s.textContent.trim()) };
+  });
+  ok(paging.count > 3, `البقرة فيها ${paging.count} فاصل صفحات`);
+  ok(paging.problems.length === 0, `كل فاصل يحمل رقم الصفحة المنتهية فوقه (${paging.labels.join(' / ')})`,
+    paging.problems.slice(0, 4).join(' | '));
+
+  console.log('\n[12] المصحف المتصل في الختمة');
+  await page.evaluate(() => goBackToSurahList());
+  await page.waitForTimeout(300);
+  // ختمة تبدأ من سورة قصيرة، فتظهر التالية بعدها سريعاً
+  const cont = await page.evaluate(async () => {
+    const list = JSON.parse(localStorage.getItem('khatmaList'));
+    list[0].lastSurah = 112; list[0].lastAyah = 1;
+    localStorage.setItem('khatmaList', JSON.stringify(list));
+    navigateTo('khatma');
+    openKhatmaReader(1);
+    await new Promise((r) => setTimeout(r, 2500));
+    const box = document.getElementById('ayahContainer');
+    box.scrollTop = box.scrollHeight;
+    await new Promise((r) => setTimeout(r, 1500));
+    const surahs = [...new Set([...box.querySelectorAll('.ayah-span')].map((s) => s.dataset.surah))];
+    const orn = [...box.querySelectorAll('.surah-ornament')];
+    return {
+      surahs,
+      ornaments: orn.length,
+      firstOrnament: orn[0] ? orn[0].textContent.replace(/\s+/g, ' ').trim() : '',
+      ornamentHasCount: orn[0] ? /آي/.test(orn[0].textContent) : false,
+      header: document.getElementById('headerSurahName').textContent.trim(),
+      dupIds: (() => {
+        const ids = [...box.querySelectorAll('.ayah-span')].map((s) => s.id);
+        return ids.length - new Set(ids).size;
+      })(),
+    };
+  });
+  ok(cont.surahs.length > 1, `المصحف يستمر عبر أكثر من سورة (${cont.surahs.join('، ')})`);
+  ok(cont.ornaments > 0, `لوحة زخرفية بين السور (${cont.ornaments})`);
+  ok(cont.ornamentHasCount, `اللوحة تحمل الاسم وعدد الآيات — «${cont.firstOrnament}»`);
+  ok(cont.dupIds === 0, 'لا معرِّفات آيات مكرّرة رغم تعدّد السور', `${cont.dupIds} مكرّراً`);
+  ok(cont.header.length > 1, `عنوان الشريط يتبع السورة المقروءة (${cont.header})`);
+
+  const contBack = await page.evaluate(() => {
+    goBackToSurahList();
+    return { reading: document.getElementById('appShell').classList.contains('reading') };
+  });
+  ok(!contBack.reading, 'الخروج من قارئ الختمة سليم');
+
+  console.log('\n[13] أهداف اللمس');
   await page.evaluate(() => navigateTo('home'));
   await page.waitForTimeout(300);
   const targets = await page.evaluate(() => {
@@ -303,7 +442,7 @@ for (const theme of ['dark', 'light']) {
   });
   ok(targets.length === 0, 'كل أهداف اللمس ٤٠px فأكبر', targets.join(' | '));
 
-  console.log('\n[10] بلا أخطاء بعد المرور على كل شيء');
+  console.log("\n[14] بلا أخطاء بعد المرور على كل شيء");
   ok(pageErrors.length === 0, 'بلا أخطاء جافاسكريبت', pageErrors.join(' | '));
   ok(consoleErrors.length === 0, 'بلا أخطاء في الطرفية', consoleErrors.join(' | '));
 
