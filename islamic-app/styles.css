@@ -147,6 +147,15 @@
   --gold-soft:     var(--m3-on-tertiary-container);
   --gold-tint:     rgba(243, 192, 85, 0.14);
 
+  /* ============ ألوان المصحف (صفحة القراءة) ============
+     ورقة المصحف لها لونها الخاص المستقل عن باقي التطبيق حتى تشبه المصحف
+     المطبوع — خلفية دافئة، حبر، وذهب للإطار وزخرفة رقم الآية ورأس السورة.
+     نسخة لكل وضع (ليلي/نهاري) فيتبدّل الكل من مكان واحد. */
+  --mushaf-bg:     #14110A;
+  --mushaf-ink:    #ECE3CD;
+  --mushaf-frame:  #D3B368;
+  --mushaf-tint:   rgba(211, 179, 104, 0.12);
+
   --text:          var(--m3-on-surface);
   --text-2:        var(--m3-on-surface-variant);
   --muted:         var(--m3-outline);
@@ -240,6 +249,12 @@
   --hero-2:        #6FE6AE;
   --hero-glow:     rgba(0, 108, 72, 0.18);
   --outer-bg:      #DDE5DE;
+
+  /* ألوان المصحف — الوضع النهاري: ورقة كريمية وحبر بنّي وذهب غامق */
+  --mushaf-bg:     #FAF3E0;
+  --mushaf-ink:    #2A2317;
+  --mushaf-frame:  #A9863F;
+  --mushaf-tint:   rgba(169, 134, 63, 0.10);
 }
 
 /* خط المصحف العثماني — يدوي (مش من scripts/build-fonts.mjs) لأنه مش من
@@ -1350,7 +1365,7 @@ input[type="number"].search-input { text-align: center; }
 .ayah-container {
   position: absolute;
   inset: 0;
-  background: var(--m3-surface);
+  background: var(--mushaf-bg);
   /* --khatma-bar-h و --as-bar-h يضبطهما khatma.js/auto-scroll.js بارتفاع
      الشريط الفعلي وقت ظهوره، حتى لا يغطّي آخر آيات معروضة. */
   padding: 22px 20px calc(22px + (var(--quran-font-size, 1.75rem) * 2.7) + var(--khatma-bar-h, 0px) + var(--as-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
@@ -1367,16 +1382,16 @@ input[type="number"].search-input { text-align: center; }
   text-align: center;
   font-family: var(--font-quran);
   font-size: calc(var(--quran-font-size) + 0.1rem);
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
   margin-bottom: 24px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--m3-outline-variant);
+  border-bottom: 1px solid var(--mushaf-tint);
 }
 .basmala-ayah-line {
   text-align: center;
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
-  color: var(--m3-on-surface);
+  color: var(--mushaf-ink);
   line-height: 2.2;
   margin-bottom: 22px;
 }
@@ -1385,7 +1400,7 @@ input[type="number"].search-input { text-align: center; }
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
   line-height: 2.7;
-  color: var(--m3-on-surface);
+  color: var(--mushaf-ink);
   text-align: center;
   -webkit-user-select: none;
   user-select: none;
@@ -1413,7 +1428,39 @@ input[type="number"].search-input { text-align: center; }
   0% { background: var(--m3-tertiary-container); }
   100% { background: transparent; }
 }
-.ayah-marker { color: var(--m3-tertiary); font-size: 1.15rem; margin: 0 5px; white-space: nowrap; }
+/* رقم الآية داخل ميدالية نجمية ثمانية — نفس زخرفة شارة رقم السورة، كالمصحف المطبوع */
+.ayah-marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55em;
+  height: 1.55em;
+  margin: 0 3px;
+  vertical-align: middle;
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--mushaf-frame);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ayah-marker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--mushaf-frame);
+  clip-path: var(--star8);
+}
+.ayah-marker::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  background: var(--mushaf-bg);
+  clip-path: var(--star8);
+}
+.ayah-marker > span { position: relative; z-index: 1; }
 
 /* فاصل صفحات المصحف */
 .page-separator {
@@ -1444,55 +1491,67 @@ input[type="number"].search-input { text-align: center; }
    على هيئة عناوين السور في المصحف المطبوع، تحمل اسم السورة القادمة
    ونوعها وعدد آياتها. المسافة حولها هي نفس مسافة فاصل الصفحات. */
 .surah-ornament {
-  margin: 24px 0 20px;
-  padding: 0 2px;
+  margin: 6px 0 26px;
+  padding: 0;
   text-align: center;
   user-select: none;
 }
+/* لوحة رأس السورة: إطار مزدوج مذهّب يمتد بعرض العمود، كعنوان السورة في
+   المصحف المطبوع — إطار خارجي سميك وإطار داخلي رفيع، ونجمتان على الطرفين. */
 .so-frame {
   position: relative;
-  display: inline-flex;
-  flex-direction: row;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 12px 34px;
-  border: 2px solid var(--m3-tertiary);
-  border-radius: var(--m3-shape-md);
-  background: var(--gold-tint);
+  gap: 3px;
+  width: 100%;
+  padding: 16px 44px;
+  border: 2px solid var(--mushaf-frame);
+  border-radius: 10px;
+  background: var(--mushaf-tint);
   text-align: center;
 }
-/* نجمتان ثمانيتان صغيرتان على طرفَي اللوحة — نفس زخرفة شارة رقم السورة */
-.so-frame::before,
-.so-frame::after {
+/* الإطار الداخلي الرفيع */
+.so-frame::before {
   content: "";
   position: absolute;
+  inset: 4px;
+  border: 1px solid var(--mushaf-frame);
+  border-radius: 6px;
+  opacity: 0.65;
+  pointer-events: none;
+}
+/* نجمتان ثمانيتان على طرفَي اللوحة — نفس زخرفة شارة رقم الآية */
+.so-star {
+  position: absolute;
   top: 50%;
-  width: 14px; height: 14px;
-  margin-top: -7px;
-  background: var(--m3-tertiary);
+  width: 15px; height: 15px;
+  margin-top: -7.5px;
+  background: var(--mushaf-frame);
   clip-path: var(--star8);
 }
-.so-frame::before { right: 8px; }
-.so-frame::after  { left: 8px; }
+.so-star.start { right: 12px; }
+.so-star.end   { left: 12px; }
 
 .so-name {
   font-family: var(--font-quran);
-  font-size: calc(var(--quran-font-size) * 0.82);
+  font-size: calc(var(--quran-font-size) * 0.92);
   line-height: 1.6;
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
 }
 .so-type,
 .so-count {
   font-family: var(--font-ui);
   font-size: var(--type-label-m);
-  color: var(--m3-on-surface-variant);
+  color: var(--mushaf-ink);
+  opacity: 0.7;
   white-space: nowrap;
 }
 
 /* علامة السجدة */
 .sajdah-mark {
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
   font-size: 0.85em;
   margin: 0 2px;
 }

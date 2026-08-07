@@ -346,7 +346,7 @@ function buildSurahHtml(surah, options = {}) {
     const classes = ["ayah-span"];
     if (saved) classes.push("bookmarked");
     if (a.sajdah) classes.push("has-sajdah");
-    return `<span class="${classes.join(" ")}" id="${ayahDomId(surah.number, a.numberInSurah)}" data-surah="${surah.number}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}" data-page="${a.page}">${text}<span class="ayah-marker">﴿${toArabicNum(a.numberInSurah)}﴾</span>${a.sajdah ? '<span class="sajdah-mark" title="موضع سجدة">۩</span>' : ""}</span>`;
+    return `<span class="${classes.join(" ")}" id="${ayahDomId(surah.number, a.numberInSurah)}" data-surah="${surah.number}" data-ayah="${a.numberInSurah}" data-juz="${a.juz}" data-hizb-quarter="${a.hizbQuarter}" data-page="${a.page}">${text}<span class="ayah-marker"><span>${toArabicNum(a.numberInSurah)}</span></span>${a.sajdah ? '<span class="sajdah-mark" title="موضع سجدة">۩</span>' : ""}</span>`;
   };
 
   // رقم الصفحة يُكتب أسفل الصفحة التي انتهت للتوّ — تماماً كالمصحف المطبوع.
@@ -359,8 +359,10 @@ function buildSurahHtml(surah, options = {}) {
     `<span class="page-separator-line"></span>` +
     `</div>`;
 
+  // رأس السورة الزخرفي يظهر فوق كل سورة — تماماً كالمصحف المطبوع، لا في
+  // المصحف المتصل (الختمة) وحده كما كان.
   let html = "";
-  if (options.withOrnament) {
+  {
     const meta = QuranData.getSurahMeta(surah.number);
     const ayahCount = meta ? meta.ayahs : surah.ayahs.length;
     const type = meta ? meta.type : "";
@@ -369,9 +371,11 @@ function buildSurahHtml(surah, options = {}) {
       html +=
         `<div class="surah-ornament" data-surah="${surah.number}">` +
         `<span class="so-frame">` +
+        `<i class="so-star start"></i>` +
         `<span class="so-type">${type}</span>` +
         `<span class="so-name">سُورَةُ ${surah.name}</span>` +
         `<span class="so-count">${countLabel}</span>` +
+        `<i class="so-star end"></i>` +
         `</span></div>`;
   }
   if (showBasmala) html += '<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
