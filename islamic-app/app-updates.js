@@ -421,6 +421,34 @@
     getInstalled: getInstalled,
 
     /**
+     * يشارك ملف التطبيق (APK) لآخر إصدار على GitHub عبر ورقة مشاركة النظام.
+     * يقرأ version.json ليعرف الرابط والنسخة، ثم يترك للطبقة الأصلية إما مشاركة
+     * الملف المنزَّل مسبقاً أو تنزيل الأحدث ثم مشاركته. بلا إنترنت: يشارك آخر
+     * ملف نُزّل فعلاً.
+     *
+     * @returns {Promise<object>} { shared: boolean, reason? }
+     */
+    shareApp: function () {
+      if (!updater || !updater.shareApk) {
+        return Promise.resolve({ shared: false, reason: 'UNSUPPORTED' });
+      }
+      return fetchManifest()
+        .then(function (manifest) {
+          var app = manifest && manifest.app ? manifest.app : null;
+          var args = (app && app.apkUrl)
+            ? { url: app.apkUrl, version: app.version }
+            : {};
+          return updater.shareApk(args);
+        })
+        .catch(function () {
+          // فشل قراءة version.json (بلا إنترنت) — شارك آخر ملف منزَّل إن وُجد
+          return updater.shareApk({}).catch(function (error) {
+            return { shared: false, reason: String((error && error.message) || error) };
+          });
+        });
+    },
+
+    /**
      * الأحداث: webUpdateStarted | webUpdateFailed | appUpdateAvailable |
      * downloadStarted | downloadProgress | downloadFailed | dismissed | checkFailed
      */
@@ -442,6 +470,12 @@
     });
     updater.addListener('downloadFailed', function (data) {
       emit('downloadFailed', data);
+    });
+    updater.addListener('shareProgress', function (data) {
+      emit('shareProgress', data);
+    });
+    updater.addListener('shareFailed', function (data) {
+      emit('shareFailed', data);
     });
   }
 
