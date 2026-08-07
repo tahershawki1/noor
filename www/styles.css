@@ -1446,15 +1446,17 @@ input[type="number"].search-input { text-align: center; }
 .surah-ornament {
   margin: 24px 0 20px;
   padding: 0 2px;
+  text-align: center;
   user-select: none;
 }
 .so-frame {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  gap: 3px;
-  padding: 14px 28px;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 34px;
   border: 2px solid var(--m3-tertiary);
   border-radius: var(--m3-shape-md);
   background: var(--gold-tint);
@@ -1480,10 +1482,12 @@ input[type="number"].search-input { text-align: center; }
   line-height: 1.6;
   color: var(--m3-tertiary);
 }
-.so-meta {
+.so-type,
+.so-count {
   font-family: var(--font-ui);
   font-size: var(--type-label-m);
   color: var(--m3-on-surface-variant);
+  white-space: nowrap;
 }
 
 /* علامة السجدة */
