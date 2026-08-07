@@ -40,6 +40,7 @@
   <symbol id="i-close" viewBox="0 0 24 24"><path d="m6.4 6.4 11.2 11.2M17.6 6.4 6.4 17.6"/></symbol>
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20.6 12a8.6 8.6 0 1 1-2.7-6.3"/><path d="M20.6 3.4v5.2h-5.2"/></symbol>
   <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7.5 10 4.5 4.5 4.5-4.5"/><path d="M4.5 19.5h15"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5.2" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.8" r="2.6"/><path d="m8.3 10.7 7.4-4.2M8.3 13.3l7.4 4.2"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6.5 9.5 5.5 5.5 5.5-5.5"/></symbol>
   <symbol id="i-chevron-start" viewBox="0 0 24 24"><path d="m14.5 6.5-5.5 5.5 5.5 5.5"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21.5s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10.2" r="2.6"/></symbol>
@@ -572,6 +573,16 @@
               لو ظهر محتوى قديم رغم «تحقق من التحديثات» — يمسح نسخة المحتوى المحفوظة على
               الجهاز وينزّل النسخة الأحدث من جديد بالكامل.
             </p>
+          </div>
+
+          <!-- مشاركة التطبيق — يشارك ملف آخر إصدار (APK) من GitHub -->
+          <div class="field" id="shareAppField">
+            <label class="field-label">مشاركة التطبيق</label>
+            <button class="btn btn-soft btn-block avr-check-btn" id="shareAppBtn">
+              <svg class="ic" style="width:16px;height:16px"><use href="#i-share"></use></svg>
+              شارك تطبيق نور
+            </button>
+            <p class="field-hint" id="shareAppHint">يشارك ملف آخر إصدار من التطبيق مباشرةً، فيثبّته أصدقاؤك بلا حاجة لمتجر.</p>
           </div>
 
           <!-- صفحة تجربة مؤقتة — تصميم قراءة بديل قيد التطوير، هتتشال لما يتقرر مصيرها -->
