@@ -2264,6 +2264,28 @@ input[type="number"].search-input { text-align: center; }
 
 .settings-body { padding: 20px 20px calc(28px + var(--sab)); }
 
+/* أقسام الإعدادات — كل قسم عنوان فوق بطاقة تجمع حقوله، على طراز إعدادات
+   تطبيقات النظام. القسم الذي تُخفى كل حقوله يختفي كاملاً (:has). */
+.settings-group { margin-bottom: 28px; }
+.settings-group:last-child { margin-bottom: 0; }
+.settings-group:not(:has(> .settings-group-card > .field:not(.hidden))) { display: none; }
+.settings-group-title {
+  color: var(--m3-primary);
+  font-size: var(--type-body-s);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin: 0 0 12px;
+  padding-inline: 4px;
+}
+.settings-group-card {
+  background: var(--m3-surface-container-low);
+  border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--m3-shape-lg);
+  padding: 20px 16px 4px;
+}
+.settings-group-card > .field:last-child { margin-bottom: 20px; }
+.settings-group-card > .field.hidden + .field { margin-top: 0; }
+
 .action-stack { display: flex; flex-direction: column; gap: 8px; }
 .action-stack .btn { min-height: 56px; justify-content: flex-start; padding-inline: 24px; }
 .btn.playing { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }

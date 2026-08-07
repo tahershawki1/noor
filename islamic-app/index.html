@@ -341,10 +341,10 @@
               <option value="makkah">أذان الحرم المكي</option>
               <option value="madinah">أذان المسجد النبوي</option>
               <option value="egypt">أذان مصري كلاسيكي</option>
-              <option value="voice5">أذان مختار ١</option>
-              <option value="voice6">أذان مختار ٢</option>
-              <option value="voice7">أذان مختار ٣</option>
-              <option value="voice8">أذان مختار ٤</option>
+              <option value="voice5">عبد الباسط عبد الصمد</option>
+              <option value="voice6">ماهر المعيقلي</option>
+              <option value="voice7">ناصر القطامي</option>
+              <option value="voice8">سعد الغامدي</option>
             </select>
           </div>
 
@@ -494,105 +494,131 @@
       <!-- ======== صفحة الإعدادات ======== -->
       <section id="settings" class="tab-panel">
         <div class="settings-body">
-          <div class="field">
-            <label class="field-label">حجم الخط</label>
-            <div class="stepper">
-              <button id="fontSmaller" class="step-btn" aria-label="تصغير">أ−</button>
-              <span id="fontSizeLabel" class="step-value">100%</span>
-              <button id="fontBigger" class="step-btn" aria-label="تكبير">أ+</button>
-            </div>
-          </div>
-          <div class="preview-box">
-            <span class="preview-label">معاينة</span>
-            <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-          </div>
 
-          <!-- النسخة الاحتياطية — داخل تطبيق الأندرويد فقط -->
-          <div class="field hidden" id="backupField">
-            <label class="field-label">النسخة الاحتياطية</label>
-            <div class="backup-status">
-              <span class="backup-dot" id="backupDot"></span>
-              <span id="backupStatusText">لم تُحفظ نسخة بعد</span>
-            </div>
-            <div class="backup-actions">
-              <button class="btn btn-soft btn-sm" id="backupSaveBtn">احفظ الآن</button>
-              <button class="btn btn-soft btn-sm" id="backupRestoreBtn">استرجاع من ملف</button>
-              <button class="btn btn-soft btn-sm" id="backupExportBtn">تصدير إلى…</button>
-            </div>
-            <p class="field-hint">
-              تُحفظ بياناتك تلقائياً في «المستندات ← Noor» — وهو مكان يبقى حتى لو حذفت
-              التطبيق، فتسترجعها بعد إعادة التثبيت.
-            </p>
-          </div>
-
-          <!-- الصوتيات المحملة للاستماع دون إنترنت -->
-          <div class="field hidden" id="offlineAudioField">
-            <label class="field-label">الصوتيات المحملة للاستماع دون إنترنت</label>
-            <div class="backup-status">
-              <span id="offlineAudioStatusText">لا توجد صوتيات محمّلة</span>
-            </div>
-            <div class="backup-actions">
-              <button class="btn btn-soft btn-sm" id="offlineAudioClearBtn" disabled>امسح كل الصوتيات المحملة</button>
-            </div>
-            <p class="field-hint">
-              نزّل أي سورة من زر التنزيل أعلى صفحة القراءة لتسمعها لاحقاً دون اتصال بالإنترنت.
-            </p>
-          </div>
-
-          <!-- إصدار واجهة الويب — مرئي دائماً في المتصفح -->
-          <div class="field" id="webVersionField">
-            <label class="field-label">إصدار واجهة الويب</label>
-            <div class="app-ver-row">
-              <span class="avr-label">الإصدار الحالي</span>
-              <span class="avr-value" id="webVersionLabelWeb">—</span>
+          <!-- قسم: العرض -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">العرض والقراءة</h3>
+            <div class="settings-group-card">
+              <div class="field">
+                <label class="field-label">حجم الخط</label>
+                <div class="stepper">
+                  <button id="fontSmaller" class="step-btn" aria-label="تصغير">أ−</button>
+                  <span id="fontSizeLabel" class="step-value">100%</span>
+                  <button id="fontBigger" class="step-btn" aria-label="تكبير">أ+</button>
+                </div>
+              </div>
+              <div class="preview-box">
+                <span class="preview-label">معاينة</span>
+                <p id="fontPreview" class="mushaf-text" dir="rtl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+              </div>
             </div>
           </div>
 
-          <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
-          <div class="field hidden" id="appInfoField">
-            <label class="field-label">عن التطبيق</label>
-            <div class="app-ver-row">
-              <span class="avr-label">إصدار التطبيق (APK)</span>
-              <span class="avr-value" id="installedVersionLabel">—</span>
+          <!-- قسم: بياناتك -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">بياناتك والتخزين</h3>
+            <div class="settings-group-card">
+              <!-- النسخة الاحتياطية — داخل تطبيق الأندرويد فقط -->
+              <div class="field hidden" id="backupField">
+                <label class="field-label">النسخة الاحتياطية</label>
+                <div class="backup-status">
+                  <span class="backup-dot" id="backupDot"></span>
+                  <span id="backupStatusText">لم تُحفظ نسخة بعد</span>
+                </div>
+                <div class="backup-actions">
+                  <button class="btn btn-soft btn-sm" id="backupSaveBtn">احفظ الآن</button>
+                  <button class="btn btn-soft btn-sm" id="backupRestoreBtn">استرجاع من ملف</button>
+                  <button class="btn btn-soft btn-sm" id="backupExportBtn">تصدير إلى…</button>
+                </div>
+                <p class="field-hint">
+                  تُحفظ بياناتك تلقائياً في «المستندات ← Noor» — وهو مكان يبقى حتى لو حذفت
+                  التطبيق، فتسترجعها بعد إعادة التثبيت.
+                </p>
+              </div>
+
+              <!-- الصوتيات المحملة للاستماع دون إنترنت -->
+              <div class="field hidden" id="offlineAudioField">
+                <label class="field-label">الصوتيات المحملة للاستماع دون إنترنت</label>
+                <div class="backup-status">
+                  <span id="offlineAudioStatusText">لا توجد صوتيات محمّلة</span>
+                </div>
+                <div class="backup-actions">
+                  <button class="btn btn-soft btn-sm" id="offlineAudioClearBtn" disabled>امسح كل الصوتيات المحملة</button>
+                </div>
+                <p class="field-hint">
+                  نزّل أي سورة من زر التنزيل أعلى صفحة القراءة لتسمعها لاحقاً دون اتصال بالإنترنت.
+                </p>
+              </div>
             </div>
-            <div class="app-ver-row">
-              <span class="avr-label">إصدار محتوى الويب</span>
-              <span class="avr-value" id="webVersionLabel">—</span>
+          </div>
+
+          <!-- قسم: حول التطبيق والتحديثات -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">حول التطبيق والتحديثات</h3>
+            <div class="settings-group-card">
+              <!-- إصدار واجهة الويب — مرئي دائماً في المتصفح -->
+              <div class="field" id="webVersionField">
+                <label class="field-label">إصدار واجهة الويب</label>
+                <div class="app-ver-row">
+                  <span class="avr-label">الإصدار الحالي</span>
+                  <span class="avr-value" id="webVersionLabelWeb">—</span>
+                </div>
+              </div>
+
+              <!-- إصدار التطبيق والتحديثات — داخل التطبيق الأصلي فقط -->
+              <div class="field hidden" id="appInfoField">
+                <label class="field-label">عن التطبيق</label>
+                <div class="app-ver-row">
+                  <span class="avr-label">إصدار التطبيق (APK)</span>
+                  <span class="avr-value" id="installedVersionLabel">—</span>
+                </div>
+                <div class="app-ver-row">
+                  <span class="avr-label">إصدار محتوى الويب</span>
+                  <span class="avr-value" id="webVersionLabel">—</span>
+                </div>
+                <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
+                  <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
+                  تحقق من التحديثات
+                </button>
+                <p class="field-hint" id="checkUpdatesHint"></p>
+
+                <button class="btn btn-soft btn-sm btn-block avr-check-btn" id="forceRefreshBtn">
+                  <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
+                  امسح النسخة الحالية وأعد التحميل
+                </button>
+                <p class="field-hint" id="forceRefreshHint">
+                  لو ظهر محتوى قديم رغم «تحقق من التحديثات» — يمسح نسخة المحتوى المحفوظة على
+                  الجهاز وينزّل النسخة الأحدث من جديد بالكامل.
+                </p>
+              </div>
+
+              <!-- مشاركة التطبيق — يشارك ملف آخر إصدار (APK) من GitHub -->
+              <div class="field" id="shareAppField">
+                <label class="field-label">مشاركة التطبيق</label>
+                <button class="btn btn-soft btn-block avr-check-btn" id="shareAppBtn">
+                  <svg class="ic" style="width:16px;height:16px"><use href="#i-share"></use></svg>
+                  شارك تطبيق نور
+                </button>
+                <p class="field-hint" id="shareAppHint">يشارك ملف آخر إصدار من التطبيق مباشرةً، فيثبّته أصدقاؤك بلا حاجة لمتجر.</p>
+              </div>
             </div>
-            <button class="btn btn-soft btn-block avr-check-btn" id="checkUpdatesBtn">
-              <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
-              تحقق من التحديثات
-            </button>
-            <p class="field-hint" id="checkUpdatesHint"></p>
-
-            <button class="btn btn-soft btn-sm btn-block avr-check-btn" id="forceRefreshBtn">
-              <svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"></use></svg>
-              امسح النسخة الحالية وأعد التحميل
-            </button>
-            <p class="field-hint" id="forceRefreshHint">
-              لو ظهر محتوى قديم رغم «تحقق من التحديثات» — يمسح نسخة المحتوى المحفوظة على
-              الجهاز وينزّل النسخة الأحدث من جديد بالكامل.
-            </p>
           </div>
 
-          <!-- مشاركة التطبيق — يشارك ملف آخر إصدار (APK) من GitHub -->
-          <div class="field" id="shareAppField">
-            <label class="field-label">مشاركة التطبيق</label>
-            <button class="btn btn-soft btn-block avr-check-btn" id="shareAppBtn">
-              <svg class="ic" style="width:16px;height:16px"><use href="#i-share"></use></svg>
-              شارك تطبيق نور
-            </button>
-            <p class="field-hint" id="shareAppHint">يشارك ملف آخر إصدار من التطبيق مباشرةً، فيثبّته أصدقاؤك بلا حاجة لمتجر.</p>
+          <!-- قسم: تجربة -->
+          <div class="settings-group">
+            <h3 class="settings-group-title">تجربة</h3>
+            <div class="settings-group-card">
+              <!-- صفحة تجربة مؤقتة — تصميم قراءة بديل قيد التطوير، هتتشال لما يتقرر مصيرها -->
+              <div class="field">
+                <label class="field-label">تصميم قراءة جديد</label>
+                <a class="btn btn-soft btn-block avr-check-btn" href="experiment.html">
+                  تجربة تصميم قراءة جديد
+                </a>
+                <p class="field-hint">صفحة قيد التجربة، لسه مش جزء نهائي من التطبيق.</p>
+              </div>
+            </div>
           </div>
 
-          <!-- صفحة تجربة مؤقتة — تصميم قراءة بديل قيد التطوير، هتتشال لما يتقرر مصيرها -->
-          <div class="field">
-            <label class="field-label">تجربة</label>
-            <a class="btn btn-soft btn-block avr-check-btn" href="experiment.html">
-              تجربة تصميم قراءة جديد
-            </a>
-            <p class="field-hint">صفحة قيد التجربة، لسه مش جزء نهائي من التطبيق.</p>
-          </div>
         </div>
       </section>
 

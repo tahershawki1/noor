@@ -17,10 +17,10 @@ const ADHAN_AUDIO_SOURCES = {
   makkah: { name: 'أذان الحرم المكي', file: 'azan2.mp3' },
   madinah: { name: 'أذان المسجد النبوي', file: 'azan3.mp3' },
   egypt: { name: 'أذان مصري كلاسيكي', file: 'azan4.mp3' },
-  voice5: { name: 'أذان مختار ١', file: 'azan5.mp3' },
-  voice6: { name: 'أذان مختار ٢', file: 'azan6.mp3' },
-  voice7: { name: 'أذان مختار ٣', file: 'azan7.mp3' },
-  voice8: { name: 'أذان مختار ٤', file: 'azan8.mp3' },
+  voice5: { name: 'عبد الباسط عبد الصمد', file: 'azan5.mp3' },
+  voice6: { name: 'ماهر المعيقلي', file: 'azan6.mp3' },
+  voice7: { name: 'ناصر القطامي', file: 'azan7.mp3' },
+  voice8: { name: 'سعد الغامدي', file: 'azan8.mp3' },
 };
 
 /** رابط الملف على GitHub Pages للمؤذن المطلوب (لا الاحتياطي). */
@@ -184,7 +184,7 @@ function saveAdhanSettings(obj) { localStorage.setItem('adhanSettings', JSON.str
 
 function getAdhanEnabledPrayers() {
   const s = getAdhanSettings();
-  return s.enabledPrayers ?? { Fajr: true, Dhuhr: false, Asr: false, Maghrib: true, Isha: false };
+  return s.enabledPrayers ?? { Fajr: true, Dhuhr: true, Asr: true, Maghrib: true, Isha: true };
 }
 
 function getAdhanReciter() {
