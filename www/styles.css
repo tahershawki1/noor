@@ -2928,6 +2928,31 @@ input[type="number"].search-input { text-align: center; }
   background: var(--m3-secondary-container);
   color: var(--m3-on-secondary-container);
 }
+/* شرائح اقتراح اسم الختمة — Assist chips من M3 */
+.khatma-name-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.khatma-name-chip {
+  position: relative;
+  height: 32px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid var(--m3-outline);
+  color: var(--m3-on-surface-variant);
+  border-radius: var(--m3-shape-sm);
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  overflow: hidden;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard),
+              color var(--m3-dur-short) var(--m3-ease-standard);
+}
+.khatma-name-chip:active {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+}
 .khatma-result {
   background: var(--m3-surface-container-high);
   border: none;
@@ -3349,3 +3374,133 @@ input[type="number"].search-input { text-align: center; }
   background: var(--hero-t16);
   color: var(--hero-strong);
 }
+
+/* ============================================================
+   شاشة الدخول الأول (Onboarding)
+   ============================================================
+   غلاف ثابت يملأ الشاشة عند أول تشغيل. لا حركة transform على الغلاف
+   نفسه (يبقى مرجع التموضع سليماً ولا يزحزح شيئاً بعد الرسم — قاعدة
+   test:ui)؛ الظهور بالشفافية فقط. */
+.ob-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  background: var(--m3-surface);
+  color: var(--m3-on-surface);
+  animation: obFadeIn var(--m3-dur-medium) var(--m3-ease-standard);
+}
+@keyframes obFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.ob-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+  flex: none;
+}
+.ob-dots { display: flex; gap: 8px; }
+.ob-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
+  transition: width var(--m3-dur-short) var(--m3-ease-standard),
+              background var(--m3-dur-short) var(--m3-ease-standard);
+}
+.ob-dot.active {
+  width: 24px;
+  background: var(--m3-primary);
+}
+.ob-skip-all {
+  background: transparent;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: var(--m3-shape-sm);
+}
+
+.ob-slides {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.ob-slide {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--m3-dur-medium) var(--m3-ease-standard);
+}
+.ob-slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.ob-slide-scroll {
+  padding: 8px 24px 24px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.ob-hero {
+  text-align: center;
+  padding: 24px 0 20px;
+}
+.ob-hero-ic {
+  font-size: 56px;
+  line-height: 1;
+  display: block;
+  margin-bottom: 12px;
+}
+.ob-title {
+  font-size: var(--type-headline-s);
+  font-weight: 700;
+  color: var(--m3-on-surface);
+  margin: 0 0 8px;
+}
+.ob-sub {
+  font-size: var(--type-body-m);
+  color: var(--m3-on-surface-variant);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.ob-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-l);
+}
+.ob-or::before, .ob-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--m3-outline-variant);
+}
+
+.ob-status {
+  font-size: var(--type-body-s);
+  color: var(--m3-primary);
+  min-height: 20px;
+  margin: 10px 0 4px;
+  text-align: center;
+}
+
+.ob-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+  flex: none;
+  border-top: 1px solid var(--m3-outline-variant);
+}
+.ob-actions .btn { flex: none; }
+.ob-actions .ob-next-btn { flex: 1; }

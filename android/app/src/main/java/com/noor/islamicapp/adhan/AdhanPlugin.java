@@ -2,7 +2,9 @@ package com.noor.islamicapp.adhan;
 
 import android.app.AlarmManager;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
+import android.provider.Settings;
 
 import androidx.core.app.NotificationManagerCompat;
 
@@ -31,16 +33,40 @@ import com.getcapacitor.annotation.PermissionCallback;
 )
 public class AdhanPlugin extends Plugin {
 
-    /** يدفع إعدادات الأذان (الصلوات المفعّلة والتنبيه المسبق) ويعيد الجدولة. */
+    /** يدفع إعدادات الأذان (الصلوات المفعّلة والتنبيه المسبق والوضع الصامت) ويعيد الجدولة. */
     @PluginMethod
     public void sync(PluginCall call) {
         AdhanStore.save(
             getContext(),
             call.getObject("enabledPrayers"),
-            call.getInt("preAlertMinutes", 0)
+            call.getInt("preAlertMinutes", 0),
+            Boolean.TRUE.equals(call.getBoolean("silentEnabled", false)),
+            call.getInt("silentDelayMinutes", 0),
+            call.getInt("silentDurationMinutes", 15)
         );
         AdhanScheduler.reschedule(getContext());
         call.resolve(status());
+    }
+
+    /** هل مُنح إذن «عدم الإزعاج» اللازم للوضع الصامت؟ */
+    @PluginMethod
+    public void hasDndAccess(PluginCall call) {
+        JSObject result = new JSObject();
+        result.put("granted", AdhanDnd.hasAccess(getContext()));
+        call.resolve(result);
+    }
+
+    /** يفتح إعدادات النظام لمنح إذن «عدم الإزعاج» (لا يُمنح عبر حوار runtime). */
+    @PluginMethod
+    public void requestDndAccess(PluginCall call) {
+        try {
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+        } catch (Exception ignored) {
+            // بعض الأجهزة لا تملك هذه الشاشة — نتجاهل بهدوء
+        }
+        call.resolve();
     }
 
     @PluginMethod

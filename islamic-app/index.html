@@ -673,6 +673,11 @@
         </button>
       </div>
       <div class="modal-body">
+        <div class="field">
+          <label class="field-label" for="khatmaNameInput">اسم الختمة</label>
+          <input type="text" id="khatmaNameInput" class="search-input" maxlength="40" placeholder="ختمة القرآن" />
+          <div class="khatma-name-chips" id="khatmaNameChips"></div>
+        </div>
         <div class="khatma-mode-tabs">
           <button class="khatma-tab active" id="khatmaTabDays" onclick="switchKhatmaTab('days')">بالمدة (أيام)</button>
           <button class="khatma-tab" id="khatmaTabPages" onclick="switchKhatmaTab('pages')">بصفحات يومية</button>
@@ -785,6 +790,18 @@
             <option value="8">مجلس الإفتاء الأوروبي</option>
             <option value="10">دبي</option>
             <option value="15">تركيا (ديانت)</option>
+            <option value="9">الكويت</option>
+            <option value="11">قطر</option>
+            <option value="22">منطقة الخليج</option>
+            <option value="21">الأردن — وزارة الأوقاف</option>
+            <option value="13">تونس — وزارة الشؤون الدينية</option>
+            <option value="14">الجزائر — وزارة الشؤون الدينية</option>
+            <option value="16">المغرب — وزارة الأوقاف</option>
+            <option value="12">اتحاد المنظمات الإسلامية بفرنسا (UOIF)</option>
+            <option value="17">ماليزيا (JAKIM)</option>
+            <option value="18">إندونيسيا (KEMENAG)</option>
+            <option value="19">سنغافورة (MUIS)</option>
+            <option value="20">روسيا</option>
             <option value="7">طهران</option>
             <option value="0">جعفري — الشيعة الإثنا عشرية</option>
           </select>
@@ -885,6 +902,40 @@
             <option value="15">قبل 15 دقيقة</option>
             <option value="30">قبل 30 دقيقة</option>
           </select>
+        </div>
+        <div class="field">
+          <div class="adhan-toggle-row">
+            <span class="adhan-toggle-label">كتم الجهاز بعد الأذان</span>
+            <label class="adhan-toggle-switch">
+              <input type="checkbox" id="silentEnabledToggle">
+              <span class="adhan-toggle-track"></span>
+            </label>
+          </div>
+          <p class="field-hint top">يدخل الجهاز وضع «عدم الإزعاج» تلقائياً وقت الصلاة ثم يعود</p>
+          <div id="silentOptions">
+            <div class="field">
+              <label class="field-label" for="silentDelaySelect">يبدأ الكتم بعد الأذان بـ</label>
+              <select id="silentDelaySelect" class="select-input">
+                <option value="0">فور الأذان</option>
+                <option value="5">5 دقائق</option>
+                <option value="10">10 دقائق</option>
+                <option value="15">15 دقيقة</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="silentDurationSelect">مدة الكتم</label>
+              <select id="silentDurationSelect" class="select-input">
+                <option value="10">10 دقائق</option>
+                <option value="15">15 دقيقة</option>
+                <option value="20">20 دقيقة</option>
+                <option value="30">30 دقيقة</option>
+                <option value="45">45 دقيقة</option>
+              </select>
+            </div>
+            <button id="silentDndBtn" class="btn btn-soft btn-block hidden">
+              <svg class="ic"><use href="#i-bell"></use></svg> منح إذن «عدم الإزعاج»
+            </button>
+          </div>
         </div>
         <div class="field">
           <label class="field-label">إشعارات النظام</label>
@@ -988,6 +1039,164 @@
     </div>
   </div>
 
+  <!-- ======== شاشة الدخول الأول (Onboarding) — تظهر لمرة واحدة ======== -->
+  <div id="onboardingOverlay" class="ob-overlay hidden" aria-hidden="true">
+    <header class="ob-top">
+      <div class="ob-dots" id="obDots">
+        <span class="ob-dot active"></span>
+        <span class="ob-dot"></span>
+        <span class="ob-dot"></span>
+      </div>
+      <button class="ob-skip-all" id="obSkipAll">تخطّي</button>
+    </header>
+
+    <div class="ob-slides">
+      <!-- شريحة ١: الموقع وطريقة الحساب -->
+      <section class="ob-slide active" data-step="0">
+        <div class="ob-slide-scroll">
+          <div class="ob-hero">
+            <span class="ob-hero-ic">📍</span>
+            <h2 class="ob-title">أين أنت؟</h2>
+            <p class="ob-sub">نحتاج موقعك لحساب مواقيت الصلاة بدقّة على جهازك — دون إنترنت.</p>
+          </div>
+          <button class="btn btn-primary btn-block" id="obUseGeo">
+            <svg class="ic"><use href="#i-pin"></use></svg> حدّد موقعي تلقائياً
+          </button>
+          <div class="ob-or"><span>أو اكتب مدينتك</span></div>
+          <div class="field">
+            <input type="text" id="obCityInput" class="search-input" placeholder="المدينة (مثال: القاهرة)" />
+          </div>
+          <div class="field">
+            <input type="text" id="obCountryInput" class="search-input" placeholder="الدولة (اختياري)" />
+          </div>
+          <button class="btn btn-soft btn-block" id="obCityGo">بحث عن المدينة</button>
+          <p class="ob-status" id="obLocationStatus"></p>
+          <div class="field">
+            <label class="field-label" for="obCalcMethod">طريقة حساب المواقيت</label>
+            <select id="obCalcMethod" class="select-input">
+              <option value="5">الهيئة المصرية العامة للمساحة</option>
+              <option value="4">أم القرى — مكة المكرمة</option>
+              <option value="3">رابطة العالم الإسلامي</option>
+              <option value="2">الجمعية الإسلامية لأمريكا الشمالية (ISNA)</option>
+              <option value="1">جامعة العلوم الإسلامية — كراتشي</option>
+              <option value="8">مجلس الإفتاء الأوروبي</option>
+              <option value="10">دبي</option>
+              <option value="15">تركيا (ديانت)</option>
+              <option value="9">الكويت</option>
+              <option value="11">قطر</option>
+              <option value="22">منطقة الخليج</option>
+              <option value="21">الأردن — وزارة الأوقاف</option>
+              <option value="13">تونس — وزارة الشؤون الدينية</option>
+              <option value="14">الجزائر — وزارة الشؤون الدينية</option>
+              <option value="16">المغرب — وزارة الأوقاف</option>
+              <option value="12">اتحاد المنظمات الإسلامية بفرنسا (UOIF)</option>
+              <option value="17">ماليزيا (JAKIM)</option>
+              <option value="18">إندونيسيا (KEMENAG)</option>
+              <option value="19">سنغافورة (MUIS)</option>
+              <option value="20">روسيا</option>
+              <option value="7">طهران</option>
+              <option value="0">جعفري — الشيعة الإثنا عشرية</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- شريحة ٢: الأذان -->
+      <section class="ob-slide" data-step="1">
+        <div class="ob-slide-scroll">
+          <div class="ob-hero">
+            <span class="ob-hero-ic">🕌</span>
+            <h2 class="ob-title">إعدادات الأذان</h2>
+            <p class="ob-sub">اختر صوت المؤذن وطريقة تنبيهك عند دخول الوقت.</p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="obReciter">صوت المؤذن</label>
+            <select id="obReciter" class="select-input">
+              <option value="alafasy">مشاري بن راشد العفاسي</option>
+              <option value="makkah">أذان الحرم المكي</option>
+              <option value="madinah">أذان المسجد النبوي</option>
+              <option value="egypt">أذان مصري كلاسيكي</option>
+              <option value="voice5">أذان مختار ١</option>
+              <option value="voice6">أذان مختار ٢</option>
+              <option value="voice7">أذان مختار ٣</option>
+              <option value="voice8">أذان مختار ٤</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field-label" for="obPreAlert">تنبيه قبل الأذان</label>
+            <select id="obPreAlert" class="select-input">
+              <option value="0">بدون تنبيه مسبق</option>
+              <option value="5">قبل 5 دقائق</option>
+              <option value="10">قبل 10 دقائق</option>
+              <option value="15">قبل 15 دقيقة</option>
+              <option value="30">قبل 30 دقيقة</option>
+            </select>
+          </div>
+          <div class="field">
+            <div class="adhan-toggle-row">
+              <span class="adhan-toggle-label">كتم الجهاز بعد الأذان</span>
+              <label class="adhan-toggle-switch">
+                <input type="checkbox" id="obSilentToggle">
+                <span class="adhan-toggle-track"></span>
+              </label>
+            </div>
+            <p class="field-hint top">وضع «عدم الإزعاج» تلقائياً وقت الصلاة ثم يعود</p>
+            <div id="obSilentOptions">
+              <div class="field">
+                <label class="field-label" for="obSilentDelay">يبدأ الكتم بعد الأذان بـ</label>
+                <select id="obSilentDelay" class="select-input">
+                  <option value="0">فور الأذان</option>
+                  <option value="5">5 دقائق</option>
+                  <option value="10">10 دقائق</option>
+                  <option value="15">15 دقيقة</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field-label" for="obSilentDuration">مدة الكتم</label>
+                <select id="obSilentDuration" class="select-input">
+                  <option value="10">10 دقائق</option>
+                  <option value="15">15 دقيقة</option>
+                  <option value="20">20 دقيقة</option>
+                  <option value="30">30 دقيقة</option>
+                  <option value="45">45 دقيقة</option>
+                </select>
+              </div>
+              <button id="obSilentDndBtn" class="btn btn-soft btn-block hidden">
+                <svg class="ic"><use href="#i-bell"></use></svg> منح إذن «عدم الإزعاج»
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- شريحة ٣: ختمة -->
+      <section class="ob-slide" data-step="2">
+        <div class="ob-slide-scroll">
+          <div class="ob-hero">
+            <span class="ob-hero-ic">📖</span>
+            <h2 class="ob-title">ابدأ ختمتك</h2>
+            <p class="ob-sub">اختر اسماً يشجّعك وحدّد وردك اليومي — تقدر تتخطّى وتضيفها لاحقاً.</p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="obKhatmaName">اسم الختمة</label>
+            <input type="text" id="obKhatmaName" class="search-input" maxlength="40" placeholder="ختمة القرآن" />
+            <div class="khatma-name-chips" id="obKhatmaChips"></div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="obKhatmaDays">عدد الأيام المقررة للختمة</label>
+            <input type="number" id="obKhatmaDays" class="search-input" min="1" max="3650" value="30" />
+            <p class="field-hint">القرآن الكريم = ٦٠٤ صفحات</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="ob-actions">
+      <button class="btn btn-soft" id="obBack">السابق</button>
+      <button class="btn btn-primary ob-next-btn" id="obNext">التالي</button>
+    </footer>
+  </div>
+
   <!-- ======== شاشة الأذان الكاملة — تظهر عند دخول وقت الصلاة ======== -->
   <div id="adhanFullscreen" class="adhan-fs hidden">
     <div class="adhan-fs-inner">
@@ -1061,6 +1270,8 @@
 <script src="settings-ui.js"></script>
 <script src="khatma.js"></script>
 <script src="dashboard.js"></script>
+<!-- شاشة الدخول الأول — آخر ما يُحمَّل: تعتمد على دوال المواقيت والأذان والختمة -->
+<script src="onboarding.js"></script>
 
 <!-- تنظيف: أزيل sw.js نهائياً (كان يتعارض مع live-updates.js/app-updates.js).
      الأجهزة التي سبق أن سجّلته يبقى تسجيله فعّالاً عندها حتى لو توقفنا عن

@@ -158,12 +158,16 @@ const AdhanNative = (() => {
   else if (isNative && cap.Plugins) plugin = cap.Plugins.AdhanNative;
   return {
     isAvailable: () => !!plugin,
-    /** يدفع الصلوات المفعّلة والتنبيه المسبق للطبقة الأصلية ويعيد جدولة المنبّه. */
+    /** يدفع الصلوات المفعّلة والتنبيه المسبق والوضع الصامت للطبقة الأصلية ويعيد جدولة المنبّه. */
     sync() {
       if (!plugin) return Promise.resolve(null);
+      const silent = getAdhanSilent();
       return plugin.sync({
         enabledPrayers: getAdhanEnabledPrayers(),
         preAlertMinutes: getAdhanPreAlert(),
+        silentEnabled: silent.enabled,
+        silentDelayMinutes: silent.delay,
+        silentDurationMinutes: silent.duration,
       }).catch(() => null);
     },
     getStatus() {
@@ -173,6 +177,16 @@ const AdhanNative = (() => {
     requestPermission() {
       if (!plugin) return Promise.resolve(null);
       return plugin.requestNotificationPermission().catch(() => null);
+    },
+    /** هل مُنح إذن «عدم الإزعاج» اللازم للوضع الصامت؟ */
+    hasDndAccess() {
+      if (!plugin) return Promise.resolve({ granted: false });
+      return plugin.hasDndAccess().catch(() => ({ granted: false }));
+    },
+    /** يفتح إعدادات النظام لمنح إذن «عدم الإزعاج». */
+    requestDndAccess() {
+      if (!plugin) return Promise.resolve(null);
+      return plugin.requestDndAccess().catch(() => null);
     },
   };
 })();
@@ -198,6 +212,24 @@ function getAdhanVolume() {
 
 function getAdhanPreAlert() {
   return parseInt(getAdhanSettings().preAlert ?? '0', 10);
+}
+
+/** إعدادات الوضع الصامت بعد الأذان: تفعيل + تأخير البدء + مدة الكتم (بالدقائق). */
+function getAdhanSilent() {
+  const s = getAdhanSettings().silent || {};
+  return {
+    enabled: !!s.enabled,
+    delay: parseInt(s.delay ?? '0', 10),
+    duration: parseInt(s.duration ?? '15', 10),
+  };
+}
+
+/** يحفظ إعدادات الوضع الصامت (يدمج مع الموجود) ثم يزامن الطبقة الأصلية. */
+function setAdhanSilent(partial) {
+  const s = getAdhanSettings();
+  s.silent = { ...getAdhanSilent(), ...partial };
+  saveAdhanSettings(s);
+  AdhanNative.sync();
 }
 
 /* --------- مشغّل الأذان --------- */
@@ -579,9 +611,66 @@ $('adhanSettingsBtn')?.addEventListener('click', () => {
   if (preaEl) preaEl.value = String(getAdhanPreAlert());
   const volEl = $('adhanVolumeSettings');
   if (volEl) volEl.value = String(getAdhanVolume());
+  syncSilentControls();
   updateNotifStatus();
   renderAdhanDownloads();
   $('adhanSettingsOverlay').classList.remove('hidden');
+});
+
+/* --------- الوضع الصامت بعد الأذان --------- */
+
+/** يملأ عناصر الوضع الصامت من الإعدادات ويحدّث ظهور زر إذن «عدم الإزعاج». */
+function syncSilentControls() {
+  const s = getAdhanSilent();
+  const toggle = $('silentEnabledToggle');
+  const delayEl = $('silentDelaySelect');
+  const durEl = $('silentDurationSelect');
+  const opts = $('silentOptions');
+  if (toggle) toggle.checked = s.enabled;
+  if (delayEl) delayEl.value = String(s.delay);
+  if (durEl) durEl.value = String(s.duration);
+  if (opts) opts.style.display = s.enabled ? '' : 'none';
+  updateDndButton();
+}
+
+/** يُظهر زر منح الإذن فقط لو الوضع مفعّل والإذن غير ممنوح (أندرويد). */
+function updateDndButton() {
+  const btn = $('silentDndBtn');
+  if (!btn) return;
+  if (!getAdhanSilent().enabled || !AdhanNative.isAvailable()) {
+    btn.classList.add('hidden');
+    return;
+  }
+  AdhanNative.hasDndAccess().then((r) => {
+    btn.classList.toggle('hidden', !!(r && r.granted));
+  });
+}
+
+$('silentEnabledToggle')?.addEventListener('change', (e) => {
+  setAdhanSilent({ enabled: e.target.checked });
+  const opts = $('silentOptions');
+  if (opts) opts.style.display = e.target.checked ? '' : 'none';
+  if (e.target.checked && AdhanNative.isAvailable()) {
+    AdhanNative.hasDndAccess().then((r) => {
+      if (!(r && r.granted)) {
+        showToast('امنح إذن «عدم الإزعاج» ليعمل الكتم');
+        AdhanNative.requestDndAccess();
+      }
+    });
+  }
+  updateDndButton();
+});
+
+$('silentDelaySelect')?.addEventListener('change', (e) => {
+  setAdhanSilent({ delay: parseInt(e.target.value, 10) });
+});
+
+$('silentDurationSelect')?.addEventListener('change', (e) => {
+  setAdhanSilent({ duration: parseInt(e.target.value, 10) });
+});
+
+$('silentDndBtn')?.addEventListener('click', () => {
+  AdhanNative.requestDndAccess();
 });
 
 $('closeAdhanSettings')?.addEventListener('click', () => {

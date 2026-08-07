@@ -30,6 +30,8 @@ public class AdhanAlarmReceiver extends BroadcastReceiver {
                 // التطبيقات. إن حُجبت، يتكفّل fullScreenIntent بشاشة القفل.
                 AdhanNotifier.showPrayer(context, index);
                 launchAdhanScreen(context, index);
+                // يسلّح نافذة كتم الجهاز بعد هذا الأذان (إن كانت مفعّلة)
+                AdhanScheduler.armSilenceWindow(context);
             }
         } else if (AdhanScheduler.ACTION_PRE_ALERT.equals(action)) {
             int index = intent.getIntExtra(AdhanScheduler.EXTRA_PRAYER_INDEX, -1);
@@ -37,6 +39,11 @@ public class AdhanAlarmReceiver extends BroadcastReceiver {
             if (index >= 0 && minutes > 0) {
                 AdhanNotifier.showPreAlert(context, index, minutes);
             }
+        } else if (AdhanScheduler.ACTION_SILENCE_ON.equals(action)) {
+            AdhanDnd.silence(context);
+        } else if (AdhanScheduler.ACTION_SILENCE_OFF.equals(action)) {
+            AdhanDnd.restore(context);
+            AdhanStore.clearSilenceOffAt(context);
         }
 
         // في كل الحالات — ومنها أحداث النظام — اضبط المنبّه التالي
