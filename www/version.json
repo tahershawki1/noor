@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-07T13:48:30.031Z",
+  "generatedAt": "2026-08-07T13:51:47.909Z",
   "app": {
-    "version": "1.18.3",
-    "versionCode": 11803,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.18.3/noor-1.18.3.apk",
-    "sizeBytes": 15212337,
-    "sha256": "fafa1c43710aa951c3893e13e5ba3bba901186af3e7c4b31deb122d5c4350c8f",
+    "version": "1.20.1",
+    "versionCode": 12001,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.20.1/noor-1.20.1.apk",
+    "sizeBytes": 15221206,
+    "sha256": "a75d8ce014c2d0e8384d2c90c4528b2e8f0121d609d4e1eb91689e09ab6db723",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "تحديث 1.18.3",
+    "notes": "شاشة الدخول الأول (Onboarding) لأول تشغيل:\n• تحديد الموقع وطريقة حساب المواقيت — أُضيفت ١٢ طريقة جديدة (الكويت، قطر، الأردن، تونس، الجزائر، المغرب، ماليزيا، إندونيسيا، سنغافورة، روسيا، UOIF فرنسا، منطقة الخليج).\n• ضبط الأذان: المؤذّن، التنبيه المسبق، والوضع الصامت للجهاز بعد الأذان (عدم الإزعاج تلقائياً لمدة تختارها).\n• إضافة ختمة باسم مخصّص مع اقتراحات مشجّعة.",
     "mandatory": false
   },
   "web": {
-    "version": "1.20.0.3",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.20.0.3/noor-web-1.20.0.3.zip",
-    "checksum": "5cb8bf8b513fe41945bad5807935d7422c6e3f834789ee1894cd8233fef71255",
+    "version": "1.20.1",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.20.1/noor-web-1.20.1.zip",
+    "checksum": "475b1327e1d51f58006af37623fb49e9cc8075fdb93fa48bb3838b3c90bc9616",
     "contentHash": "5a124382c5895724697302845f312ce701c45592bfb3ef122a7525eee3808b55"
   }
 }
