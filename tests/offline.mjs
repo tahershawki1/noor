@@ -68,6 +68,9 @@ await context.route('**/*', (route) => {
 page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
 page.on('pageerror', (e) => consoleErrors.push('pageerror: ' + e.message));
 
+// مستخدم عائد — شاشة الدخول الأول لا تظهر فتغطّي الواجهة وتعترض النقر
+await page.addInitScript(() => localStorage.setItem('noorOnboardingDone', '1'));
+
 const check = (name, condition, detail = '') => {
   if (condition) console.log(`  ✓ ${name}`);
   else { console.log(`  ✗ ${name} ${detail}`); failures.push(name); }

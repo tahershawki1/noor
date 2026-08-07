@@ -7,11 +7,51 @@
 const QURAN_TOTAL_PAGES = 604;
 const KHATMA_KEY = "khatmaList";
 
+/* أسماء ختمات مقترحة مشجّعة — يتشاركها مودال الختمة وشاشة الدخول الأول. */
+const KHATMA_NAME_SUGGESTIONS = [
+  "ختمة رمضان",
+  "ختمتي الأولى",
+  "على خطى الحبيب ﷺ",
+  "ختمة الوالدين",
+  "وردي اليومي",
+  "ختمة الشفاء",
+];
+
+/** يبني شرائح اقتراح الأسماء داخل عنصر، وكل شريحة تملأ حقل الاسم المحدَّد. */
+function renderKhatmaNameChips(containerId, inputId) {
+  const box = $(containerId);
+  if (!box) return;
+  box.innerHTML = KHATMA_NAME_SUGGESTIONS
+    .map(n => `<button type="button" class="khatma-name-chip m3-ripple" data-name="${escapeHtml(n)}">${escapeHtml(n)}</button>`)
+    .join("");
+  box.querySelectorAll(".khatma-name-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const input = $(inputId);
+      if (input) { input.value = chip.dataset.name; input.focus(); }
+    });
+  });
+}
+
 function getKhatmas() {
   try { return JSON.parse(localStorage.getItem(KHATMA_KEY)) || []; }
   catch (_) { return []; }
 }
 function saveKhatmas(list) { localStorage.setItem(KHATMA_KEY, JSON.stringify(list)); }
+
+/** ينشئ ختمة جديدة ويحفظها — يتشاركه مودال الختمة وشاشة الدخول الأول. */
+function createKhatma(name, dailyPages) {
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const khatmas = getKhatmas();
+  khatmas.push({
+    id: Date.now(),
+    name: (name || "").trim() || "ختمة القرآن",
+    startDate: today,
+    dailyPages,
+    pagesRead: 0,
+  });
+  saveKhatmas(khatmas);
+}
 
 function khatmaDaysElapsed(k) {
   const msDay = 86400000;
@@ -87,7 +127,7 @@ function renderKhatmaSection() {
           </div>
         </div>
         <div class="khatma-card-info">
-          <div class="khatma-card-name">ختمة القرآن</div>
+          <div class="khatma-card-name">${escapeHtml(k.name || "ختمة القرآن")}</div>
           <div class="khatma-card-meta">منذ ${toArabicNum(arabicCountLabel(elapsed, "يوم واحد", "يومين", "أيام", "يوماً"))} • ${toArabicNum(dailyRound)} ص/يوم</div>
           <div class="khatma-card-remaining">${toArabicNum(remaining)} صفحة متبقية</div>
           <span class="khatma-status-badge kstatus-${status}">${KSTATUS_LABEL[status]}</span>
@@ -104,6 +144,8 @@ let khatmaTabMode = "days";
 
 function openKhatmaSetup() {
   $("khatmaSetupOverlay").classList.remove("hidden");
+  if ($("khatmaNameInput")) $("khatmaNameInput").value = "";
+  renderKhatmaNameChips("khatmaNameChips", "khatmaNameInput");
   updateKhatmaCalcs();
 }
 function closeKhatmaSetup() { $("khatmaSetupOverlay").classList.add("hidden"); }
@@ -135,11 +177,8 @@ function confirmKhatmaSetup() {
   } else {
     dailyPages = Math.max(1, parseInt($("khatmaPagesInput").value) || 20);
   }
-  const khatmas = getKhatmas();
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  khatmas.push({ id: Date.now(), startDate: today, dailyPages, pagesRead: 0 });
-  saveKhatmas(khatmas);
+  const name = ($("khatmaNameInput")?.value || "").trim();
+  createKhatma(name, dailyPages);
   closeKhatmaSetup();
   renderKhatmaSection();
   showToast("بدأت ختمة جديدة — بالتوفيق!");

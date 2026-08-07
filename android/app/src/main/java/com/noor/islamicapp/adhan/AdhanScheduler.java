@@ -27,11 +27,15 @@ public final class AdhanScheduler {
 
     static final String ACTION_PRAYER = "com.noor.islamicapp.adhan.PRAYER";
     static final String ACTION_PRE_ALERT = "com.noor.islamicapp.adhan.PRE_ALERT";
+    static final String ACTION_SILENCE_ON = "com.noor.islamicapp.adhan.SILENCE_ON";
+    static final String ACTION_SILENCE_OFF = "com.noor.islamicapp.adhan.SILENCE_OFF";
     static final String EXTRA_PRAYER_INDEX = "prayerIndex";
     static final String EXTRA_MINUTES = "minutes";
 
     private static final int REQUEST_PRAYER = 9201;
     private static final int REQUEST_PRE_ALERT = 9202;
+    private static final int REQUEST_SILENCE_ON = 9203;
+    private static final int REQUEST_SILENCE_OFF = 9204;
 
     private AdhanScheduler() {
     }
@@ -48,6 +52,12 @@ public final class AdhanScheduler {
         alarms.cancel(intentFor(context, ACTION_PRE_ALERT, REQUEST_PRE_ALERT, -1, 0));
 
         long now = System.currentTimeMillis();
+
+        // تعافٍ من الكتم بعد إعادة الإقلاع/تغيّر الساعة: لو هناك كتم كان مقرَّراً
+        // رفعه، فإمّا نرفعه الآن (فات وقته) أو نعيد جدولة رفعه (لسه في وقته)
+        // كي لا يعلق الجهاز صامتاً بعد فقد منبّه الرفع.
+        recoverSilence(context, alarms, now);
+
         List<long[]> upcoming = PrayerWidgetStore.upcomingMainPrayers(context, now);
         long[] next = null;
         for (long[] candidate : upcoming) {
@@ -89,6 +99,47 @@ public final class AdhanScheduler {
         } catch (SecurityException e) {
             Log.w(TAG, "تعذّر ضبط منبّه مضبوط للأذان، سنكتفي بتقريبي", e);
             alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, intent);
+        }
+    }
+
+    /**
+     * يسلّح نافذة الكتم لصلاة رنّ أذانها الآن: منبّه دخول الكتم بعد
+     * {@code delay} دقيقة، ومنبّه رفعه بعد {@code delay + duration}. يُستدعى من
+     * {@link AdhanAlarmReceiver} لحظة الأذان فقط، ولا تلغيه {@code reschedule}.
+     */
+    public static void armSilenceWindow(Context context) {
+        if (!AdhanStore.silentEnabled(context)) {
+            return;
+        }
+        AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (alarms == null) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long onAt = now + AdhanStore.silentDelayMinutes(context) * 60_000L;
+        long offAt = onAt + AdhanStore.silentDurationMinutes(context) * 60_000L;
+        setExact(alarms, onAt,
+            intentFor(context, ACTION_SILENCE_ON, REQUEST_SILENCE_ON, -1, 0));
+        setExact(alarms, offAt,
+            intentFor(context, ACTION_SILENCE_OFF, REQUEST_SILENCE_OFF, -1, 0));
+        AdhanStore.setSilenceOffAt(context, offAt);
+    }
+
+    /**
+     * يعيد ضبط منبّه رفع الكتم إن فُقد (إقلاع/تغيّر ساعة)، أو يرفعه فوراً إن
+     * فات وقته. آمن حتى لو لم يكن هناك كتم نشط (لا يفعل شيئاً).
+     */
+    private static void recoverSilence(Context context, AlarmManager alarms, long now) {
+        long offAt = AdhanStore.silenceOffAt(context);
+        if (offAt <= 0) {
+            return;
+        }
+        if (now >= offAt) {
+            AdhanDnd.restore(context);
+            AdhanStore.clearSilenceOffAt(context);
+        } else {
+            setExact(alarms, offAt,
+                intentFor(context, ACTION_SILENCE_OFF, REQUEST_SILENCE_OFF, -1, 0));
         }
     }
 

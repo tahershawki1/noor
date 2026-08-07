@@ -49,6 +49,8 @@
     <!-- ==================== 5) الإشعارات والاهتزاز ==================== -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- الوضع الصامت بعد الأذان: التحكّم في «عدم الإزعاج» (يمنحه المستخدم من الإعدادات) -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <!--
         شاشة الأذان الكاملة فوق شاشة القفل عند دخول الوقت (كتطبيقات المنبّه).
         تُمنح تلقائياً للتطبيقات ذات فئة المنبّه/الاتصال، وهذا حالنا حرفياً.

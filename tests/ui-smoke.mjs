@@ -88,6 +88,8 @@ const SHEETS = [
 // بيانات تجعل كل الصفحات مأهولة بمحتوى حقيقي (لا حالات فارغة)
 const SEED = (theme) => {
   localStorage.setItem('theme', theme);
+  // مستخدم عائد — شاشة الدخول الأول لا تظهر (تُختبر منفصلةً في القسم الأخير)
+  localStorage.setItem('noorOnboardingDone', '1');
   localStorage.setItem('prayerLastData', JSON.stringify({
     timings: { Fajr: '04:12', Sunrise: '05:44', Dhuhr: '12:58', Asr: '16:33', Maghrib: '20:10', Isha: '21:32' },
     hijri: { day: '١٢', month: { ar: 'صفر' }, year: '١٤٤٨' },
@@ -473,7 +475,57 @@ for (const theme of ['dark', 'light']) {
   });
   ok(targets.length === 0, 'كل أهداف اللمس ٤٠px فأكبر', targets.join(' | '));
 
-  console.log("\n[15] بلا أخطاء بعد المرور على كل شيء");
+  console.log('\n[15] شاشة الدخول الأول (Onboarding)');
+  // سياق مستقل لمستخدم جديد: تهيئة بلا مفتاح الإتمام — لا بد أن تظهر الشاشة عند الإقلاع
+  const obCtx = await browser.newContext({
+    viewport: { width: 412, height: 900 }, deviceScaleFactor: 2,
+    isMobile: true, hasTouch: true, locale: 'ar-EG', timezoneId: 'Africa/Cairo',
+  });
+  const obPage = await obCtx.newPage();
+  const obErrors = [];
+  obPage.on('pageerror', (e) => obErrors.push(e.message));
+  await obPage.addInitScript((t) => localStorage.setItem('theme', t), theme);
+  await obPage.goto(`${BASE}/index.html`, { waitUntil: 'networkidle' });
+  await obPage.waitForTimeout(800);
+  const obShown = await obPage.evaluate(() => {
+    const ov = document.getElementById('onboardingOverlay');
+    return {
+      visible: ov && !ov.classList.contains('hidden'),
+      fixed: ov ? getComputedStyle(ov).position === 'fixed' : false,
+      slides: document.querySelectorAll('#onboardingOverlay .ob-slide').length,
+      activeStep0: document.querySelector('.ob-slide.active')?.dataset.step === '0',
+      homeActive: document.getElementById('home').classList.contains('active'),
+    };
+  });
+  ok(obShown.visible, 'تظهر لمستخدم جديد');
+  ok(obShown.fixed, 'الغلاف ثابت (fixed) يغطّي الشاشة');
+  ok(obShown.slides === 3, `فيها ٣ شرائح (وجدنا ${obShown.slides})`);
+  ok(obShown.activeStep0, 'تبدأ من الشريحة الأولى');
+  ok(obShown.homeActive, 'الرئيسية جاهزة خلفها');
+  // ثبات الغلاف الثابت أثناء ظهوره (لا يتحرك بعد الرسم — نفس قاعدة القسم ٣)
+  const obShots = [];
+  for (const wait of [16, 130, 450]) { await obPage.waitForTimeout(wait); obShots.push(await obPage.evaluate(FIXED_SNAPSHOT)); }
+  ok(new Set(obShots.map((s) => s.onboardingOverlay || '—')).size === 1, 'الغلاف لا يتحرك بعد الرسم',
+    obShots.map((s) => s.onboardingOverlay || '—').join(' → '));
+  // التنقّل بين الشرائح ثم الإنهاء (تخطّي) يخفيها ويضبط المفتاح
+  const obFinish = await obPage.evaluate(() => {
+    obNext(); obNext(); // إلى شريحة الختمة
+    const step = document.querySelector('.ob-slide.active')?.dataset.step;
+    finishOnboarding(); // إنهاء بلا ختمة
+    const ov = document.getElementById('onboardingOverlay');
+    return { reachedKhatma: step === '2', hidden: ov.classList.contains('hidden'), done: localStorage.getItem('noorOnboardingDone') };
+  });
+  ok(obFinish.reachedKhatma, 'التالي ينتقل حتى شريحة الختمة');
+  ok(obFinish.hidden && obFinish.done === '1', 'الإنهاء يخفي الشاشة ويحفظ المفتاح');
+  // بعد الإتمام لا تظهر ثانيةً عند إعادة التحميل
+  await obPage.reload({ waitUntil: 'networkidle' });
+  await obPage.waitForTimeout(600);
+  ok(await obPage.evaluate(() => document.getElementById('onboardingOverlay').classList.contains('hidden')),
+    'لا تظهر لمستخدم عائد');
+  ok(obErrors.length === 0, 'بلا أخطاء جافاسكريبت في تدفّق الأونبوردنج', obErrors.join(' | '));
+  await obCtx.close();
+
+  console.log("\n[16] بلا أخطاء بعد المرور على كل شيء");
   ok(pageErrors.length === 0, 'بلا أخطاء جافاسكريبت', pageErrors.join(' | '));
   ok(consoleErrors.length === 0, 'بلا أخطاء في الطرفية', consoleErrors.join(' | '));
 
