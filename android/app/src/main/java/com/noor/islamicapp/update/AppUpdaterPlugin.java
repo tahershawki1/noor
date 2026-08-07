@@ -55,6 +55,9 @@ public class AppUpdaterPlugin extends Plugin {
     private static final String EVENT_PROGRESS = "downloadProgress";
     private static final String EVENT_FAILED = "downloadFailed";
     private static final String EVENT_READY = "downloadReady";
+    /** أحداث تنزيل ملف المشاركة (منفصلة عن تنزيل التحديث). */
+    private static final String EVENT_SHARE_PROGRESS = "shareProgress";
+    private static final String EVENT_SHARE_FAILED = "shareFailed";
 
     private static final long POLL_INTERVAL_MS = 500L;
 
@@ -63,6 +66,10 @@ public class AppUpdaterPlugin extends Plugin {
     private Runnable poller;
     /** هل نفتح شاشة التثبيت تلقائياً عند اكتمال التنزيل؟ */
     private boolean autoInstall = true;
+
+    /** تنزيل ملف المشاركة — مسار مستقل عن تنزيل التحديث. */
+    private long shareDownloadId = -1L;
+    private Runnable sharePoller;
 
     // ==================== معلومات النسخة المثبّتة ====================
 
@@ -399,9 +406,200 @@ public class AppUpdaterPlugin extends Plugin {
         }
     }
 
+    // ==================== مشاركة ملف التطبيق (APK) ====================
+
+    /**
+     * يشارك ملف الـ APK لآخر إصدار نُزّل من GitHub، عبر ورقة مشاركة النظام.
+     *
+     * يبحث أولاً عن الملف المنزَّل مسبقاً (مسار تحديث التطبيق نفسه). إن لم يجده
+     * وأُعطي رابطاً نزّله ثم شاركه. الملف يُقدَّم عبر FileProvider كـ content://
+     * حتى تقرأه التطبيقات الأخرى.
+     *
+     * @param call url (اختياري — للتنزيل عند غياب الملف)، version (لاسم الملف)
+     */
+    @PluginMethod
+    public void shareApk(PluginCall call) {
+        String version = call.getString("version", null);
+        String url = call.getString("url", null);
+        File dir = getContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+
+        File target = null;
+        if (version != null && !version.trim().isEmpty() && dir != null) {
+            File named = new File(dir, "noor-" + version + ".apk");
+            if (named.exists() && named.length() > 0) {
+                target = named;
+            }
+        }
+        // وإلا: آخر ملف نزّلناه فعلاً (أحدث noor-*.apk)
+        if (target == null) {
+            target = newestDownloadedApk(dir);
+        }
+
+        if (target != null) {
+            try {
+                shareFile(target);
+                JSObject result = new JSObject();
+                result.put("shared", true);
+                result.put("path", target.getAbsolutePath());
+                call.resolve(result);
+            } catch (Exception e) {
+                call.reject("تعذّر فتح ورقة المشاركة: " + e.getMessage(), "SHARE_FAILED");
+            }
+            return;
+        }
+
+        // لا ملف محلي — ننزّل الأحدث ثم نشاركه
+        if (url == null || url.trim().isEmpty()) {
+            call.reject("لا يوجد ملف تطبيق منزَّل للمشاركة", "NO_APK");
+            return;
+        }
+        downloadThenShare(call, url, version != null ? version : "latest");
+    }
+
+    /** أحدث ملف noor-*.apk في مجلد التنزيلات الخاص بالتطبيق، أو null. */
+    private File newestDownloadedApk(File dir) {
+        if (dir == null) {
+            return null;
+        }
+        File[] files = dir.listFiles();
+        if (files == null) {
+            return null;
+        }
+        File newest = null;
+        for (File f : files) {
+            String name = f.getName();
+            if (f.isFile() && name.startsWith("noor-") && name.endsWith(".apk") && f.length() > 0) {
+                if (newest == null || f.lastModified() > newest.lastModified()) {
+                    newest = f;
+                }
+            }
+        }
+        return newest;
+    }
+
+    /** ينزّل الـ APK إلى مجلد التطبيق ثم يفتح ورقة المشاركة عند الاكتمال. */
+    private void downloadThenShare(PluginCall call, String url, String version) {
+        DownloadManager manager = (DownloadManager) getContext().getSystemService(Context.DOWNLOAD_SERVICE);
+        if (manager == null) {
+            call.reject("خدمة التنزيل غير متاحة على هذا الجهاز", "NO_DOWNLOAD_MANAGER");
+            return;
+        }
+        String fileName = "noor-" + version + ".apk";
+        File target = new File(getContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), fileName);
+        if (target.exists() && !target.delete()) {
+            call.reject("تعذّر حذف ملف قديم", "STALE_FILE");
+            return;
+        }
+        try {
+            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url))
+                .setTitle("تجهيز ملف نور للمشاركة")
+                .setDescription("جارٍ تنزيل ملف التطبيق")
+                .setMimeType("application/vnd.android.package-archive")
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+                .setAllowedOverRoaming(false)
+                .setDestinationInExternalFilesDir(getContext(), Environment.DIRECTORY_DOWNLOADS, fileName);
+
+            stopSharePolling();
+            if (shareDownloadId != -1L) {
+                manager.remove(shareDownloadId);
+            }
+            shareDownloadId = manager.enqueue(request);
+            startSharePolling(manager, target, call);
+        } catch (Exception e) {
+            call.reject("تعذّر بدء التنزيل: " + e.getMessage(), "DOWNLOAD_START_FAILED");
+        }
+    }
+
+    private void startSharePolling(DownloadManager manager, File target, PluginCall call) {
+        stopSharePolling();
+        sharePoller = new Runnable() {
+            @Override
+            public void run() {
+                DownloadManager.Query query = new DownloadManager.Query().setFilterById(shareDownloadId);
+                try (Cursor cursor = manager.query(query)) {
+                    if (cursor == null || !cursor.moveToFirst()) {
+                        shareFail(call, "اختفى التنزيل من طابور النظام");
+                        return;
+                    }
+                    int status = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS));
+                    long done = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR));
+                    long total = cursor.getLong(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES));
+
+                    if (status == DownloadManager.STATUS_FAILED) {
+                        int reason = cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_REASON));
+                        shareFail(call, "فشل التنزيل (رمز " + reason + ")");
+                        return;
+                    }
+                    if (status == DownloadManager.STATUS_SUCCESSFUL) {
+                        stopSharePolling();
+                        shareDownloadId = -1L;
+                        emitShareProgress(total, total);
+                        try {
+                            shareFile(target);
+                            JSObject result = new JSObject();
+                            result.put("shared", true);
+                            result.put("path", target.getAbsolutePath());
+                            call.resolve(result);
+                        } catch (Exception e) {
+                            shareFail(call, "تعذّر فتح ورقة المشاركة: " + e.getMessage());
+                        }
+                        return;
+                    }
+                    emitShareProgress(done, total);
+                } catch (IllegalArgumentException e) {
+                    shareFail(call, "تعذّر قراءة حالة التنزيل: " + e.getMessage());
+                    return;
+                }
+                handler.postDelayed(this, POLL_INTERVAL_MS);
+            }
+        };
+        handler.post(sharePoller);
+    }
+
+    private void stopSharePolling() {
+        if (sharePoller != null) {
+            handler.removeCallbacks(sharePoller);
+            sharePoller = null;
+        }
+    }
+
+    private void emitShareProgress(long done, long total) {
+        JSObject payload = new JSObject();
+        payload.put("downloaded", done);
+        payload.put("total", total);
+        payload.put("percent", total > 0 ? (int) ((done * 100L) / total) : 0);
+        notifyListeners(EVENT_SHARE_PROGRESS, payload, true);
+    }
+
+    private void shareFail(PluginCall call, String message) {
+        stopSharePolling();
+        shareDownloadId = -1L;
+        notifyListeners(EVENT_SHARE_FAILED, new JSObject().put("message", message), true);
+        call.reject(message, "SHARE_DOWNLOAD_FAILED");
+    }
+
+    /** يفتح ورقة مشاركة النظام لملف الـ APK. */
+    private void shareFile(File apk) {
+        Uri uri = FileProvider.getUriForFile(
+            getContext(),
+            getContext().getPackageName() + ".fileprovider",
+            apk
+        );
+        Intent send = new Intent(Intent.ACTION_SEND)
+            .setType("application/vnd.android.package-archive")
+            .putExtra(Intent.EXTRA_STREAM, uri)
+            .putExtra(Intent.EXTRA_SUBJECT, "تطبيق نور")
+            .putExtra(Intent.EXTRA_TEXT, "تطبيق نور — القرآن الكريم والأذكار ومواقيت الصلاة")
+            .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        Intent chooser = Intent.createChooser(send, "مشاركة تطبيق نور")
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        getContext().startActivity(chooser);
+    }
+
     @Override
     protected void handleOnDestroy() {
         stopPolling();
+        stopSharePolling();
         super.handleOnDestroy();
     }
 }

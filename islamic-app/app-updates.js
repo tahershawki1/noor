@@ -48,6 +48,14 @@
   var DISMISSED_KEY = 'updateDismissedVersionCode';
   var LAST_CHECK_KEY = 'updateLastCheckAt';
 
+  /**
+   * تحديث الويب يعيد تحميل التطبيق فوراً (set() في LiveUpdates)، فيُقطع فحص
+   * تحديث الـ APK في نفس الدورة. نرفع هذه الراية قبل إعادة التحميل، فيتجاوز
+   * أول فحص بعد الإقلاع فاصلَ الست ساعات ويُظهر تحديث الـ APK فوراً بلا حاجة
+   * لأن يضغط المستخدم «تحقق من التحديثات» يدوياً مرة ثانية.
+   */
+  var APK_AFTER_RELOAD_KEY = 'apkCheckAfterWebReload';
+
   /** أقل فاصل بين فحصين تلقائيين (ست ساعات) حتى لا نفحص عند كل فتح. */
   var CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
@@ -170,6 +178,8 @@
         if (!isNewerVersion(web.version, running)) {
           return false;
         }
+        // إعادة التحميل وشيكة — علّم أن يُفحَص تحديث الـ APK فور الإقلاع التالي
+        try { localStorage.setItem(APK_AFTER_RELOAD_KEY, '1'); } catch (e) { /* لا يضر */ }
         emit('webUpdateStarted', { version: web.version });
         return LiveUpdates.installBundle({
           url: web.url,
@@ -269,7 +279,14 @@
         return Promise.resolve(null);
       }
 
-      if (!settings.force) {
+      // بعد إعادة تحميل التطبيق إثر تحديث ويب: تجاوز فاصل الست ساعات مرة واحدة
+      // حتى يظهر تحديث الـ APK فوراً (دون تجاوز رفض المستخدم لنسخة بعينها).
+      var afterWebReload = localStorage.getItem(APK_AFTER_RELOAD_KEY) === '1';
+      if (afterWebReload) {
+        localStorage.removeItem(APK_AFTER_RELOAD_KEY);
+      }
+
+      if (!settings.force && !afterWebReload) {
         var last = Number(localStorage.getItem(LAST_CHECK_KEY) || 0);
         if (last && Date.now() - last < CHECK_INTERVAL_MS) {
           return Promise.resolve(null);
@@ -421,6 +438,34 @@
     getInstalled: getInstalled,
 
     /**
+     * يشارك ملف التطبيق (APK) لآخر إصدار على GitHub عبر ورقة مشاركة النظام.
+     * يقرأ version.json ليعرف الرابط والنسخة، ثم يترك للطبقة الأصلية إما مشاركة
+     * الملف المنزَّل مسبقاً أو تنزيل الأحدث ثم مشاركته. بلا إنترنت: يشارك آخر
+     * ملف نُزّل فعلاً.
+     *
+     * @returns {Promise<object>} { shared: boolean, reason? }
+     */
+    shareApp: function () {
+      if (!updater || !updater.shareApk) {
+        return Promise.resolve({ shared: false, reason: 'UNSUPPORTED' });
+      }
+      return fetchManifest()
+        .then(function (manifest) {
+          var app = manifest && manifest.app ? manifest.app : null;
+          var args = (app && app.apkUrl)
+            ? { url: app.apkUrl, version: app.version }
+            : {};
+          return updater.shareApk(args);
+        })
+        .catch(function () {
+          // فشل قراءة version.json (بلا إنترنت) — شارك آخر ملف منزَّل إن وُجد
+          return updater.shareApk({}).catch(function (error) {
+            return { shared: false, reason: String((error && error.message) || error) };
+          });
+        });
+    },
+
+    /**
      * الأحداث: webUpdateStarted | webUpdateFailed | appUpdateAvailable |
      * downloadStarted | downloadProgress | downloadFailed | dismissed | checkFailed
      */
@@ -442,6 +487,12 @@
     });
     updater.addListener('downloadFailed', function (data) {
       emit('downloadFailed', data);
+    });
+    updater.addListener('shareProgress', function (data) {
+      emit('shareProgress', data);
+    });
+    updater.addListener('shareFailed', function (data) {
+      emit('shareFailed', data);
     });
   }
 

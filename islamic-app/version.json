@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-06T01:55:33.917Z",
+  "generatedAt": "2026-08-07T02:04:15.294Z",
   "app": {
-    "version": "1.13.8",
-    "versionCode": 11308,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.13.8/noor-1.13.8.apk",
-    "sizeBytes": 12673318,
-    "sha256": "22fe58b7803656ead7ed06acc595fa8b491b79288f11f0a4f0e8e4db87d7695e",
+    "version": "1.18.3",
+    "versionCode": 11803,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.18.3/noor-1.18.3.apk",
+    "sizeBytes": 15212337,
+    "sha256": "fafa1c43710aa951c3893e13e5ba3bba901186af3e7c4b31deb122d5c4350c8f",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "إصلاح خروج التطبيق بالكامل عند الرجوع في بعض الصفحات (Predictive Back) + إصلاح قائمة تحديد النص عند الضغط المطوّل على الآية",
+    "notes": "تحديث 1.18.3",
     "mandatory": false
   },
   "web": {
-    "version": "1.15.0.5",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.15.0.5/noor-web-1.15.0.5.zip",
-    "checksum": "b143ae7a9c1fb903b2d09a7d91620fa79343e9339500c4081eec4ad30fed849b",
-    "contentHash": "078611e982ec954b6f277e70b67455cd1c0b0d488333176a3272008bf2c63591"
+    "version": "1.18.3.1",
+    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.18.3.1/noor-web-1.18.3.1.zip",
+    "checksum": "d5b62326fa5d1144773d9d2f9603c7bb33181e7eefed85e740b2d3c79e9d5a68",
+    "contentHash": "a24b70a1d2ab0c449e2daa015c68849c339b8cabcb5f3e66250fa106b0afaef6"
   }
 }

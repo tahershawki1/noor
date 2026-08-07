@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- خلفية شاشة الأذان — تدرّج أخضر مائل يطابق hero-card في الويب -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="120"
+        android:startColor="@color/adhan_bg_top"
+        android:endColor="@color/adhan_bg_bottom" />
+</shape>

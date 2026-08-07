@@ -364,12 +364,15 @@ function buildSurahHtml(surah, options = {}) {
     const meta = QuranData.getSurahMeta(surah.number);
     const ayahCount = meta ? meta.ayahs : surah.ayahs.length;
     const type = meta ? meta.type : "";
-    html +=
-      `<div class="surah-ornament" data-surah="${surah.number}">` +
-      `<span class="so-frame">` +
-      `<span class="so-name">سُورَةُ ${surah.name}</span>` +
-      `<span class="so-meta">${type} • ${arabicCountLabel(ayahCount, "آية واحدة", "آيتان", "آيات", "آية").replace(/\d+/g, (d) => toArabicNum(d))}</span>` +
-      `</span></div>`;
+    const countLabel = arabicCountLabel(ayahCount, "آية واحدة", "آيتان", "آيات", "آية")
+        .replace(/\d+/g, (d) => toArabicNum(d));
+      html +=
+        `<div class="surah-ornament" data-surah="${surah.number}">` +
+        `<span class="so-frame">` +
+        `<span class="so-type">${type}</span>` +
+        `<span class="so-name">سُورَةُ ${surah.name}</span>` +
+        `<span class="so-count">${countLabel}</span>` +
+        `</span></div>`;
   }
   if (showBasmala) html += '<div class="basmala">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
 

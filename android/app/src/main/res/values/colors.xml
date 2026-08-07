@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ألوان شاشة الأذان الكاملة — مطابقة لبطاقة الهوية الخضراء في الويب -->
+    <color name="adhan_bg_top">#00593C</color>
+    <color name="adhan_bg_bottom">#003725</color>
+    <color name="adhan_on">#8FEFC0</color>
+    <color name="adhan_strong">#E7FFF2</color>
+    <color name="adhan_btn_light">#29FFFFFF</color>
+    <color name="adhan_btn_ghost">#14FFFFFF</color>
+</resources>

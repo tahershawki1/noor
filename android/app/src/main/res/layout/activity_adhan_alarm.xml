@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    شاشة الأذان الكاملة — تظهر فوق شاشة القفل وفوق أي تطبيق آخر عند دخول
+    وقت الصلاة، تماماً كتطبيقات المنبّه. التصميم يطابق شاشة الويب.
+-->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/adhan_bg"
+    android:fillViewport="true"
+    android:layoutDirection="rtl">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingStart="28dp"
+        android:paddingEnd="28dp"
+        android:paddingTop="56dp"
+        android:paddingBottom="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🕌"
+            android:textSize="64sp"
+            android:layout_marginBottom="14dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="حان الآن موعد"
+            android:textColor="@color/adhan_on"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:alpha="0.92" />
+
+        <TextView
+            android:id="@+id/adhanAlarmPrayer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="صلاة الفجر"
+            android:textColor="@color/adhan_strong"
+            android:textSize="34sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/adhanAlarmTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="@color/adhan_strong"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:alpha="0.92"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:id="@+id/adhanAlarmText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:gravity="center"
+            android:textColor="@color/adhan_strong"
+            android:textSize="19sp"
+            android:lineSpacingMultiplier="1.5"
+            android:background="@color/adhan_btn_ghost"
+            android:padding="16dp"
+            android:layout_marginTop="20dp" />
+
+        <Button
+            android:id="@+id/adhanAlarmOpen"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="فتح تطبيق نور"
+            android:textColor="@color/adhan_strong"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/adhan_btn_light"
+            android:layout_marginTop="24dp" />
+
+        <Button
+            android:id="@+id/adhanAlarmDismiss"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="إغلاق"
+            android:textColor="@color/adhan_strong"
+            android:textStyle="bold"
+            android:textAllCaps="false"
+            android:background="@drawable/adhan_btn_ghost"
+            android:layout_marginTop="12dp" />
+
+    </LinearLayout>
+</ScrollView>

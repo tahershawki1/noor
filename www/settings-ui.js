@@ -277,6 +277,88 @@ function initAppUpdates() {
 initAppUpdates();
 
 /* ============================================================================
+ * مشاركة التطبيق
+ * ============================================================================
+ * داخل التطبيق الأصلي: يشارك ملف آخر إصدار (APK) عبر ورقة مشاركة النظام —
+ * الملف المنزَّل مسبقاً إن وُجد، وإلا يُنزَّل الأحدث من GitHub ثم يُشارَك.
+ * في المتصفح/PWA: يشارك (أو ينسخ) رابط تنزيل آخر إصدار.
+ * ========================================================================== */
+// مشاركة رابط آخر إصدار — للمتصفح، وكحلٍّ بديل لو تعذّرت مشاركة الملف الأصلية
+async function shareAppLink() {
+  let url = "https://github.com/tahershawki1/noor/releases/latest";
+  try {
+    const m = await fetch("version.json", { cache: "no-store" }).then((r) => r.json());
+    if (m && m.app && m.app.apkUrl) url = m.app.apkUrl;
+  } catch (_) { /* نكتفي برابط آخر إصدار */ }
+  const shareData = {
+    title: "تطبيق نور",
+    text: "تطبيق نور — القرآن الكريم والأذكار ومواقيت الصلاة",
+    url,
+  };
+  if (navigator.share) {
+    return navigator.share(shareData).catch(() => {});
+  }
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(url).then(
+      () => showToast("تم نسخ رابط التطبيق"),
+      () => showToast(url)
+    );
+  }
+  showToast(url);
+}
+
+function initShareApp() {
+  const btn = $("shareAppBtn");
+  if (!btn) return;
+  const hint = $("shareAppHint");
+  const defaultHint = hint ? hint.textContent : "";
+  const native = typeof AppUpdates !== "undefined" && AppUpdates.isAvailable();
+
+  if (!native) {
+    // متصفح/PWA: لا ملف نصل إليه — نشارك رابط آخر إصدار
+    if (hint) hint.textContent = "يشارك رابط تنزيل آخر إصدار من التطبيق.";
+    btn.addEventListener("click", shareAppLink);
+    return;
+  }
+
+  let sharing = false;
+
+  AppUpdates.on((event, data) => {
+    if (!sharing) return;
+    if (event === "shareProgress") {
+      const pct = data.percent || 0;
+      if (hint) hint.textContent = pct < 100 ? `جارٍ تجهيز الملف… ${pct}%` : "جارٍ فتح المشاركة…";
+    }
+  });
+
+  btn.addEventListener("click", () => {
+    if (sharing) return;
+    sharing = true;
+    btn.disabled = true;
+    if (hint) hint.textContent = "جارٍ تجهيز الملف…";
+    AppUpdates.shareApp().then((res) => {
+      sharing = false;
+      btn.disabled = false;
+      if (hint) hint.textContent = defaultHint;
+      if (res && res.shared) return;
+      // لا ملف محلي وبلا إنترنت — نبلّغ؛ وأي فشل آخر (منها نسخة APK قديمة لا
+      // تعرف المشاركة الأصلية) نتراجع فيه لمشاركة الرابط حتى يعمل الزر دائماً
+      if (res && res.reason === "NO_APK") {
+        showToast("تعذّر تجهيز الملف — سنشارك الرابط بدلاً منه");
+      }
+      shareAppLink();
+    }).catch(() => {
+      sharing = false;
+      btn.disabled = false;
+      if (hint) hint.textContent = defaultHint;
+      shareAppLink();
+    });
+  });
+}
+
+initShareApp();
+
+/* ============================================================================
  * إصدار واجهة الويب — يظهر دائماً في المتصفح، مخفي داخل التطبيق الأصلي
  * ========================================================================== */
 (function initWebVersionDisplay() {

@@ -13,11 +13,21 @@ const ADHAN_FALLBACK_BASE = 'https://www.islamcan.com/audio/adhan/';
 const ADHAN_CACHE_NAME = 'noor-adhan-audio';
 
 const ADHAN_AUDIO_SOURCES = {
-  alafasy: { name: 'مشاري العفاسي', file: 'azan1.mp3' },
+  alafasy: { name: 'مشاري بن راشد العفاسي', file: 'azan1.mp3' },
   makkah: { name: 'أذان الحرم المكي', file: 'azan2.mp3' },
   madinah: { name: 'أذان المسجد النبوي', file: 'azan3.mp3' },
   egypt: { name: 'أذان مصري كلاسيكي', file: 'azan4.mp3' },
+  voice5: { name: 'عبد الباسط عبد الصمد', file: 'azan5.mp3' },
+  voice6: { name: 'ماهر المعيقلي', file: 'azan6.mp3' },
+  voice7: { name: 'ناصر القطامي', file: 'azan7.mp3' },
+  voice8: { name: 'سعد الغامدي', file: 'azan8.mp3' },
 };
+
+/** رابط الملف على GitHub Pages للمؤذن المطلوب (لا الاحتياطي). */
+function adhanRemoteUrl(reciter) {
+  const source = ADHAN_AUDIO_SOURCES[reciter];
+  return source ? ADHAN_AUDIO_BASE + source.file : null;
+}
 
 let adhanObjectUrl = null; // blob URL الحالي — يُحرَّر عند تبديله
 function releaseAdhanObjectUrl() {
@@ -60,6 +70,66 @@ async function loadAdhanAudio(reciter) {
   adhanAudio.load();
   adhanLoadedReciter = reciter;
   return true;
+}
+
+/* --------- إدارة التنزيل اليدوي لأصوات الأذان ---------
+   المستخدم يختار أي صوت يُنزَّل ويُخزَّن في Cache API، فيعمل الأذان بعدها
+   دون إنترنت. الأصوات مرفوعة مسبقاً في المستودع وتُنشر عبر GitHub Pages. */
+async function isAdhanDownloaded(reciter) {
+  if (typeof caches === 'undefined') return false;
+  const url = adhanRemoteUrl(reciter);
+  if (!url) return false;
+  try {
+    const cache = await caches.open(ADHAN_CACHE_NAME);
+    return !!(await cache.match(url));
+  } catch (_) {
+    return false;
+  }
+}
+
+/** ينزّل صوت الأذان ويخزّنه في الكاش مع تقرير التقدّم (0..1). */
+async function downloadAdhan(reciter, onProgress) {
+  const url = adhanRemoteUrl(reciter);
+  if (!url || typeof caches === 'undefined') return false;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+
+  // قراءة متدفّقة لعرض شريط تقدّم حقيقي عند توفّر content-length
+  const total = parseInt(res.headers.get('content-length') || '0', 10);
+  if (res.body && res.body.getReader && total > 0) {
+    const reader = res.body.getReader();
+    const chunks = [];
+    let received = 0;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+      received += value.length;
+      if (onProgress) onProgress(Math.min(1, received / total));
+    }
+    const blob = new Blob(chunks, { type: 'audio/mpeg' });
+    const cache = await caches.open(ADHAN_CACHE_NAME);
+    await cache.put(url, new Response(blob, {
+      headers: { 'Content-Type': 'audio/mpeg', 'Content-Length': String(blob.size) },
+    }));
+  } else {
+    // لا تدفّق — خزّن الاستجابة كما هي
+    const cache = await caches.open(ADHAN_CACHE_NAME);
+    await cache.put(url, res.clone());
+    if (onProgress) onProgress(1);
+  }
+  return true;
+}
+
+/** يحذف الصوت المنزَّل من الكاش. */
+async function deleteAdhanDownload(reciter) {
+  if (typeof caches === 'undefined') return;
+  const url = adhanRemoteUrl(reciter);
+  if (!url) return;
+  try {
+    const cache = await caches.open(ADHAN_CACHE_NAME);
+    await cache.delete(url);
+  } catch (_) { /* لا شيء */ }
 }
 
 const ADHAN_TEXT_LINES = [
@@ -114,7 +184,7 @@ function saveAdhanSettings(obj) { localStorage.setItem('adhanSettings', JSON.str
 
 function getAdhanEnabledPrayers() {
   const s = getAdhanSettings();
-  return s.enabledPrayers ?? { Fajr: true, Dhuhr: false, Asr: false, Maghrib: true, Isha: false };
+  return s.enabledPrayers ?? { Fajr: true, Dhuhr: true, Asr: true, Maghrib: true, Isha: true };
 }
 
 function getAdhanReciter() {
@@ -152,6 +222,8 @@ function updateAdhanProgress() {
 
 function setAdhanPlayState(playing) {
   adhanPlaying = playing;
+  // زر شاشة الأذان الكاملة يعكس نفس الحالة إن كانت ظاهرة
+  updateAdhanFsPlayBtn(playing);
   const btn = $('adhanPlayBtn');
   const iconEl = $('adhanPlayIcon');
   const label = $('adhanPlayLabel');
@@ -168,6 +240,15 @@ function setAdhanPlayState(playing) {
     label.textContent = 'تشغيل الأذان';
     clearInterval(adhanProgressTimer);
   }
+}
+
+/** يحدّث زر التشغيل/الإيقاف في شاشة الأذان الكاملة. */
+function updateAdhanFsPlayBtn(playing) {
+  const fsIcon = $('adhanFsPlayIcon');
+  const fsLabel = $('adhanFsPlayLabel');
+  if (!fsIcon || !fsLabel) return;
+  fsIcon.innerHTML = icon(playing ? 'pause' : 'play');
+  fsLabel.textContent = playing ? 'إيقاف الأذان' : 'تشغيل الأذان';
 }
 
 async function toggleAdhanPlay() {
@@ -200,11 +281,16 @@ adhanAudio.addEventListener('error', () => {
 
 /* --------- تشغيل تلقائي عند دخول وقت الصلاة --------- */
 async function autoPlayAdhanForPrayer(prayerName) {
-  // داخل التطبيق الأصلي، إشعار النظام (بصوت الأذان الكامل) هو المصدر الوحيد
-  // للتشغيل التلقائي — تشغيل ثانٍ هنا كان سيُسمِع أذانين متداخلين.
-  if (AdhanNative.isAvailable()) return;
   const enabled = getAdhanEnabledPrayers();
   if (!enabled[prayerName]) return;
+
+  // داخل التطبيق الأصلي: شاشة الأذان الكاملة الأصلية (AdhanAlarmActivity) هي
+  // التي تظهر فوق القفل والتطبيقات الأخرى، وإشعار النظام يشغّل الصوت الكامل —
+  // فلا نعرض شاشة الويب ولا نشغّل صوتاً ثانياً هنا.
+  if (AdhanNative.isAvailable()) return;
+
+  // في الويب/PWA: شاشة الأذان داخل التطبيق تُعلِم المستخدم أن الوقت دخل.
+  showAdhanFullscreen(prayerName);
 
   const loaded = await loadAdhanAudio(getAdhanReciter());
   if (!loaded) return;
@@ -212,14 +298,91 @@ async function autoPlayAdhanForPrayer(prayerName) {
   adhanAudio.volume = getAdhanVolume();
   adhanAudio.play().then(() => {
     setAdhanPlayState(true);
-    showToast(`🔔 حان وقت ${PRAYER_NAMES[prayerName]?.ar || prayerName} — الأذان`);
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(`🕌 ${PRAYER_NAMES[prayerName]?.ar || prayerName}`, {
         body: 'حان وقت الصلاة',
-        icon: '/favicon.ico',
+        // مسار نسبي: التطبيق يُنشر تحت مسار فرعي على GitHub Pages، و'/favicon.ico'
+        // المطلق كان يشير خارج نطاقه فلا يوجد أصلاً
+        icon: 'icons/icon-192.png',
       });
     }
-  }).catch(() => {});
+  }).catch(() => {
+    // منع التشغيل التلقائي من المتصفح — الشاشة تعرض زر «تشغيل الأذان» يدوياً
+    setAdhanPlayState(false);
+  });
+}
+
+/* ============================================================
+   شاشة الأذان الكاملة — تظهر فوق كل شيء عند دخول وقت الصلاة
+   ============================================================ */
+let adhanFsPrayer = null;
+let adhanFsClockTimer = null;
+
+function renderAdhanFsText(prayerName) {
+  const el = $('adhanFsText');
+  if (!el) return;
+  let lines = ADHAN_TEXT_LINES.slice();
+  // الفجر: تُضاف «الصلاة خير من النوم» بعد الحيعلتين
+  if (prayerName === 'Fajr') {
+    lines = lines.slice();
+    lines.splice(10, 0, 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ', 'الصَّلَاةُ خَيْرٌ مِنَ النَّوْمِ');
+  }
+  el.innerHTML = lines.map((l) => `<div class="adhan-fs-phrase">${l}</div>`).join('');
+}
+
+function updateAdhanFsClock() {
+  const el = $('adhanFsTime');
+  if (!el) return;
+  const now = new Date();
+  const hh = now.getHours();
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const period = hh >= 12 ? 'م' : 'ص';
+  const h12 = hh % 12 || 12;
+  el.textContent = `${h12}:${mm} ${period}`;
+}
+
+/** يعرض شاشة الأذان الكاملة لصلاة بعينها. */
+function showAdhanFullscreen(prayerName) {
+  const el = $('adhanFullscreen');
+  if (!el) return;
+  adhanFsPrayer = prayerName;
+  const info = PRAYER_NAMES[prayerName] || {};
+  const nameEl = $('adhanFsPrayer');
+  if (nameEl) nameEl.textContent = `صلاة ${info.ar || prayerName}`;
+  const iconEl = $('adhanFsIcon');
+  if (iconEl) iconEl.textContent = info.icon || '🕌';
+  renderAdhanFsText(prayerName);
+  updateAdhanFsClock();
+  clearInterval(adhanFsClockTimer);
+  adhanFsClockTimer = setInterval(updateAdhanFsClock, 10000);
+  updateAdhanFsPlayBtn(adhanPlaying);
+  el.classList.remove('hidden');
+  if (navigator.vibrate) navigator.vibrate([200, 120, 200]);
+}
+
+/** يغلق شاشة الأذان ويوقف الصوت إن كان يعمل. */
+function hideAdhanFullscreen() {
+  const el = $('adhanFullscreen');
+  if (!el) return;
+  clearInterval(adhanFsClockTimer);
+  if (adhanPlaying) { adhanAudio.pause(); setAdhanPlayState(false); }
+  el.classList.add('hidden');
+  adhanFsPrayer = null;
+}
+
+/** زر التشغيل/الإيقاف داخل الشاشة الكاملة. */
+async function toggleAdhanFsPlay() {
+  if (adhanPlaying) {
+    adhanAudio.pause();
+    setAdhanPlayState(false);
+    return;
+  }
+  const loaded = await loadAdhanAudio(getAdhanReciter());
+  if (!loaded) { showToast('تعذّر تشغيل الأذان — نزّل الصوت أو تأكد من الاتصال'); return; }
+  adhanAudio.volume = getAdhanVolume();
+  adhanAudio.play()
+    .then(() => setAdhanPlayState(true))
+    .catch(() => showToast('تعذّر تشغيل الأذان'));
 }
 
 /* --------- تنبيه مسبق --------- */
@@ -327,6 +490,68 @@ function toggleAdhanPrayer(el) {
   AdhanNative.sync();
 }
 
+/* --------- إدارة تنزيل أصوات الأذان (يدوياً) --------- */
+const adhanDownloadBusy = {}; // reciter → true أثناء التنزيل
+
+/** يبني قائمة الأصوات مع حالة التنزيل وأزرار التنزيل/الحذف. */
+async function renderAdhanDownloads() {
+  const container = $('adhanDownloadsList');
+  if (!container) return;
+  const keys = Object.keys(ADHAN_AUDIO_SOURCES);
+  const states = await Promise.all(keys.map((k) => isAdhanDownloaded(k)));
+  const current = getAdhanReciter();
+  container.innerHTML = keys.map((k, i) => {
+    const src = ADHAN_AUDIO_SOURCES[k];
+    const downloaded = states[i];
+    const busy = adhanDownloadBusy[k];
+    const isCurrent = k === current;
+    let action;
+    if (busy) {
+      action = `<span class="adhan-dl-progress" id="adhanDlProg-${k}"><span class="adhan-dl-progress-fill" id="adhanDlProgFill-${k}"></span></span>`;
+    } else if (downloaded) {
+      action = `<button class="adhan-dl-btn done" onclick="handleAdhanDelete('${k}')" aria-label="حذف التنزيل" title="محفوظ — اضغط للحذف">${icon('check')}</button>`;
+    } else {
+      action = `<button class="adhan-dl-btn" onclick="handleAdhanDownload('${k}')" aria-label="تنزيل" title="تنزيل للاستماع دون إنترنت">${icon('download')}</button>`;
+    }
+    return `
+      <div class="adhan-dl-row${isCurrent ? ' current' : ''}">
+        <div class="adhan-dl-info">
+          <span class="adhan-dl-name">${src.name}</span>
+          <span class="adhan-dl-state">${downloaded ? 'محفوظ للاستماع دون إنترنت' : 'غير منزَّل — يُبثّ من الإنترنت'}</span>
+        </div>
+        ${action}
+      </div>`;
+  }).join('');
+}
+
+async function handleAdhanDownload(reciter) {
+  if (adhanDownloadBusy[reciter]) return;
+  if (typeof caches === 'undefined') { showToast('المتصفح لا يدعم التخزين دون إنترنت'); return; }
+  adhanDownloadBusy[reciter] = true;
+  await renderAdhanDownloads();
+  try {
+    await downloadAdhan(reciter, (p) => {
+      const fill = $(`adhanDlProgFill-${reciter}`);
+      if (fill) fill.style.width = `${Math.round(p * 100)}%`;
+    });
+    adhanDownloadBusy[reciter] = false;
+    await renderAdhanDownloads();
+    showToast(`✅ تم تنزيل «${ADHAN_AUDIO_SOURCES[reciter].name}»`);
+  } catch (_) {
+    adhanDownloadBusy[reciter] = false;
+    await renderAdhanDownloads();
+    showToast('تعذّر التنزيل — تأكد من الاتصال بالإنترنت');
+  }
+}
+
+async function handleAdhanDelete(reciter) {
+  await deleteAdhanDownload(reciter);
+  // إن كان الصوت المحمَّل حالياً في المشغّل هو المحذوف، أعِد التحميل عند الحاجة
+  if (adhanLoadedReciter === reciter) { adhanLoadedReciter = null; }
+  await renderAdhanDownloads();
+  showToast(`حُذف تنزيل «${ADHAN_AUDIO_SOURCES[reciter].name}»`);
+}
+
 async function updateNotifStatus() {
   const el = $('notifStatusText');
   if (!el) return;
@@ -355,6 +580,7 @@ $('adhanSettingsBtn')?.addEventListener('click', () => {
   const volEl = $('adhanVolumeSettings');
   if (volEl) volEl.value = String(getAdhanVolume());
   updateNotifStatus();
+  renderAdhanDownloads();
   $('adhanSettingsOverlay').classList.remove('hidden');
 });
 
@@ -411,7 +637,13 @@ $('adhanReciterSelect')?.addEventListener('change', (e) => {
   adhanAudio.src = '';
   adhanLoadedReciter = null;
   releaseAdhanObjectUrl();
+  // حدّث شارة «الحالي» في قائمة التنزيل إن كانت مفتوحة
+  if (!$('adhanSettingsOverlay')?.classList.contains('hidden')) renderAdhanDownloads();
 });
+
+/* --------- شاشة الأذان الكاملة: الأزرار --------- */
+$('adhanFsPlayBtn')?.addEventListener('click', toggleAdhanFsPlay);
+$('adhanFsDismiss')?.addEventListener('click', hideAdhanFullscreen);
 
 /* --------- شريط التقدم: الضغط للتخطّي --------- */
 $('adhanPlayBtn')?.addEventListener('click', toggleAdhanPlay);
