@@ -7,6 +7,7 @@ import com.noor.islamicapp.adhan.AdhanPlugin;
 import com.noor.islamicapp.backup.BackupPlugin;
 import com.noor.islamicapp.exit.AppExitPlugin;
 import com.noor.islamicapp.floating.FloatingWidgetPlugin;
+import com.noor.islamicapp.perms.PermissionsPlugin;
 import com.noor.islamicapp.update.AppUpdaterPlugin;
 import com.noor.islamicapp.widget.PrayerWidgetPlugin;
 
@@ -22,6 +23,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(BackupPlugin.class);
         registerPlugin(AppExitPlugin.class);
         registerPlugin(AdhanPlugin.class);
+        registerPlugin(PermissionsPlugin.class);
         super.onCreate(savedInstanceState);
     }
 

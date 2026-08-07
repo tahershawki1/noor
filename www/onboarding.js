@@ -73,6 +73,7 @@ function finishOnboarding() {
 function obPopulate() {
   const method = $("obCalcMethod");
   if (method && typeof getPrayerMethod === "function") method.value = getPrayerMethod();
+  obRefreshPermStatus();
 
   const reciter = $("obReciter");
   if (reciter && typeof getAdhanReciter === "function") reciter.value = getAdhanReciter();
@@ -106,9 +107,17 @@ function obApplyMethod() {
   }
 }
 
-function obUseGeo() {
+async function obUseGeo() {
   if (!navigator.geolocation) {
     obUpdateLocationStatus("المتصفح لا يدعم تحديد الموقع — اكتب مدينتك");
+    return;
+  }
+  obUpdateLocationStatus("جارِ طلب صلاحية الموقع...");
+  // في الغلاف الأصلي: بلا صلاحية الموقع يفشل getCurrentPosition بصمت
+  const allowed = await ensureLocationPermission();
+  obRefreshPermStatus();
+  if (!allowed) {
+    obUpdateLocationStatus("صلاحية الموقع مرفوضة — فعّلها من الإعدادات أو اكتب مدينتك");
     return;
   }
   obUpdateLocationStatus("جارِ تحديد موقعك...");
@@ -120,6 +129,24 @@ function obUseGeo() {
     () => obUpdateLocationStatus("تعذّر تحديد الموقع — اكتب اسم مدينتك"),
     { timeout: 10000 }
   );
+}
+
+/**
+ * يعرض حالة صلاحية الموقع في شريحة الموقع: «✓ مفعّلة» أو زر «امنح الصلاحية».
+ * يُنادى عند فتح الأونبوردنج وبعد كل محاولة طلب. في المتصفح يخفي الصف كله.
+ */
+async function obRefreshPermStatus() {
+  const row = $("obLocationPerm");
+  if (!row) return;
+  if (!NativePerms.isAvailable()) { row.classList.add("hidden"); return; }
+  row.classList.remove("hidden");
+  const label = $("obLocationPermLabel");
+  const btn = $("obLocationPermBtn");
+  const st = await NativePerms.check();
+  const granted = !!(st && st.location);
+  if (label) label.textContent = granted ? "صلاحية الموقع: مفعّلة ✓" : "صلاحية الموقع: غير مفعّلة";
+  row.classList.toggle("ob-perm-ok", granted);
+  if (btn) btn.classList.toggle("hidden", granted);
 }
 
 async function obCityGo() {
@@ -181,6 +208,13 @@ $("obBack")?.addEventListener("click", obBack);
 $("obSkipAll")?.addEventListener("click", finishOnboarding);
 
 $("obUseGeo")?.addEventListener("click", obUseGeo);
+$("obLocationPermBtn")?.addEventListener("click", async () => {
+  obUpdateLocationStatus("جارِ طلب صلاحية الموقع...");
+  await ensureLocationPermission();
+  await obRefreshPermStatus();
+  const st = await NativePerms.check();
+  obUpdateLocationStatus(st && st.location ? "تم منح صلاحية الموقع ✓" : "لم تُمنح — يمكنك تفعيلها من إعدادات النظام");
+});
 $("obCityGo")?.addEventListener("click", obCityGo);
 $("obCountryInput")?.addEventListener("keydown", (e) => e.key === "Enter" && obCityGo());
 $("obCalcMethod")?.addEventListener("change", obApplyMethod);

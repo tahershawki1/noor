@@ -3507,6 +3507,26 @@ input[type="number"].search-input { text-align: center; }
   background: var(--m3-outline-variant);
 }
 
+.ob-perm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-low);
+}
+.ob-perm-label {
+  font-size: var(--type-label-l);
+  color: var(--m3-on-surface-variant);
+}
+.ob-perm.ob-perm-ok {
+  border-color: color-mix(in srgb, var(--m3-primary) 40%, transparent);
+}
+.ob-perm.ob-perm-ok .ob-perm-label { color: var(--m3-primary); }
+
 .ob-status {
   font-size: var(--type-body-s);
   color: var(--m3-primary);
