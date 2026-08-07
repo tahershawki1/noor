@@ -27,7 +27,8 @@ public final class AdhanNotifier {
 
     private static final String CHANNEL_ADHAN = "noor_adhan";
     private static final String CHANNEL_PRE = "noor_adhan_pre";
-    private static final int ID_ADHAN = 9301;
+    /** معرّف إشعار الأذان — تمسحه {@link AdhanAlarmActivity} عند الإغلاق. */
+    public static final int ID_ADHAN = 9301;
     private static final int ID_PRE = 9302;
 
     /** أسماء الصلوات بترتيب {@code PrayerTimesCalculator.ALL}. */
@@ -53,6 +54,8 @@ public final class AdhanNotifier {
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(openAppIntent(context))
+            // شاشة الأذان الكاملة فوق شاشة القفل — كتطبيقات المنبّه
+            .setFullScreenIntent(adhanScreenIntent(context, prayerIndex), true)
             .setAutoCancel(true);
 
         // قبل أندرويد 8 لا قنوات — الصوت يُضبط على الإشعار نفسه
@@ -86,6 +89,15 @@ public final class AdhanNotifier {
 
     private static Uri adhanSoundUri(Context context) {
         return Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.adhan_alafasy);
+    }
+
+    /** نيّة معلّقة تطلق شاشة الأذان الكاملة لصلاة بعينها. */
+    private static PendingIntent adhanScreenIntent(Context context, int prayerIndex) {
+        return PendingIntent.getActivity(
+            context, 9310 + prayerIndex,
+            AdhanAlarmActivity.intentFor(context, prayerIndex),
+            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
     }
 
     private static void ensureChannels(NotificationManager manager, Context context) {

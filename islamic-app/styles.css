@@ -147,6 +147,15 @@
   --gold-soft:     var(--m3-on-tertiary-container);
   --gold-tint:     rgba(243, 192, 85, 0.14);
 
+  /* ============ ألوان المصحف (صفحة القراءة) ============
+     ورقة المصحف لها لونها الخاص المستقل عن باقي التطبيق حتى تشبه المصحف
+     المطبوع — خلفية دافئة، حبر، وذهب للإطار وزخرفة رقم الآية ورأس السورة.
+     نسخة لكل وضع (ليلي/نهاري) فيتبدّل الكل من مكان واحد. */
+  --mushaf-bg:     #14110A;
+  --mushaf-ink:    #ECE3CD;
+  --mushaf-frame:  #D3B368;
+  --mushaf-tint:   rgba(211, 179, 104, 0.12);
+
   --text:          var(--m3-on-surface);
   --text-2:        var(--m3-on-surface-variant);
   --muted:         var(--m3-outline);
@@ -240,6 +249,12 @@
   --hero-2:        #6FE6AE;
   --hero-glow:     rgba(0, 108, 72, 0.18);
   --outer-bg:      #DDE5DE;
+
+  /* ألوان المصحف — الوضع النهاري: ورقة كريمية وحبر بنّي وذهب غامق */
+  --mushaf-bg:     #FAF3E0;
+  --mushaf-ink:    #2A2317;
+  --mushaf-frame:  #A9863F;
+  --mushaf-tint:   rgba(169, 134, 63, 0.10);
 }
 
 /* خط المصحف العثماني — يدوي (مش من scripts/build-fonts.mjs) لأنه مش من
@@ -429,14 +444,18 @@ span.m3-ripple {
   flex: 1;
   padding-inline-start: 12px;
 }
+/* الشعار صورة كاملة بأرضيتها الخاصة (assets/noor-logo.png) — بلا أي خلفية
+   أو حشو من الواجهة حتى يظهر تصميمه كما هو */
 .ab-logo {
   width: 40px; height: 40px;
   display: grid; place-items: center;
-  border-radius: var(--m3-shape-md);
-  background: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
+  flex: none;
 }
-.ab-logo .ic { width: 22px; height: 22px; stroke-width: 2; }
+.ab-logo img {
+  width: 40px; height: 40px;
+  display: block;
+  object-fit: contain;
+}
 .ab-brand-txt { display: flex; flex-direction: column; min-width: 0; }
 .ab-brand-txt h1 {
   font-size: var(--type-title-l);
@@ -1346,7 +1365,7 @@ input[type="number"].search-input { text-align: center; }
 .ayah-container {
   position: absolute;
   inset: 0;
-  background: var(--m3-surface);
+  background: var(--mushaf-bg);
   /* --khatma-bar-h و --as-bar-h يضبطهما khatma.js/auto-scroll.js بارتفاع
      الشريط الفعلي وقت ظهوره، حتى لا يغطّي آخر آيات معروضة. */
   padding: 22px 20px calc(22px + (var(--quran-font-size, 1.75rem) * 2.7) + var(--khatma-bar-h, 0px) + var(--as-bar-h, 0px) + env(safe-area-inset-bottom, 0px));
@@ -1363,16 +1382,16 @@ input[type="number"].search-input { text-align: center; }
   text-align: center;
   font-family: var(--font-quran);
   font-size: calc(var(--quran-font-size) + 0.1rem);
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
   margin-bottom: 24px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--m3-outline-variant);
+  border-bottom: 1px solid var(--mushaf-tint);
 }
 .basmala-ayah-line {
   text-align: center;
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
-  color: var(--m3-on-surface);
+  color: var(--mushaf-ink);
   line-height: 2.2;
   margin-bottom: 22px;
 }
@@ -1381,7 +1400,7 @@ input[type="number"].search-input { text-align: center; }
   font-family: var(--font-quran);
   font-size: var(--quran-font-size);
   line-height: 2.7;
-  color: var(--m3-on-surface);
+  color: var(--mushaf-ink);
   text-align: center;
   -webkit-user-select: none;
   user-select: none;
@@ -1409,7 +1428,39 @@ input[type="number"].search-input { text-align: center; }
   0% { background: var(--m3-tertiary-container); }
   100% { background: transparent; }
 }
-.ayah-marker { color: var(--m3-tertiary); font-size: 1.15rem; margin: 0 5px; white-space: nowrap; }
+/* رقم الآية داخل ميدالية نجمية ثمانية — نفس زخرفة شارة رقم السورة، كالمصحف المطبوع */
+.ayah-marker {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55em;
+  height: 1.55em;
+  margin: 0 3px;
+  vertical-align: middle;
+  font-family: var(--font-ui);
+  font-size: 0.62em;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--mushaf-frame);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.ayah-marker::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--mushaf-frame);
+  clip-path: var(--star8);
+}
+.ayah-marker::after {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  background: var(--mushaf-bg);
+  clip-path: var(--star8);
+}
+.ayah-marker > span { position: relative; z-index: 1; }
 
 /* فاصل صفحات المصحف */
 .page-separator {
@@ -1440,51 +1491,67 @@ input[type="number"].search-input { text-align: center; }
    على هيئة عناوين السور في المصحف المطبوع، تحمل اسم السورة القادمة
    ونوعها وعدد آياتها. المسافة حولها هي نفس مسافة فاصل الصفحات. */
 .surah-ornament {
-  margin: 24px 0 20px;
-  padding: 0 2px;
+  margin: 6px 0 26px;
+  padding: 0;
+  text-align: center;
   user-select: none;
 }
+/* لوحة رأس السورة: إطار مزدوج مذهّب يمتد بعرض العمود، كعنوان السورة في
+   المصحف المطبوع — إطار خارجي سميك وإطار داخلي رفيع، ونجمتان على الطرفين. */
 .so-frame {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 3px;
-  padding: 14px 28px;
-  border: 2px solid var(--m3-tertiary);
-  border-radius: var(--m3-shape-md);
-  background: var(--gold-tint);
+  width: 100%;
+  padding: 16px 44px;
+  border: 2px solid var(--mushaf-frame);
+  border-radius: 10px;
+  background: var(--mushaf-tint);
   text-align: center;
 }
-/* نجمتان ثمانيتان صغيرتان على طرفَي اللوحة — نفس زخرفة شارة رقم السورة */
-.so-frame::before,
-.so-frame::after {
+/* الإطار الداخلي الرفيع */
+.so-frame::before {
   content: "";
   position: absolute;
+  inset: 4px;
+  border: 1px solid var(--mushaf-frame);
+  border-radius: 6px;
+  opacity: 0.65;
+  pointer-events: none;
+}
+/* نجمتان ثمانيتان على طرفَي اللوحة — نفس زخرفة شارة رقم الآية */
+.so-star {
+  position: absolute;
   top: 50%;
-  width: 14px; height: 14px;
-  margin-top: -7px;
-  background: var(--m3-tertiary);
+  width: 15px; height: 15px;
+  margin-top: -7.5px;
+  background: var(--mushaf-frame);
   clip-path: var(--star8);
 }
-.so-frame::before { right: 8px; }
-.so-frame::after  { left: 8px; }
+.so-star.start { right: 12px; }
+.so-star.end   { left: 12px; }
 
 .so-name {
   font-family: var(--font-quran);
-  font-size: calc(var(--quran-font-size) * 0.82);
+  font-size: calc(var(--quran-font-size) * 0.92);
   line-height: 1.6;
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
 }
-.so-meta {
+.so-type,
+.so-count {
   font-family: var(--font-ui);
   font-size: var(--type-label-m);
-  color: var(--m3-on-surface-variant);
+  color: var(--mushaf-ink);
+  opacity: 0.7;
+  white-space: nowrap;
 }
 
 /* علامة السجدة */
 .sajdah-mark {
-  color: var(--m3-tertiary);
+  color: var(--mushaf-frame);
   font-size: 0.85em;
   margin: 0 2px;
 }
@@ -2256,6 +2323,28 @@ input[type="number"].search-input { text-align: center; }
 
 .settings-body { padding: 20px 20px calc(28px + var(--sab)); }
 
+/* أقسام الإعدادات — كل قسم عنوان فوق بطاقة تجمع حقوله، على طراز إعدادات
+   تطبيقات النظام. القسم الذي تُخفى كل حقوله يختفي كاملاً (:has). */
+.settings-group { margin-bottom: 28px; }
+.settings-group:last-child { margin-bottom: 0; }
+.settings-group:not(:has(> .settings-group-card > .field:not(.hidden))) { display: none; }
+.settings-group-title {
+  color: var(--m3-primary);
+  font-size: var(--type-body-s);
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  margin: 0 0 12px;
+  padding-inline: 4px;
+}
+.settings-group-card {
+  background: var(--m3-surface-container-low);
+  border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--m3-shape-lg);
+  padding: 20px 16px 4px;
+}
+.settings-group-card > .field:last-child { margin-bottom: 20px; }
+.settings-group-card > .field.hidden + .field { margin-top: 0; }
+
 .action-stack { display: flex; flex-direction: column; gap: 8px; }
 .action-stack .btn { min-height: 56px; justify-content: flex-start; padding-inline: 24px; }
 .btn.playing { background: var(--m3-tertiary-container); color: var(--m3-on-tertiary-container); }
@@ -2920,6 +3009,31 @@ input[type="number"].search-input { text-align: center; }
   background: var(--m3-secondary-container);
   color: var(--m3-on-secondary-container);
 }
+/* شرائح اقتراح اسم الختمة — Assist chips من M3 */
+.khatma-name-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.khatma-name-chip {
+  position: relative;
+  height: 32px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid var(--m3-outline);
+  color: var(--m3-on-surface-variant);
+  border-radius: var(--m3-shape-sm);
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  overflow: hidden;
+  transition: background var(--m3-dur-short) var(--m3-ease-standard),
+              color var(--m3-dur-short) var(--m3-ease-standard);
+}
+.khatma-name-chip:active {
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+}
 .khatma-result {
   background: var(--m3-surface-container-high);
   border: none;
@@ -3194,3 +3308,300 @@ input[type="number"].search-input { text-align: center; }
 }
 .dash-report-row:not(:last-child) { border-bottom: 1px solid var(--m3-outline-variant); }
 .dash-report-row strong { color: var(--m3-on-surface); font-variant-numeric: tabular-nums; }
+
+/* ============================================================
+   ٢٥) أصوات الأذان — قائمة التنزيل اليدوي
+   ============================================================ */
+.adhan-dl-list { display: flex; flex-direction: column; gap: 8px; }
+.adhan-dl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--m3-surface-container-high);
+  border-radius: var(--m3-shape-md);
+}
+.adhan-dl-row.current {
+  box-shadow: inset 0 0 0 2px var(--m3-primary);
+}
+.adhan-dl-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.adhan-dl-name {
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  color: var(--m3-on-surface);
+}
+.adhan-dl-state {
+  font-size: var(--type-label-s);
+  color: var(--m3-on-surface-variant);
+}
+.adhan-dl-btn {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--m3-shape-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--m3-secondary-container);
+  color: var(--m3-on-secondary-container);
+}
+.adhan-dl-btn.done {
+  background: var(--m3-primary-container);
+  color: var(--m3-on-primary-container);
+}
+.adhan-dl-btn .ic { width: 20px; height: 20px; }
+.adhan-dl-progress {
+  flex: none;
+  width: 56px;
+  height: 6px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-outline-variant);
+  overflow: hidden;
+}
+.adhan-dl-progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--m3-primary);
+  border-radius: var(--m3-shape-full);
+  transition: width var(--m3-dur-short) var(--m3-ease-standard);
+}
+
+/* ============================================================
+   ٢٦) شاشة الأذان الكاملة — تظهر عند دخول وقت الصلاة
+   ============================================================ */
+.adhan-fs {
+  position: absolute;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(24px + var(--sat)) 22px calc(24px + var(--sab));
+  background: var(--hero-bg);
+  color: var(--hero-on);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: m3AdhanFsIn var(--m3-dur-long) var(--m3-ease-decelerate);
+}
+@keyframes m3AdhanFsIn {
+  from { opacity: 0; transform: scale(1.04); }
+  to   { opacity: 1; transform: none; }
+}
+.adhan-fs-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 360px;
+  margin: auto;
+}
+.adhan-fs-mosque {
+  font-size: 64px;
+  line-height: 1;
+  animation: m3AdhanMosque 2.4s var(--m3-ease-standard) infinite;
+}
+@keyframes m3AdhanMosque {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.adhan-fs-now {
+  font-size: var(--type-title-m);
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  opacity: 0.9;
+}
+.adhan-fs-prayer {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--hero-strong);
+}
+.adhan-fs-time {
+  font-size: var(--type-title-l);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--hero-strong);
+  opacity: 0.92;
+}
+.adhan-fs-text {
+  width: 100%;
+  max-height: 32vh;
+  overflow-y: auto;
+  margin-top: 4px;
+  padding: 14px 12px;
+  background: var(--hero-t8);
+  border-radius: var(--m3-shape-lg);
+}
+.adhan-fs-phrase {
+  font-family: var(--font-quran);
+  font-size: 1.15rem;
+  line-height: 1.9;
+  color: var(--hero-strong);
+  padding: 3px 0;
+}
+.adhan-fs-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  margin-top: 6px;
+}
+.adhan-fs .btn-soft {
+  background: var(--hero-t16);
+  color: var(--hero-strong);
+}
+
+/* ============================================================
+   شاشة الدخول الأول (Onboarding)
+   ============================================================
+   غلاف ثابت يملأ الشاشة عند أول تشغيل. لا حركة transform على الغلاف
+   نفسه (يبقى مرجع التموضع سليماً ولا يزحزح شيئاً بعد الرسم — قاعدة
+   test:ui)؛ الظهور بالشفافية فقط. */
+.ob-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  background: var(--m3-surface);
+  color: var(--m3-on-surface);
+  animation: obFadeIn var(--m3-dur-medium) var(--m3-ease-standard);
+}
+@keyframes obFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.ob-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 8px;
+  flex: none;
+}
+.ob-dots { display: flex; gap: 8px; }
+.ob-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--m3-shape-full);
+  background: var(--m3-surface-container-highest);
+  transition: width var(--m3-dur-short) var(--m3-ease-standard),
+              background var(--m3-dur-short) var(--m3-ease-standard);
+}
+.ob-dot.active {
+  width: 24px;
+  background: var(--m3-primary);
+}
+.ob-skip-all {
+  background: transparent;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-l);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: var(--m3-shape-sm);
+}
+
+.ob-slides {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.ob-slide {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--m3-dur-medium) var(--m3-ease-standard);
+}
+.ob-slide.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.ob-slide-scroll {
+  padding: 8px 24px 24px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.ob-hero {
+  text-align: center;
+  padding: 24px 0 20px;
+}
+.ob-hero-ic {
+  font-size: 56px;
+  line-height: 1;
+  display: block;
+  margin-bottom: 12px;
+}
+.ob-title {
+  font-size: var(--type-headline-s);
+  font-weight: 700;
+  color: var(--m3-on-surface);
+  margin: 0 0 8px;
+}
+.ob-sub {
+  font-size: var(--type-body-m);
+  color: var(--m3-on-surface-variant);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.ob-or {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: var(--m3-on-surface-variant);
+  font-size: var(--type-label-l);
+}
+.ob-or::before, .ob-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--m3-outline-variant);
+}
+
+.ob-perm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--m3-outline-variant);
+  border-radius: var(--m3-shape-md);
+  background: var(--m3-surface-container-low);
+}
+.ob-perm-label {
+  font-size: var(--type-label-l);
+  color: var(--m3-on-surface-variant);
+}
+.ob-perm.ob-perm-ok {
+  border-color: color-mix(in srgb, var(--m3-primary) 40%, transparent);
+}
+.ob-perm.ob-perm-ok .ob-perm-label { color: var(--m3-primary); }
+
+.ob-status {
+  font-size: var(--type-body-s);
+  color: var(--m3-primary);
+  min-height: 20px;
+  margin: 10px 0 4px;
+  text-align: center;
+}
+
+.ob-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px calc(12px + env(safe-area-inset-bottom, 0px));
+  flex: none;
+  border-top: 1px solid var(--m3-outline-variant);
+}
+.ob-actions .btn { flex: none; }
+.ob-actions .ob-next-btn { flex: 1; }

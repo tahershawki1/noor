@@ -61,12 +61,18 @@ function formatRelativeTime(ts) {
   return `منذ ${arabicCountLabel(days, "يوم", "يومين", "أيام", "يوماً")}`;
 }
 
-$("useGeo").addEventListener("click", () => {
+$("useGeo").addEventListener("click", async () => {
   if (!navigator.geolocation) {
     showToast("المتصفح لا يدعم تحديد الموقع — اكتب المدينة يدوياً");
     return;
   }
   $("prayerLocation").textContent = "جارِ تحديد موقعك...";
+  // في الغلاف الأصلي: صلاحية الموقع لازمة قبل getCurrentPosition وإلا يفشل بصمت
+  const allowed = await ensureLocationPermission();
+  if (!allowed) {
+    $("prayerLocation").textContent = "صلاحية الموقع مرفوضة — فعّلها من إعدادات النظام أو اكتب المدينة";
+    return;
+  }
   navigator.geolocation.getCurrentPosition(
     (pos) => fetchPrayerTimesByCoords(pos.coords.latitude, pos.coords.longitude),
     () => {

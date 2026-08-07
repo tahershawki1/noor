@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-06T01:55:33.917Z",
+  "generatedAt": "2026-08-07T14:27:48.896Z",
   "app": {
-    "version": "1.13.8",
-    "versionCode": 11308,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.13.8/noor-1.13.8.apk",
-    "sizeBytes": 12673318,
-    "sha256": "22fe58b7803656ead7ed06acc595fa8b491b79288f11f0a4f0e8e4db87d7695e",
+    "version": "1.20.2",
+    "versionCode": 12002,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.20.2/noor-1.20.2.apk",
+    "sizeBytes": 15226478,
+    "sha256": "4bc115c77bc48ea1eac98fedb4407483613c6655321f3637138228374ef87c67",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "إصلاح خروج التطبيق بالكامل عند الرجوع في بعض الصفحات (Predictive Back) + إصلاح قائمة تحديد النص عند الضغط المطوّل على الآية",
+    "notes": "إصلاح تحديد الموقع تلقائياً: التطبيق يطلب الآن صلاحية الموقع صراحةً قبل تحديد موقعك (كان يفشل بصمت بلا الصلاحية). وتعرض شاشة الموقع حالة الصلاحية وزر منحها.",
     "mandatory": false
   },
   "web": {
-    "version": "1.15.0.5",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.15.0.5/noor-web-1.15.0.5.zip",
-    "checksum": "b143ae7a9c1fb903b2d09a7d91620fa79343e9339500c4081eec4ad30fed849b",
-    "contentHash": "078611e982ec954b6f277e70b67455cd1c0b0d488333176a3272008bf2c63591"
+    "version": "1.20.2",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.20.2/noor-web-1.20.2.zip",
+    "checksum": "17431350528cd1543fdc6dfad948e8ad570cd223ef4ee622058e4dfefe78e720",
+    "contentHash": "9bb1b31607def5437ba5229e717eb3d4bab56fa72e710fab4f0ab835581f70cf"
   }
 }

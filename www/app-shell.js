@@ -33,6 +33,41 @@ function arabicCountLabel(n, one, two, few, many) {
   return `${n} ${many || one}`;
 }
 
+/* ---------------- صلاحيات أندرويد الأصلية ---------------- */
+/* جسر إلى PermissionsPlugin.java — يفحص/يطلب صلاحيات النظام. في المتصفح
+   plugin = null فيتكفّل المتصفح نفسه بالإذن، ودوال الفحص ترجّع null. */
+const NativePerms = (() => {
+  const cap = window.Capacitor;
+  const isNative = !!(cap && cap.isNativePlatform && cap.isNativePlatform());
+  let plugin = null;
+  if (isNative && cap.registerPlugin) plugin = cap.registerPlugin("NativePerms");
+  else if (isNative && cap.Plugins) plugin = cap.Plugins.NativePerms;
+  return {
+    isAvailable: () => !!plugin,
+    /** حالة كل الصلاحيات: {location, notifications, dnd, exactAlarms} أو null. */
+    check() {
+      return plugin ? plugin.check().catch(() => null) : Promise.resolve(null);
+    },
+    /** يطلب صلاحية الموقع ويعيد الحالة المحدَّثة (أو null في المتصفح). */
+    requestLocation() {
+      return plugin ? plugin.requestLocation().catch(() => null) : Promise.resolve(null);
+    },
+  };
+})();
+
+/**
+ * يضمن صلاحية الموقع قبل نداء navigator.geolocation في الغلاف الأصلي.
+ * بدونها ينتظر getCurrentPosition بلا نتيجة ثم يفشل بصمت. في المتصفح لا لزوم
+ * لها (المتصفح يعرض حواره) فترجّع true. تعيد true إن صارت الصلاحية ممنوحة.
+ */
+async function ensureLocationPermission() {
+  if (!NativePerms.isAvailable()) return true;
+  const st = await NativePerms.check();
+  if (st && st.location) return true;
+  const after = await NativePerms.requestLocation();
+  return !!(after && after.location);
+}
+
 /* ---------------- الوضع النهاري/الليلي ---------------- */
 function applyTheme(theme) {
   document.documentElement.setAttribute("data-theme", theme);

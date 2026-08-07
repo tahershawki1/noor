@@ -68,6 +68,19 @@ public final class PrayerTimesCalculator {
         METHODS.put(8, new Method(12.0, null, 12.0, null));     // مجلس الإفتاء الأوروبي
         METHODS.put(10, new Method(18.2, null, 18.2, null));    // دبي
         METHODS.put(15, new Method(18.0, null, 17.0, null));    // تركيا (ديانت)
+        // طرق إضافية — الوطن العربي والعالم (توأم prayer-times.js).
+        METHODS.put(9, new Method(18.0, null, 17.5, null));     // الكويت
+        METHODS.put(11, new Method(18.0, null, null, 90));      // قطر
+        METHODS.put(12, new Method(12.0, null, 12.0, null));    // UOIF فرنسا
+        METHODS.put(13, new Method(18.0, null, 18.0, null));    // تونس
+        METHODS.put(14, new Method(18.0, null, 17.0, null));    // الجزائر
+        METHODS.put(16, new Method(19.0, null, 17.0, null));    // المغرب
+        METHODS.put(17, new Method(20.0, null, 18.0, null));    // ماليزيا JAKIM
+        METHODS.put(18, new Method(20.0, null, 18.0, null));    // إندونيسيا KEMENAG
+        METHODS.put(19, new Method(20.0, null, 18.0, null));    // سنغافورة MUIS
+        METHODS.put(20, new Method(16.0, null, 15.0, null));    // روسيا
+        METHODS.put(21, new Method(18.0, null, 18.0, null));    // الأردن
+        METHODS.put(22, new Method(19.5, null, null, 90));      // منطقة الخليج
     }
 
     // ==================== الواجهة العامة ====================

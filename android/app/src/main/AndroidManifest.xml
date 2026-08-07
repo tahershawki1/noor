@@ -49,6 +49,13 @@
     <!-- ==================== 5) الإشعارات والاهتزاز ==================== -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- الوضع الصامت بعد الأذان: التحكّم في «عدم الإزعاج» (يمنحه المستخدم من الإعدادات) -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <!--
+        شاشة الأذان الكاملة فوق شاشة القفل عند دخول الوقت (كتطبيقات المنبّه).
+        تُمنح تلقائياً للتطبيقات ذات فئة المنبّه/الاتصال، وهذا حالنا حرفياً.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- ==================== 6) الميزات الإضافية والبصمة ==================== -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
@@ -132,6 +139,23 @@
             </intent-filter>
 
         </activity>
+
+        <!--
+            شاشة الأذان الكاملة — تظهر فوق شاشة القفل وفوق أي تطبيق آخر عند
+            دخول وقت الصلاة، تُطلق من منبّه الأذان (fullScreenIntent + إطلاق
+            مباشر). showWhenLocked/turnScreenOn لإيقاظ الشاشة فوق القفل،
+            excludeFromRecents كي لا تبقى في قائمة المهام، singleInstance كي
+            لا تتكرّر عند إطلاقها من المسارين معاً.
+        -->
+        <activity
+            android:name=".adhan.AdhanAlarmActivity"
+            android:theme="@style/AppTheme.Adhan"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density" />
 
         <!--
             خدمة الزر العائم (System Overlay).
