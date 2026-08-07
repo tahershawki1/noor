@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-07T14:02:04.748Z",
+  "generatedAt": "2026-08-07T14:27:48.896Z",
   "app": {
-    "version": "1.20.1",
-    "versionCode": 12001,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.20.1/noor-1.20.1.apk",
-    "sizeBytes": 15221206,
-    "sha256": "a75d8ce014c2d0e8384d2c90c4528b2e8f0121d609d4e1eb91689e09ab6db723",
+    "version": "1.20.2",
+    "versionCode": 12002,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.20.2/noor-1.20.2.apk",
+    "sizeBytes": 15226478,
+    "sha256": "4bc115c77bc48ea1eac98fedb4407483613c6655321f3637138228374ef87c67",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "شاشة الدخول الأول (Onboarding) لأول تشغيل:\n• تحديد الموقع وطريقة حساب المواقيت — أُضيفت ١٢ طريقة جديدة (الكويت، قطر، الأردن، تونس، الجزائر، المغرب، ماليزيا، إندونيسيا، سنغافورة، روسيا، UOIF فرنسا، منطقة الخليج).\n• ضبط الأذان: المؤذّن، التنبيه المسبق، والوضع الصامت للجهاز بعد الأذان (عدم الإزعاج تلقائياً لمدة تختارها).\n• إضافة ختمة باسم مخصّص مع اقتراحات مشجّعة.",
+    "notes": "إصلاح تحديد الموقع تلقائياً: التطبيق يطلب الآن صلاحية الموقع صراحةً قبل تحديد موقعك (كان يفشل بصمت بلا الصلاحية). وتعرض شاشة الموقع حالة الصلاحية وزر منحها.",
     "mandatory": false
   },
   "web": {
-    "version": "1.20.1.1",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.20.1.1/noor-web-1.20.1.1.zip",
-    "checksum": "380198ccba690074b4c7c8c08864b8d3ea0ebca08103c92294b47d39e9e2cd88",
+    "version": "1.20.2",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.20.2/noor-web-1.20.2.zip",
+    "checksum": "17431350528cd1543fdc6dfad948e8ad570cd223ef4ee622058e4dfefe78e720",
     "contentHash": "9bb1b31607def5437ba5229e717eb3d4bab56fa72e710fab4f0ab835581f70cf"
   }
 }
