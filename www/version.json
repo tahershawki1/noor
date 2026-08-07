@@ -1,20 +1,20 @@
 {
   "_comment": "تكتبه الـ CI عند كل إصدار (release.yml) — لا تعدّله يدوياً.",
-  "generatedAt": "2026-08-07T01:34:40.069Z",
+  "generatedAt": "2026-08-07T01:41:50.369Z",
   "app": {
-    "version": "1.18.1",
-    "versionCode": 11801,
-    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.18.1/noor-1.18.1.apk",
-    "sizeBytes": 15210125,
-    "sha256": "693da9b8ec0e3d60d0125d6aa5f2f16f52adbaf1be2ec9b904616c481f0cc85a",
+    "version": "1.18.3",
+    "versionCode": 11803,
+    "apkUrl": "https://github.com/tahershawki1/noor/releases/download/v1.18.3/noor-1.18.3.apk",
+    "sizeBytes": 15212337,
+    "sha256": "fafa1c43710aa951c3893e13e5ba3bba901186af3e7c4b31deb122d5c4350c8f",
     "sha256Cert": "3574f575d1b4e4b5ac2bed42f0ef7fb97d8279b9c18c84a7259b45f1563ca262",
-    "notes": "تحديث 1.18.1",
+    "notes": "تحديث 1.18.3",
     "mandatory": false
   },
   "web": {
-    "version": "1.18.2.2",
-    "url": "https://github.com/tahershawki1/noor/releases/download/web-v1.18.2.2/noor-web-1.18.2.2.zip",
-    "checksum": "c051c6c80ebcce780bd02391ef3437d9ecdaa49305b62e1579b1da74ce1b4fbc",
+    "version": "1.18.3",
+    "url": "https://github.com/tahershawki1/noor/releases/download/v1.18.3/noor-web-1.18.3.zip",
+    "checksum": "1c03b3a38d415b127c8c21f8c343e9f943334b9c9d04e69c5a4cf6b9cd761520",
     "contentHash": "cfa5663e5487dbbb79cf42ec3b3e94dde5631ddc35744e672857998667c4c02a"
   }
 }
